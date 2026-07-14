@@ -3,6 +3,7 @@ import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../data/repositories/auth_repository_impl.dart';
+import '../data/repositories/feedback_repository_impl.dart';
 import '../data/repositories/mock_auth_repository.dart';
 import '../data/repositories/mock_repositories.dart';
 import '../data/repositories/notifications_repository_impl.dart';
@@ -17,6 +18,7 @@ import '../data/services/secure_storage_service.dart';
 import '../data/services/settings_service.dart';
 import '../data/services/sync_config_service.dart';
 import '../domain/repositories/auth_repository.dart';
+import '../domain/repositories/feedback_repository.dart';
 import '../domain/repositories/notifications_repository.dart';
 import '../domain/repositories/orders_repository.dart';
 import '../domain/repositories/photo_repository.dart';
@@ -121,6 +123,14 @@ Future<void> setupDependencies(AppConfig config) async {
       config.useMock
           ? MockSyncRepository.new
           : () => SyncRepositoryImpl(dio: getIt<Dio>()),
+    );
+  }
+
+  if (!getIt.isRegistered<FeedbackRepository>()) {
+    getIt.registerLazySingleton<FeedbackRepository>(
+      config.useMock
+          ? MockFeedbackRepository.new
+          : () => FeedbackRepositoryImpl(dio: getIt<Dio>()),
     );
   }
 
