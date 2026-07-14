@@ -17,6 +17,7 @@ class FeedbackScreen extends StatefulWidget {
 class _FeedbackScreenState extends State<FeedbackScreen> {
   late final FeedbackViewModel _viewModel;
   final _controller = TextEditingController();
+  bool _didShowSuccessDialog = false;
 
   @override
   void initState() {
@@ -34,9 +35,11 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   }
 
   void _onChanged() {
-    if (_viewModel.sent && mounted) {
+    if (!_didShowSuccessDialog && _viewModel.sent && mounted) {
+      _didShowSuccessDialog = true;
       showDialog<void>(
         context: context,
+        barrierDismissible: false,
         builder: (ctx) => AlertDialog(
           title: const Text('Спасибо'),
           content: const Text('Ваше сообщение отправлено.'),
@@ -59,55 +62,50 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Обратная связь')),
-      body: ListenableBuilder(
-        listenable: _viewModel,
-        builder: (context, _) {
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Опишите замечание или предложение:',
-                  style: AppTextStyles.bodyMedium,
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _controller,
-                  maxLines: 5,
-                  decoration: const InputDecoration(
-                    hintText: 'Ваше сообщение',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                if (_viewModel.errorMessage != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    _viewModel.errorMessage!,
-                    style: AppTextStyles.caption
-                        .copyWith(color: BrandColors.error),
-                  ),
-                ],
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _viewModel.isSending
-                        ? null
-                        : () => _viewModel.send(_controller.text),
-                    child: _viewModel.isSending
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Отправить'),
-                  ),
-                ),
-              ],
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Опишите замечание или предложение:',
+              style: AppTextStyles.bodyMedium,
             ),
-          );
-        },
+            const SizedBox(height: 12),
+            TextField(
+              controller: _controller,
+              maxLines: 5,
+              decoration: const InputDecoration(
+                hintText: 'Ваше сообщение',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            if (_viewModel.errorMessage != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _viewModel.errorMessage!,
+                style: AppTextStyles.caption
+                    .copyWith(color: BrandColors.error),
+              ),
+            ],
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _viewModel.isSending
+                    ? null
+                    : () => _viewModel.send(_controller.text),
+                child: _viewModel.isSending
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Отправить'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
