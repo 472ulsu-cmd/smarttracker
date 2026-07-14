@@ -102,37 +102,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await launchUrl(uri);
     }
   }
+}
 
-  Future<void> _showAvatarSource(
-    BuildContext context,
-    void Function(String path) onPick,
-  ) async {
-    final picker = ImagePicker();
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Камера'),
-              onTap: () => Navigator.pop(ctx, ImageSource.camera),
-            ),
-            ListTile(
-              leading: const Icon(Icons.image_outlined),
-              title: const Text('Галерея'),
-              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
-            ),
-          ],
-        ),
+Future<void> _showAvatarSource(
+  BuildContext context,
+  void Function(String path) onPick,
+) async {
+  final picker = ImagePicker();
+  final source = await showModalBottomSheet<ImageSource>(
+    context: context,
+    builder: (ctx) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.camera_alt_outlined),
+            title: const Text('Камера'),
+            onTap: () => Navigator.pop(ctx, ImageSource.camera),
+          ),
+          ListTile(
+            leading: const Icon(Icons.image_outlined),
+            title: const Text('Галерея'),
+            onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+          ),
+        ],
       ),
-    );
-    if (source == null) return;
-    final xFile = await picker.pickImage(source: source, imageQuality: 80);
-    if (xFile == null) return;
-    onPick(xFile.path);
-  }
+    ),
+  );
+  if (source == null) return;
+  final xFile = await picker.pickImage(source: source, imageQuality: 80);
+  if (xFile == null) return;
+  onPick(xFile.path);
 }
 
 class _AvatarHeader extends StatelessWidget {
