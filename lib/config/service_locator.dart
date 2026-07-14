@@ -12,6 +12,7 @@ import '../data/repositories/profile_repository_impl.dart';
 import '../data/repositories/sync_repository_impl.dart';
 import '../data/services/dio_provider.dart';
 import '../data/services/local_photo_store.dart';
+import '../data/services/pending_refresh_store.dart';
 import '../data/services/secure_storage_service.dart';
 import '../data/services/settings_service.dart';
 import '../data/services/sync_config_service.dart';
@@ -135,6 +136,17 @@ Future<void> setupDependencies(AppConfig config) async {
   }
   await getIt<SyncConfigService>().init();
 
+  if (!getIt.isRegistered<PendingRefreshStore>()) {
+    getIt.registerLazySingleton<PendingRefreshStore>(
+      () => PendingRefreshStore.instance,
+    );
+  }
+
+  if (!getIt.isRegistered<LocalPhotoStore>()) {
+    getIt.registerLazySingleton<LocalPhotoStore>(LocalPhotoStore.new);
+  }
+  await getIt<LocalPhotoStore>().init();
+
   // --- Шины обновления списков (singleton) ---
   if (!getIt.isRegistered<OrdersRefreshBus>()) {
     getIt.registerLazySingleton<OrdersRefreshBus>(OrdersRefreshBus.new);
@@ -149,7 +161,11 @@ Future<void> setupDependencies(AppConfig config) async {
   // (роутер, MainShell, экраны входа/профиля слушают один экземпляр).
   if (!getIt.isRegistered<AuthViewModel>()) {
     getIt.registerLazySingleton<AuthViewModel>(
-      () => AuthViewModel(getIt<AuthRepository>()),
+      () => AuthViewModel(
+        getIt<AuthRepository>(),
+        getIt<SyncRepository>(),
+        getIt<SyncConfigService>(),
+      ),
     );
   }
 
