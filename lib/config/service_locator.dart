@@ -207,6 +207,7 @@ Future<void> setupDependencies(AppConfig config) async {
       orderId,
       getIt<PhotoRepository>(),
       getIt<OrdersRepository>(),
+      getIt<LocalPhotoStore>(),
     ),
   );
   getIt.registerFactory<ProfileViewModel>(

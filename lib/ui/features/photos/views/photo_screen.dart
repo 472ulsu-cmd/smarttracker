@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../config/service_locator.dart';
+import '../../../../data/services/local_photo_store.dart';
 import '../../../../domain/models/order_photo.dart';
 import '../../../../domain/repositories/orders_repository.dart';
 import '../../../../domain/repositories/photo_repository.dart';
@@ -32,6 +33,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
       widget.orderId,
       getIt<PhotoRepository>(),
       getIt<OrdersRepository>(),
+      getIt<LocalPhotoStore>(),
     );
     _viewModel.addListener(_onChanged);
     _viewModel.load();
