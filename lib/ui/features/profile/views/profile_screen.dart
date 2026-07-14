@@ -5,7 +5,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../config/service_locator.dart';
 import '../../../../domain/models/user.dart';
-import '../../../../domain/repositories/profile_repository.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/widgets/status_chip.dart';
@@ -26,7 +25,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _viewModel = ProfileViewModel(getIt<ProfileRepository>());
+    _viewModel = getIt<ProfileViewModel>();
     _viewModel.addListener(_onChanged);
     _viewModel.load();
   }
