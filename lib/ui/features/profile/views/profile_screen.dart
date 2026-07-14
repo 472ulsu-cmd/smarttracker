@@ -7,7 +7,7 @@ import '../../../../config/service_locator.dart';
 import '../../../../domain/models/user.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
-import '../../../core/widgets/status_chip.dart';
+import '../../../core/widgets/user_avatar.dart';
 import '../../../features/auth/view_models/auth_view_model.dart';
 import '../view_models/profile_view_model.dart';
 
