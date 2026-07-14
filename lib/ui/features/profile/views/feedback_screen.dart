@@ -62,50 +62,49 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Обратная связь')),
-      body: Padding(
+      resizeToAvoidBottomInset: true,
+      body: ListView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        children: [
+          Text(
+            'Опишите замечание или предложение:',
+            style: AppTextStyles.bodyMedium,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _controller,
+            maxLines: 5,
+            decoration: const InputDecoration(
+              hintText: 'Ваше сообщение',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          if (_viewModel.errorMessage != null) ...[
+            const SizedBox(height: 8),
             Text(
-              'Опишите замечание или предложение:',
-              style: AppTextStyles.bodyMedium,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _controller,
-              maxLines: 5,
-              decoration: const InputDecoration(
-                hintText: 'Ваше сообщение',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            if (_viewModel.errorMessage != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                _viewModel.errorMessage!,
-                style: AppTextStyles.caption
-                    .copyWith(color: BrandColors.error),
-              ),
-            ],
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _viewModel.isSending
-                    ? null
-                    : () => _viewModel.send(_controller.text),
-                child: _viewModel.isSending
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Отправить'),
-              ),
+              _viewModel.errorMessage!,
+              style: AppTextStyles.caption
+                  .copyWith(color: BrandColors.error),
             ),
           ],
-        ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              onPressed: _viewModel.isSending
+                  ? null
+                  : () => _viewModel.send(_controller.text),
+              child: _viewModel.isSending
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Отправить'),
+            ),
+          ),
+        ],
       ),
     );
   }
