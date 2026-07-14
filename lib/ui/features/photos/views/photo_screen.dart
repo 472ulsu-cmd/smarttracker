@@ -6,6 +6,7 @@ import '../../../../data/services/local_photo_store.dart';
 import '../../../../domain/models/order_photo.dart';
 import '../../../../domain/repositories/orders_repository.dart';
 import '../../../../domain/repositories/photo_repository.dart';
+
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../view_models/photo_view_model.dart';
@@ -101,6 +102,36 @@ class _PhotoGroupCard extends StatelessWidget {
   final OrderPhotoGroup group;
   final PhotoViewModel viewModel;
 
+  Future<void> _onResend(BuildContext context, OrderPhoto photo) async {
+    final cached = viewModel.cachedPath(photo.id);
+    if (cached != null) {
+      await viewModel.resend(photo);
+      return;
+    }
+    final source = await showModalBottomSheet<ImageSourceOption>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('Камера'),
+              onTap: () => Navigator.pop(ctx, ImageSourceOption.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.image_outlined),
+              title: const Text('Галерея'),
+              onTap: () => Navigator.pop(ctx, ImageSourceOption.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+    await viewModel.resend(photo, source: source);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -138,7 +169,12 @@ class _PhotoGroupCard extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final photo in group.photos) _PhotoThumb(photo: photo),
+                for (final photo in group.photos)
+                  _PhotoThumb(
+                    photo: photo,
+                    onResend: () => _onResend(context, photo),
+                    viewModel: viewModel,
+                  ),
               ],
             ),
           const SizedBox(height: 12),
@@ -182,40 +218,112 @@ class _PhotoGroupCard extends StatelessWidget {
 }
 
 class _PhotoThumb extends StatelessWidget {
-  const _PhotoThumb({required this.photo});
+  const _PhotoThumb({
+    required this.photo,
+    required this.onResend,
+    required this.viewModel,
+  });
 
   final OrderPhoto photo;
+  final VoidCallback onResend;
+  final PhotoViewModel viewModel;
+
+  Color _statusColor(OrderPhotoStatus s) {
+    switch (s) {
+      case OrderPhotoStatus.approved:
+        return BrandColors.greenWeb;
+      case OrderPhotoStatus.rejected:
+        return BrandColors.error;
+      case OrderPhotoStatus.pending:
+        return BrandColors.grayMid;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: photo.url.isEmpty
-          ? Container(
-              width: 96,
-              height: 96,
-              color: BrandColors.grayLighter,
-              child: const Icon(Icons.broken_image_outlined,
-                  color: BrandColors.grayMid),
-            )
-          : CachedNetworkImage(
-              imageUrl: photo.url,
-              width: 96,
-              height: 96,
-              fit: BoxFit.cover,
-              placeholder: (_, __) => Container(
-                width: 96,
-                height: 96,
-                color: BrandColors.grayLighter,
-              ),
-              errorWidget: (_, __, ___) => Container(
-                width: 96,
-                height: 96,
-                color: BrandColors.grayLighter,
-                child: const Icon(Icons.broken_image_outlined,
-                    color: BrandColors.grayMid),
+    final reason = photo.rejectionReason.isNotEmpty
+        ? photo.rejectionReason
+        : viewModel.rejectionReason(photo.id) ?? '';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: photo.url.isEmpty
+                  ? Container(
+                      width: 96,
+                      height: 96,
+                      color: BrandColors.grayLighter,
+                      child: const Icon(Icons.broken_image_outlined,
+                          color: BrandColors.grayMid),
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: photo.url,
+                      width: 96,
+                      height: 96,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => Container(
+                        width: 96,
+                        height: 96,
+                        color: BrandColors.grayLighter,
+                      ),
+                      errorWidget: (_, __, ___) => Container(
+                        width: 96,
+                        height: 96,
+                        color: BrandColors.grayLighter,
+                        child: const Icon(Icons.broken_image_outlined,
+                            color: BrandColors.grayMid),
+                      ),
+                    ),
+            ),
+            Positioned(
+              top: 2,
+              right: 2,
+              child: GestureDetector(
+                onTap: onResend,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(
+                    color: BrandColors.graphite,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.refresh,
+                    size: 14,
+                    color: BrandColors.white,
+                  ),
+                ),
               ),
             ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: _statusColor(photo.status).withOpacity(0.12),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(
+            photo.status.label,
+            style: AppTextStyles.caption
+                .copyWith(color: _statusColor(photo.status)),
+          ),
+        ),
+        if (photo.status == OrderPhotoStatus.rejected && reason.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              reason,
+              style: AppTextStyles.caption.copyWith(color: BrandColors.error),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+      ],
     );
   }
 }
