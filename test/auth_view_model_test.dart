@@ -1,12 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:smarttracker/data/repositories/mock_repositories.dart';
 import 'package:smarttracker/data/services/sync_config_service.dart';
 import 'package:smarttracker/domain/models/app_exception.dart';
 import 'package:smarttracker/domain/models/app_session.dart';
-import 'package:smarttracker/domain/models/geo_point.dart';
-import 'package:smarttracker/domain/models/sync_config.dart';
 import 'package:smarttracker/domain/models/user.dart';
 import 'package:smarttracker/domain/repositories/auth_repository.dart';
-import 'package:smarttracker/domain/repositories/sync_repository.dart';
 import 'package:smarttracker/ui/features/auth/view_models/auth_view_model.dart';
 
 /// Тестовый mock [AuthRepository] с управляемым поведением.
@@ -82,32 +80,8 @@ class _FakeAuthRepository implements AuthRepository {
       this.login(login, password);
 }
 
-class _FakeSyncRepository implements SyncRepository {
-  @override
-  Future<void> sendCoordinates(List<GeoPoint> points) async {}
-
-  @override
-  Future<SyncConfig> fetchSyncConfig() async =>
-      const SyncConfig(coordinatesPeriodSec: 60, syncPeriodSec: 900);
-}
-
-class _FakeSyncConfigService implements SyncConfigService {
-  SyncConfig? lastSaved;
-
-  @override
-  Future<void> init() async {}
-
-  @override
-  Future<void> save(SyncConfig config) async {
-    lastSaved = config;
-  }
-
-  @override
-  SyncConfig load() => lastSaved ?? const SyncConfig();
-}
-
 AuthViewModel _createViewModel(_FakeAuthRepository repo) =>
-    AuthViewModel(repo, _FakeSyncRepository(), _FakeSyncConfigService());
+    AuthViewModel(repo, MockSyncRepository(), SyncConfigService());
 
 void main() {
   group('User domain model', () {
