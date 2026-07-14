@@ -120,11 +120,6 @@ class MockPhotoRepository implements PhotoRepository {
   }
 
   @override
-  Future<void> deletePhoto(int orderId, int routePhotoId) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-  }
-
-  @override
   Future<String?> pickImage(ImageSourceOption source) async => null;
 }
 
