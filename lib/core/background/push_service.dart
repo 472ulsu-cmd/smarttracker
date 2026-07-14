@@ -1,21 +1,23 @@
 import 'dart:async';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../config/refresh_bus.dart';
 import '../../config/service_locator.dart';
+import '../../data/services/local_photo_store.dart';
+import '../../data/services/pending_refresh_store.dart';
 import '../../data/services/settings_service.dart';
 import '../../domain/models/order_photo.dart';
 import '../../domain/repositories/notifications_repository.dart';
 import '../../ui/features/notifications/view_models/unread_badge_view_model.dart';
 
-/// Парсер data-only FCM-сообщений в структуру {title, body, order_id, route_photo_id}.
+/// Парсер data-only FCM-сообщений в структуру {title, body, order_id,
+/// route_photo_id, route_photo_type_id}.
 class NotificationMessageParser {
   NotificationMessageParser._();
 
-  /// Возвращает {title, body, order_id, route_photo_id} или null, если данных недостаточно.
+  /// Возвращает ParsedNotification или null, если данных недостаточно.
   static ParsedNotification? parse(RemoteMessage message) {
     final data = message.data;
     if (data.isEmpty && message.notification == null) return null;
@@ -26,12 +28,14 @@ class NotificationMessageParser {
     final body = message.notification?.body ?? data['message'] as String? ?? '';
     final orderId = int.tryParse('${data['order_id'] ?? ''}');
     final routePhotoId = int.tryParse('${data['route_photo_id'] ?? ''}');
+    final routePhotoTypeId = int.tryParse('${data['route_photo_type_id'] ?? ''}');
 
     return ParsedNotification(
       title: title,
       body: body,
       orderId: orderId,
       routePhotoId: routePhotoId,
+      routePhotoTypeId: routePhotoTypeId,
     );
   }
 }
@@ -42,11 +46,13 @@ class ParsedNotification {
     required this.body,
     this.orderId,
     this.routePhotoId,
+    this.routePhotoTypeId,
   });
   final String title;
   final String body;
   final int? orderId;
   final int? routePhotoId;
+  final int? routePhotoTypeId;
 }
 
 /// Парсер решения по фото из текста push-уведомления.
@@ -147,10 +153,12 @@ class PushService {
     // (независимо от того, показано ли локальное уведомление).
     _refresh();
     if (parsed?.routePhotoId != null) {
-      final status = PhotoDecisionParser.parse(parsed!.body);
-      if (status != null) {
-        debugPrint('Photo ${parsed.routePhotoId} decision: ${status.label}');
-        _refresh();
+      final decision = PhotoDecisionParser.parse(parsed!.body);
+      if (decision == OrderPhotoStatus.rejected) {
+        getIt<LocalPhotoStore>().saveRejectionReason(
+          parsed.routePhotoId!,
+          PhotoDecisionParser.extractReason(parsed.body),
+        );
       }
     }
     if (!_settings.pushEnabled) return;
@@ -201,14 +209,49 @@ class PushService {
   }
 }
 
-/// Топ-level обработчик фоновых FCM-сообщений (обязательно для Android).
+/// Top-level обработчик фоновых FCM-сообщений (обязательно для Android).
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  final data = message.data;
-  final routePhotoId = int.tryParse('${data['route_photo_id'] ?? ''}');
-  final body = message.notification?.body ?? data['message'] as String? ?? '';
-  final status = PhotoDecisionParser.parse(body);
-  if (routePhotoId != null && status != null) {
-    debugPrint('Background photo $routePhotoId decision: ${status.label}');
+  final parsed = NotificationMessageParser.parse(message);
+  if (parsed == null) return;
+
+  // Показываем системное уведомление даже для data-only сообщений.
+  const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const iosInit = DarwinInitializationSettings();
+  final local = FlutterLocalNotificationsPlugin();
+  await local.initialize(
+    const InitializationSettings(android: androidInit, iOS: iosInit),
+  );
+  await local.show(
+    parsed.orderId ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    parsed.title,
+    parsed.body,
+    const NotificationDetails(
+      android: AndroidNotificationDetails(
+        'smarttracker_notifications',
+        'Уведомления',
+        importance: Importance.high,
+        priority: Priority.high,
+        icon: '@mipmap/ic_launcher',
+      ),
+      iOS: DarwinNotificationDetails(),
+    ),
+    payload: parsed.orderId?.toString(),
+  );
+
+  // Сохраняем причину отклонения фото, если есть.
+  if (parsed.routePhotoId != null) {
+    final decision = PhotoDecisionParser.parse(parsed.body);
+    if (decision == OrderPhotoStatus.rejected) {
+      await LocalPhotoStore.instance.init();
+      await LocalPhotoStore.instance.saveRejectionReason(
+        parsed.routePhotoId!,
+        PhotoDecisionParser.extractReason(parsed.body),
+      );
+    }
   }
+
+  // Ставим флаги для обновления списков при возврате в foreground.
+  await PendingRefreshStore.instance.setOrdersNeedRefresh();
+  await PendingRefreshStore.instance.setNotificationsNeedRefresh();
 }

@@ -11,6 +11,7 @@ import '../data/repositories/photo_repository_impl.dart';
 import '../data/repositories/profile_repository_impl.dart';
 import '../data/repositories/sync_repository_impl.dart';
 import '../data/services/dio_provider.dart';
+import '../data/services/local_photo_store.dart';
 import '../data/services/secure_storage_service.dart';
 import '../data/services/settings_service.dart';
 import '../data/services/sync_config_service.dart';
@@ -49,6 +50,10 @@ Future<void> setupDependencies(AppConfig config) async {
     getIt.registerLazySingleton<SecureStorageService>(
       SecureStorageService.new,
     );
+  }
+  if (!getIt.isRegistered<LocalPhotoStore>()) {
+    getIt.registerSingleton<LocalPhotoStore>(LocalPhotoStore.instance);
+    await getIt<LocalPhotoStore>().init();
   }
 
   // --- Dio ---

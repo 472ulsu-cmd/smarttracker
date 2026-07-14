@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LocalPhotoStore {
   LocalPhotoStore();
 
+  static final LocalPhotoStore instance = LocalPhotoStore();
+
   SharedPreferences? _prefs;
   static const _pathPrefix = 'local_photo_path_';
   static const _reasonPrefix = 'local_photo_reason_';
