@@ -26,6 +26,7 @@ class PhotoScreen extends StatefulWidget {
 
 class _PhotoScreenState extends State<PhotoScreen> {
   late final PhotoViewModel _viewModel;
+  String? _lastErrorMessage;
 
   @override
   void initState() {
@@ -48,7 +49,27 @@ class _PhotoScreenState extends State<PhotoScreen> {
   }
 
   void _onChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    setState(() {});
+
+    final error = _viewModel.errorMessage;
+    if (error != null &&
+        error != _lastErrorMessage &&
+        _viewModel.groups.isNotEmpty) {
+      _lastErrorMessage = error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Повторить',
+            onPressed: _viewModel.load,
+          ),
+        ),
+      );
+    } else if (error == null) {
+      _lastErrorMessage = null;
+    }
   }
 
   @override
@@ -64,6 +85,12 @@ class _PhotoScreenState extends State<PhotoScreen> {
           if (_viewModel.groups.isEmpty) {
             return _Center(
               text: _viewModel.errorMessage ?? 'Нет фото для этой заявки',
+              action: _viewModel.errorMessage != null
+                  ? _CenterAction(
+                      label: 'Повторить',
+                      onPressed: _viewModel.load,
+                    )
+                  : null,
             );
           }
           return Stack(
@@ -85,7 +112,9 @@ class _PhotoScreenState extends State<PhotoScreen> {
                   left: 0,
                   right: 0,
                   child: Center(
-                    child: _UploadingBadge(),
+                    child: SafeArea(
+                      child: _UploadingBadge(),
+                    ),
                   ),
                 ),
             ],
@@ -203,18 +232,10 @@ class _PhotoGroupCard extends StatelessWidget {
               ),
             ],
           ),
-          if (viewModel.errorMessage != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(viewModel.errorMessage!,
-                  style: AppTextStyles.caption
-                      .copyWith(color: BrandColors.error)),
-            ),
         ],
       ),
     );
   }
-
 }
 
 class _PhotoThumb extends StatelessWidget {
@@ -235,7 +256,7 @@ class _PhotoThumb extends StatelessWidget {
       case OrderPhotoStatus.rejected:
         return BrandColors.error;
       case OrderPhotoStatus.pending:
-        return BrandColors.grayMid;
+        return BrandColors.grayDark;
     }
   }
 
@@ -280,20 +301,26 @@ class _PhotoThumb extends StatelessWidget {
                     ),
             ),
             Positioned(
-              top: 2,
-              right: 2,
-              child: GestureDetector(
-                onTap: onResend,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(
-                    color: BrandColors.graphite,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.refresh,
-                    size: 14,
-                    color: BrandColors.white,
+              top: 0,
+              right: 0,
+              child: Semantics(
+                label: 'Переотправить фото',
+                child: Material(
+                  type: MaterialType.circle,
+                  color: BrandColors.graphite,
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: onResend,
+                    customBorder: const CircleBorder(),
+                    child: const SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Icon(
+                        Icons.refresh,
+                        size: 18,
+                        color: BrandColors.white,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -321,6 +348,7 @@ class _PhotoThumb extends StatelessWidget {
               style: AppTextStyles.caption.copyWith(color: BrandColors.error),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
+              softWrap: true,
             ),
           ),
       ],
@@ -354,19 +382,38 @@ class _UploadingBadge extends StatelessWidget {
   }
 }
 
+class _CenterAction {
+  const _CenterAction({required this.label, required this.onPressed});
+  final String label;
+  final VoidCallback onPressed;
+}
+
 class _Center extends StatelessWidget {
-  const _Center({required this.text});
+  const _Center({required this.text, this.action});
   final String text;
+  final _CenterAction? action;
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Text(text,
-            textAlign: TextAlign.center,
-            style:
-                AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayMid)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(text,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyMedium
+                    .copyWith(color: BrandColors.grayDark)),
+            if (action != null) ...[
+              const SizedBox(height: 16),
+              OutlinedButton(
+                onPressed: action!.onPressed,
+                child: Text(action!.label),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
