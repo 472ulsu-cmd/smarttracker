@@ -8,7 +8,7 @@ import '../../../../domain/repositories/photo_repository.dart';
 
 /// ViewModel экрана фото заявки.
 ///
-/// Загружает фото из деталей заявки и обеспечивает их загрузку.
+/// Загружает фото из деталей заявки, обеспечивает загрузку и переотправку.
 /// Экран фото доступен только для заявок, принятых в работу.
 class PhotoViewModel extends ChangeNotifier {
   PhotoViewModel(
@@ -35,10 +35,23 @@ class PhotoViewModel extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  void _notify() {
+    if (!_disposed) notifyListeners();
+  }
+
   Future<void> load() async {
+    if (_disposed || _isLoading) return;
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _notify();
 
     try {
       final detail = await _ordersRepo.fetchOrderDetail(orderId);
@@ -46,43 +59,36 @@ class PhotoViewModel extends ChangeNotifier {
     } on AppException catch (e) {
       _errorMessage = e.message;
     } catch (_) {
-      _errorMessage =
-          'Не удалось обновить список фото. Проверьте подключение и попробуйте снова.';
+      _errorMessage = 'Не удалось загрузить фото.';
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _notify();
     }
   }
 
   /// Загрузить фото для группы по типу (камера/галерея).
   Future<bool> uploadForGroup(OrderPhotoGroup group, ImageSourceOption source) async {
+    if (_disposed || _isUploading) return false;
     _isUploading = true;
     _errorMessage = null;
-    notifyListeners();
+    _notify();
 
     try {
       final filePath = await _photoRepo.pickImage(source);
-      if (filePath == null) {
-        _isUploading = false;
-        notifyListeners();
-        return false;
-      }
+      if (filePath == null) return false;
       final newId = await _photoRepo.uploadPhotoByType(orderId, group.id, filePath);
       await _localPhotoStore.savePath(newId, filePath);
       await load(); // обновляем список
       return true;
     } on AppException catch (e) {
       _errorMessage = e.message;
-      notifyListeners();
       return false;
     } catch (_) {
-      _errorMessage =
-          'Не удалось отправить фото. Проверьте подключение и попробуйте снова.';
-      notifyListeners();
+      _errorMessage = 'Не удалось загрузить фото.';
       return false;
     } finally {
       _isUploading = false;
-      notifyListeners();
+      _notify();
     }
   }
 
@@ -100,35 +106,31 @@ class PhotoViewModel extends ChangeNotifier {
   /// при переданном [source], предлагает выбрать новое фото.
   /// Возвращает `true`, если переотправка прошла успешно.
   Future<bool> resend(OrderPhoto photo, {ImageSourceOption? source}) async {
+    if (_disposed || _isUploading) return false;
     _isUploading = true;
     _errorMessage = null;
-    notifyListeners();
+    _notify();
 
     try {
       String? filePath = _localPhotoStore.getExistingPath(photo.id);
       if (filePath == null && source != null) {
         filePath = await _photoRepo.pickImage(source);
       }
-      if (filePath == null) {
-        _isUploading = false;
-        notifyListeners();
-        return false;
-      }
+      if (filePath == null) return false;
       await _photoRepo.uploadPhoto(orderId, photo.id, filePath);
       await _localPhotoStore.savePath(photo.id, filePath);
       await load();
       return true;
     } on AppException catch (e) {
       _errorMessage = e.message;
-      notifyListeners();
       return false;
     } catch (_) {
-      _errorMessage = 'Не удалось переотправить фото.';
-      notifyListeners();
+      _errorMessage =
+          'Не удалось переотправить фото. Проверьте подключение и попробуйте снова.';
       return false;
     } finally {
       _isUploading = false;
-      notifyListeners();
+      _notify();
     }
   }
 }

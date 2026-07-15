@@ -20,6 +20,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late final ProfileViewModel _viewModel;
+  String? _lastErrorMessage;
 
   @override
   void initState() {
@@ -37,7 +38,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _onChanged() {
-    if (mounted) setState(() {});
+    if (mounted) {
+      setState(() {});
+      final error = _viewModel.errorMessage;
+      if (error != null &&
+          error != _lastErrorMessage &&
+          _viewModel.user != null) {
+        _lastErrorMessage = error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error)),
+        );
+      } else if (error == null) {
+        _lastErrorMessage = null;
+      }
+    }
   }
 
   @override
@@ -52,13 +66,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
           final user = _viewModel.user;
           if (user == null) {
-            return _Center(text: _viewModel.errorMessage ?? 'Профиль недоступен');
+            return _Center(
+              text: _viewModel.errorMessage ?? 'Профиль недоступен',
+              onRetry: _viewModel.load,
+            );
           }
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _AvatarHeader(user: user, onPick: _viewModel.uploadAvatar),
-              const SizedBox(height: 24),
+              _AvatarHeader(
+                user: user,
+                onPick: _viewModel.uploadAvatar,
+                isSaving: _viewModel.isSaving,
+              ),
+              const SizedBox(height: 20),
               _FieldRow(label: 'ФИО', value: user.fullName),
               _FieldRow(label: 'Паспорт', value: user.login),
               _FieldRow(
@@ -71,19 +92,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: const Icon(Icons.edit_outlined),
                 label: const Text('Редактировать профиль'),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               OutlinedButton.icon(
                 onPressed: () => context.push('/main/profile/password'),
                 icon: const Icon(Icons.lock_outline),
                 label: const Text('Сменить пароль'),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               OutlinedButton.icon(
                 onPressed: () => context.push('/main/profile/feedback'),
                 icon: const Icon(Icons.feedback_outlined),
                 label: const Text('Обратная связь'),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               _LogoutButton(),
             ],
           );
@@ -106,12 +127,12 @@ Future<void> _showAvatarSource(
         children: [
           ListTile(
             leading: const Icon(Icons.camera_alt_outlined),
-            title: const Text('Камера'),
+            title: const Text('Сделать фото'),
             onTap: () => Navigator.pop(ctx, ImageSource.camera),
           ),
           ListTile(
             leading: const Icon(Icons.image_outlined),
-            title: const Text('Галерея'),
+            title: const Text('Выбрать из галереи'),
             onTap: () => Navigator.pop(ctx, ImageSource.gallery),
           ),
         ],
@@ -120,31 +141,40 @@ Future<void> _showAvatarSource(
   );
   if (source == null) return;
   final xFile = await picker.pickImage(source: source, imageQuality: 80);
-  if (xFile == null) return;
+  if (xFile == null || !context.mounted) return;
   onPick(xFile.path);
 }
 
 class _AvatarHeader extends StatelessWidget {
-  const _AvatarHeader({required this.user, required this.onPick});
+  const _AvatarHeader({
+    required this.user,
+    required this.onPick,
+    required this.isSaving,
+  });
   final User user;
   final void Function(String path) onPick;
+  final bool isSaving;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         GestureDetector(
-          onTap: () => _showAvatarSource(context, onPick),
-          child: UserAvatar(
-            avatar: user.avatar,
-            initials: user.initials,
-            radius: 48,
+          onTap: isSaving ? null : () => _showAvatarSource(context, onPick),
+          child: Semantics(
+            button: true,
+            label: 'Изменить фото профиля',
+            child: UserAvatar(
+              avatar: user.avatar,
+              initials: user.initials,
+              radius: 48,
+            ),
           ),
         ),
         const SizedBox(height: 12),
         Text(
-          'Нажмите на аватар, чтобы изменить',
-          style: AppTextStyles.caption.copyWith(color: BrandColors.grayMid),
+          'Нажмите на аватар, чтобы изменить фото',
+          style: AppTextStyles.caption.copyWith(color: BrandColors.grayDark),
         ),
       ],
     );
@@ -160,14 +190,19 @@ class _FieldRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
               style: AppTextStyles.caption
-                  .copyWith(color: BrandColors.grayMid)),
-          Text(value, style: AppTextStyles.bodyLarge),
+                  .copyWith(color: BrandColors.grayDark)),
+          Text(
+            value,
+            style: AppTextStyles.bodyLarge,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );
@@ -178,6 +213,10 @@ class _LogoutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextButton.icon(
+      style: TextButton.styleFrom(
+        minimumSize: const Size(48, 48),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
       onPressed: () => _confirmLogout(context),
       icon: const Icon(Icons.logout_rounded, color: BrandColors.error),
       label: Text('Выйти из аккаунта',
@@ -189,12 +228,12 @@ class _LogoutButton extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Выход'),
-        content: const Text('Вы уверены, что хотите выйти из аккаунта?'),
+        title: const Text('Выйти из аккаунта?'),
+        content: const Text('Вам нужно будет войти снова.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Отмена')),
+              child: const Text('Остаться')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: BrandColors.error),
             onPressed: () => Navigator.pop(ctx, true),
@@ -210,18 +249,31 @@ class _LogoutButton extends StatelessWidget {
 }
 
 class _Center extends StatelessWidget {
-  const _Center({required this.text});
+  const _Center({required this.text, this.onRetry});
   final String text;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Text(text,
-            textAlign: TextAlign.center,
-            style:
-                AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayMid)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(text,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyMedium
+                    .copyWith(color: BrandColors.grayDark)),
+            if (onRetry != null) ...[
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: onRetry,
+                child: const Text('Повторить'),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
