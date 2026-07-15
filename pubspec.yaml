@@ -82,6 +82,9 @@ dev_dependencies:
   # Иконки приложения
   flutter_launcher_icons: ^0.13.1
 
+  # Тестирование SQLite с in-memory базой.
+  sqflite_common_ffi: ^2.3.3
+
 # Конфигурация иконок приложения (Android + iOS).
 flutter_launcher_icons:
   android: true
