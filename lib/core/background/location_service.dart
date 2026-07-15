@@ -85,24 +85,41 @@ class LocationTaskHandler extends TaskHandler {
   /// Защита от наложения flush при быстрых повторных событиях.
   bool _flushing = false;
 
+  /// Флаг готовности DI. Если инициализация в [onStart] не удалась,
+  /// [onRepeatEvent] будет пытаться переинициализировать DI.
+  bool _diReady = true;
+
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    try {
-      await setupDependencies(AppConfig.production);
-    } catch (e) {
-      debugPrint('Не удалось инициализировать DI в foreground-сервисе: $e');
-    }
-    await _collect();
+    _diReady = await _initDi();
+    if (_diReady) await _collect();
   }
 
   @override
   void onRepeatEvent(DateTime timestamp) {
+    if (!_diReady) {
+      _initDi().then((ready) {
+        _diReady = ready;
+        if (ready) _collect();
+      });
+      return;
+    }
     _collect();
   }
 
   @override
   Future<void> onDestroy(DateTime timestamp) async {
     // Нечего освобождать.
+  }
+
+  Future<bool> _initDi() async {
+    try {
+      await setupDependencies(AppConfig.production);
+      return true;
+    } catch (e, st) {
+      debugPrint('Не удалось инициализировать DI в foreground-сервисе: $e\n$st');
+      return false;
+    }
   }
 
   Future<void> _collect() async {
@@ -126,8 +143,8 @@ class LocationTaskHandler extends TaskHandler {
         createdAt: DateTime.now(),
       ));
       await _flushCoordinates();
-    } catch (_) {
-      // Тихо игнорируем ошибки отдельного цикла.
+    } catch (e, st) {
+      debugPrint('Ошибка сбора координат: $e\n$st');
     }
   }
 
