@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:geolocator/geolocator.dart';
@@ -89,6 +91,9 @@ class LocationTaskHandler extends TaskHandler {
   /// [onRepeatEvent] будет пытаться переинициализировать DI.
   bool _diReady = false;
 
+  /// Защита от одновременной инициализации DI из [onStart] и [onRepeatEvent].
+  Completer<bool>? _diCompleter;
+
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
     _diReady = await _initDi();
@@ -113,11 +118,17 @@ class LocationTaskHandler extends TaskHandler {
   }
 
   Future<bool> _initDi() async {
+    if (_diCompleter != null && !_diCompleter!.isCompleted) {
+      return _diCompleter!.future;
+    }
+    _diCompleter = Completer<bool>();
     try {
       await setupDependencies(AppConfig.production);
+      _diCompleter!.complete(true);
       return true;
     } catch (e, st) {
       debugPrint('Не удалось инициализировать DI в foreground-сервисе: $e\n$st');
+      _diCompleter!.complete(false);
       return false;
     }
   }
