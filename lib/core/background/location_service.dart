@@ -1,15 +1,19 @@
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../../config/app_config.dart';
+import '../../config/service_locator.dart';
 import '../../data/services/city_lookup.dart';
 import '../../data/services/pending_action_store.dart';
 import '../../domain/models/geo_point.dart';
 import '../../domain/models/pending_action.dart';
+import '../../domain/repositories/sync_repository.dart';
+import 'coordinate_batching.dart';
 
 /// Запуск/остановка foreground-сервиса геолокации.
 ///
-/// Каждый цикл получает текущую позицию и кладёт её в очередь
-/// `pending_actions` для последующей отправки фоновым SyncService.
+/// Каждый цикл получает текущую позицию, кладёт её в очередь
+/// `pending_actions` и сразу отправляет накопленные координаты пакетом.
 ///
 /// Требуется разрешение `LocationPermission.always`.
 class LocationService {
@@ -72,12 +76,14 @@ class LocationService {
 
 /// Обработчик фоновой задачи геолокации.
 ///
-/// Периодически (onRepeatEvent) получает позицию и складывает её
-/// в локальную очередь [PendingActionStore] для последующей отправки.
+/// Периодически (onRepeatEvent) получает позицию, сохраняет её
+/// в локальную очередь [PendingActionStore] и тут же пытается отправить
+/// накопленные координаты через [SyncRepository].
 @pragma('vm:entry-point')
 class LocationTaskHandler extends TaskHandler {
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
+    await setupDependencies(const AppConfig());
     await _collect();
   }
 
@@ -111,8 +117,27 @@ class LocationTaskHandler extends TaskHandler {
         payload: point.toJson(),
         createdAt: DateTime.now(),
       ));
+      await _flushCoordinates();
     } catch (_) {
       // Тихо игнорируем ошибки отдельного цикла.
+    }
+  }
+
+  Future<void> _flushCoordinates() async {
+    try {
+      final store = PendingActionStore.instance;
+      final actions = await store.readPending();
+      final coordinateActions = actions
+          .where((a) => a.type == PendingActionType.coordinates)
+          .toList();
+      if (coordinateActions.isEmpty) return;
+
+      final points = geoPointsFromActions(coordinateActions);
+      await getIt<SyncRepository>().sendCoordinates(points);
+      final ids = coordinateActions.map((a) => a.id).whereType<int>();
+      await store.removeAll(ids);
+    } catch (_) {
+      // Оставляем в очереди; следующий цикл или WorkManager повторят.
     }
   }
 }
