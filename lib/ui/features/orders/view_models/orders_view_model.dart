@@ -40,8 +40,6 @@ class OrdersViewModel extends ChangeNotifier {
   OrdersSearchScope _searchScope = OrdersSearchScope.number;
   OrdersSearchScope get searchScope => _searchScope;
 
-  final Set<int> _actionLoadingIds = <int>{};
-
   List<OrderListItem> ordersOf(OrdersTab tab) {
     final list = _orders[tab] ?? const [];
     if (_searchQuery.isEmpty) return list;
@@ -61,7 +59,6 @@ class OrdersViewModel extends ChangeNotifier {
 
   bool isLoadingOf(OrdersTab tab) => _loading[tab] ?? false;
   String? errorOf(OrdersTab tab) => _errors[tab];
-  bool isOrderLoading(int id) => _actionLoadingIds.contains(id);
 
   void setSearchQuery(String query) {
     _searchQuery = query.trim().toLowerCase();
@@ -72,39 +69,6 @@ class OrdersViewModel extends ChangeNotifier {
     if (_searchScope == scope) return;
     _searchScope = scope;
     notifyListeners();
-  }
-
-  /// Принять новую заявку в работу.
-  /// Возвращает true при успехе и обновляет активные вкладки.
-  Future<bool> acceptOrder(int id) => _changeStatus(
-        id,
-        OrderStatus.inProgress.id,
-      );
-
-  /// Отказаться от новой заявки.
-  /// Возвращает true при успехе и обновляет активные вкладки.
-  Future<bool> rejectOrder(int id) => _changeStatus(
-        id,
-        OrderStatus.rejected.id,
-      );
-
-  Future<bool> _changeStatus(int id, int statusId) async {
-    if (_actionLoadingIds.contains(id)) return false;
-    _actionLoadingIds.add(id);
-    notifyListeners();
-
-    try {
-      await _repository.changeStatus(id, statusId);
-      await _loadActiveTabs();
-      return true;
-    } on AppException catch (_) {
-      return false;
-    } catch (_) {
-      return false;
-    } finally {
-      _actionLoadingIds.remove(id);
-      notifyListeners();
-    }
   }
 
   Future<void> loadAll() async {
