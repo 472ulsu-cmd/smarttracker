@@ -86,7 +86,49 @@ class PhotoViewModel extends ChangeNotifier {
     }
   }
 
+  /// Возвращает закэшированный локальный путь к фото, если файл ещё существует.
+  String? cachedPath(int routePhotoId) =>
+      _localPhotoStore.getExistingPath(routePhotoId);
+
   /// Возвращает сохранённую причину отклонения фото.
   String? rejectionReason(int routePhotoId) =>
       _localPhotoStore.getRejectionReason(routePhotoId);
+
+  /// Переотправить ранее отклонённое фото.
+  ///
+  /// Если локальный путь сохранён в кэше, использует его; иначе,
+  /// при переданном [source], предлагает выбрать новое фото.
+  /// Возвращает `true`, если переотправка прошла успешно.
+  Future<bool> resend(OrderPhoto photo, {ImageSourceOption? source}) async {
+    _isUploading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      String? filePath = _localPhotoStore.getExistingPath(photo.id);
+      if (filePath == null && source != null) {
+        filePath = await _photoRepo.pickImage(source);
+      }
+      if (filePath == null) {
+        _isUploading = false;
+        notifyListeners();
+        return false;
+      }
+      await _photoRepo.uploadPhoto(orderId, photo.id, filePath);
+      await _localPhotoStore.savePath(photo.id, filePath);
+      await load();
+      return true;
+    } on AppException catch (e) {
+      _errorMessage = e.message;
+      notifyListeners();
+      return false;
+    } catch (_) {
+      _errorMessage = 'Не удалось переотправить фото.';
+      notifyListeners();
+      return false;
+    } finally {
+      _isUploading = false;
+      notifyListeners();
+    }
+  }
 }
