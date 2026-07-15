@@ -19,7 +19,7 @@ List<GeoPoint> geoPointsFromActions(List<PendingAction> actions) {
         lat: lat,
         lng: lng,
         datetime: datetime,
-        nearestCity: (payload['nearest_city'] ?? '') as String,
+        nearestCity: _asString(payload['nearest_city']) ?? '',
       ),
     );
   }
