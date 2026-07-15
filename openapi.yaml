@@ -734,6 +734,8 @@ components:
     OrdersResponseItem:
       type: object
       properties:
+        client:
+          $ref: '#/components/schemas/OrdersResponse_Client'
         id:
           type: integer
           format: int32
