@@ -17,24 +17,29 @@ class MockOrdersRepository implements OrdersRepository {
     const OrderListItem(
         id: 101, num: 'З-1001', status: 1, route: 'Москва → Казань',
         routeFrom: 'Москва', routeTo: 'Казань',
-        loadingDate: '2024-06-15', unloadingDate: '2024-06-16'),
+        loadingDate: '2024-06-15', unloadingDate: '2024-06-16',
+        client: OrderClient(org: 'ООО Грузоотправитель №1')),
     const OrderListItem(
         id: 102, num: 'З-1002', status: 2, route: 'Санкт-Петербург → Псков',
         routeFrom: 'Санкт-Петербург', routeTo: 'Псков',
-        loadingDate: '2024-06-17', unloadingDate: '2024-06-17'),
+        loadingDate: '2024-06-17', unloadingDate: '2024-06-17',
+        client: OrderClient(org: 'ООО Грузоотправитель №2')),
     const OrderListItem(
         id: 103, num: 'З-1003', status: 5, route: 'Тула → Рязань',
         routeFrom: 'Тула', routeTo: 'Рязань',
-        loadingDate: '2024-06-18', unloadingDate: '2024-06-18'),
+        loadingDate: '2024-06-18', unloadingDate: '2024-06-18',
+        client: OrderClient(org: 'ООО Грузоотправитель №3')),
   ];
 
   static final _history = <OrderListItem>[
     const OrderListItem(
         id: 901, num: 'З-0901', status: 4, route: 'Воронеж → Тамбов',
-        loadingDate: '2024-05-20', unloadingDate: '2024-05-21'),
+        loadingDate: '2024-05-20', unloadingDate: '2024-05-21',
+        client: OrderClient(org: 'ООО Грузоотправитель №4')),
     const OrderListItem(
         id: 902, num: 'З-0902', status: 3, route: 'Самара → Уфа',
-        loadingDate: '2024-05-10', unloadingDate: '2024-05-11'),
+        loadingDate: '2024-05-10', unloadingDate: '2024-05-11',
+        client: OrderClient(org: 'ООО Грузоотправитель №5')),
   ];
 
   int _statusOf101 = 1;
@@ -53,6 +58,7 @@ class MockOrdersRepository implements OrdersRepository {
             loadingDate: e.loadingDate,
             unloadingDate: e.unloadingDate,
             isWorking: e.isWorking,
+            client: e.client,
           )
         : e).toList();
   }

@@ -13,6 +13,7 @@ class OrderListItem {
     this.loadingDate = '',
     this.unloadingDate = '',
     this.isWorking = false,
+    this.client = const OrderClient(),
   });
 
   final int id;
@@ -24,6 +25,7 @@ class OrderListItem {
   final String loadingDate;
   final String unloadingDate;
   final bool isWorking;
+  final OrderClient client;
 
   String get statusLabel => OrderStatus.labelForId(status);
 }

@@ -17,6 +17,7 @@ class OrderMapper {
       loadingDate: i.loadingDate ?? '',
       unloadingDate: i.unloadingDate ?? '',
       isWorking: (i.isWorking ?? 0) == 1,
+      client: _toClient(i.client),
     );
   }
 

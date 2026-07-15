@@ -19,6 +19,7 @@ class OrdersResponseItem with _$OrdersResponseItem {
     @JsonKey(name: 'loading_date') String? loadingDate,
     @JsonKey(name: 'unloading_date') String? unloadingDate,
     @JsonKey(name: 'is_working') int? isWorking,
+    OrdersResponseClient? client,
   }) = _OrdersResponseItem;
 
   factory OrdersResponseItem.fromJson(Map<String, dynamic> json) =>

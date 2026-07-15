@@ -34,6 +34,7 @@ mixin _$OrdersResponseItem {
   String? get unloadingDate => throw _privateConstructorUsedError;
   @JsonKey(name: 'is_working')
   int? get isWorking => throw _privateConstructorUsedError;
+  OrdersResponseClient? get client => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -56,7 +57,8 @@ abstract class $OrdersResponseItemCopyWith<$Res> {
       @JsonKey(name: 'route_to') String? routeTo,
       @JsonKey(name: 'loading_date') String? loadingDate,
       @JsonKey(name: 'unloading_date') String? unloadingDate,
-      @JsonKey(name: 'is_working') int? isWorking});
+      @JsonKey(name: 'is_working') int? isWorking,
+      OrdersResponseClient? client});
 }
 
 /// @nodoc
@@ -81,6 +83,7 @@ class _$OrdersResponseItemCopyWithImpl<$Res, $Val extends OrdersResponseItem>
     Object? loadingDate = freezed,
     Object? unloadingDate = freezed,
     Object? isWorking = freezed,
+    Object? client = freezed,
   }) {
     return _then(_value.copyWith(
       id: freezed == id
@@ -119,6 +122,10 @@ class _$OrdersResponseItemCopyWithImpl<$Res, $Val extends OrdersResponseItem>
           ? _value.isWorking
           : isWorking // ignore: cast_nullable_to_non_nullable
               as int?,
+      client: freezed == client
+          ? _value.client
+          : client // ignore: cast_nullable_to_non_nullable
+              as OrdersResponseClient?,
     ) as $Val);
   }
 }
@@ -140,7 +147,8 @@ abstract class _$$OrdersResponseItemImplCopyWith<$Res>
       @JsonKey(name: 'route_to') String? routeTo,
       @JsonKey(name: 'loading_date') String? loadingDate,
       @JsonKey(name: 'unloading_date') String? unloadingDate,
-      @JsonKey(name: 'is_working') int? isWorking});
+      @JsonKey(name: 'is_working') int? isWorking,
+      OrdersResponseClient? client});
 }
 
 /// @nodoc
@@ -163,6 +171,7 @@ class __$$OrdersResponseItemImplCopyWithImpl<$Res>
     Object? loadingDate = freezed,
     Object? unloadingDate = freezed,
     Object? isWorking = freezed,
+    Object? client = freezed,
   }) {
     return _then(_$OrdersResponseItemImpl(
       id: freezed == id
@@ -201,6 +210,10 @@ class __$$OrdersResponseItemImplCopyWithImpl<$Res>
           ? _value.isWorking
           : isWorking // ignore: cast_nullable_to_non_nullable
               as int?,
+      client: freezed == client
+          ? _value.client
+          : client // ignore: cast_nullable_to_non_nullable
+              as OrdersResponseClient?,
     ));
   }
 }
@@ -217,7 +230,8 @@ class _$OrdersResponseItemImpl implements _OrdersResponseItem {
       @JsonKey(name: 'route_to') this.routeTo,
       @JsonKey(name: 'loading_date') this.loadingDate,
       @JsonKey(name: 'unloading_date') this.unloadingDate,
-      @JsonKey(name: 'is_working') this.isWorking});
+      @JsonKey(name: 'is_working') this.isWorking,
+      this.client});
 
   factory _$OrdersResponseItemImpl.fromJson(Map<String, dynamic> json) =>
       _$$OrdersResponseItemImplFromJson(json);
@@ -245,10 +259,12 @@ class _$OrdersResponseItemImpl implements _OrdersResponseItem {
   @override
   @JsonKey(name: 'is_working')
   final int? isWorking;
+  @override
+  final OrdersResponseClient? client;
 
   @override
   String toString() {
-    return 'OrdersResponseItem(id: $id, num: $num, status: $status, route: $route, routeFrom: $routeFrom, routeTo: $routeTo, loadingDate: $loadingDate, unloadingDate: $unloadingDate, isWorking: $isWorking)';
+    return 'OrdersResponseItem(id: $id, num: $num, status: $status, route: $route, routeFrom: $routeFrom, routeTo: $routeTo, loadingDate: $loadingDate, unloadingDate: $unloadingDate, isWorking: $isWorking, client: $client)';
   }
 
   @override
@@ -268,13 +284,14 @@ class _$OrdersResponseItemImpl implements _OrdersResponseItem {
             (identical(other.unloadingDate, unloadingDate) ||
                 other.unloadingDate == unloadingDate) &&
             (identical(other.isWorking, isWorking) ||
-                other.isWorking == isWorking));
+                other.isWorking == isWorking) &&
+            (identical(other.client, client) || other.client == client));
   }
 
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, id, num, status, route,
-      routeFrom, routeTo, loadingDate, unloadingDate, isWorking);
+      routeFrom, routeTo, loadingDate, unloadingDate, isWorking, client);
 
   @JsonKey(ignore: true)
   @override
@@ -301,7 +318,8 @@ abstract class _OrdersResponseItem implements OrdersResponseItem {
           @JsonKey(name: 'route_to') final String? routeTo,
           @JsonKey(name: 'loading_date') final String? loadingDate,
           @JsonKey(name: 'unloading_date') final String? unloadingDate,
-          @JsonKey(name: 'is_working') final int? isWorking}) =
+          @JsonKey(name: 'is_working') final int? isWorking,
+          final OrdersResponseClient? client}) =
       _$OrdersResponseItemImpl;
 
   factory _OrdersResponseItem.fromJson(Map<String, dynamic> json) =
@@ -330,6 +348,8 @@ abstract class _OrdersResponseItem implements OrdersResponseItem {
   @override
   @JsonKey(name: 'is_working')
   int? get isWorking;
+  @override
+  OrdersResponseClient? get client;
   @override
   @JsonKey(ignore: true)
   _$$OrdersResponseItemImplCopyWith<_$OrdersResponseItemImpl> get copyWith =>

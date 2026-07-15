@@ -18,6 +18,10 @@ _$OrdersResponseItemImpl _$$OrdersResponseItemImplFromJson(
       loadingDate: json['loading_date'] as String?,
       unloadingDate: json['unloading_date'] as String?,
       isWorking: (json['is_working'] as num?)?.toInt(),
+      client: json['client'] == null
+          ? null
+          : OrdersResponseClient.fromJson(
+              json['client'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$OrdersResponseItemImplToJson(
@@ -32,6 +36,7 @@ Map<String, dynamic> _$$OrdersResponseItemImplToJson(
       'loading_date': instance.loadingDate,
       'unloading_date': instance.unloadingDate,
       'is_working': instance.isWorking,
+      'client': instance.client,
     };
 
 _$OrdersResponseImpl _$$OrdersResponseImplFromJson(Map<String, dynamic> json) =>
