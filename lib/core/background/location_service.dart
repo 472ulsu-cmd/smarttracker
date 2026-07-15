@@ -81,9 +81,12 @@ class LocationService {
 /// накопленные координаты через [SyncRepository].
 @pragma('vm:entry-point')
 class LocationTaskHandler extends TaskHandler {
+  /// Защита от наложения flush при быстрых повторных событиях.
+  bool _flushing = false;
+
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    await setupDependencies(const AppConfig());
+    await setupDependencies(AppConfig.production);
     await _collect();
   }
 
@@ -124,6 +127,8 @@ class LocationTaskHandler extends TaskHandler {
   }
 
   Future<void> _flushCoordinates() async {
+    if (_flushing) return;
+    _flushing = true;
     try {
       final store = PendingActionStore.instance;
       final actions = await store.readPending();
@@ -133,11 +138,16 @@ class LocationTaskHandler extends TaskHandler {
       if (coordinateActions.isEmpty) return;
 
       final points = geoPointsFromActions(coordinateActions);
-      await getIt<SyncRepository>().sendCoordinates(points);
+      try {
+        await getIt<SyncRepository>().sendCoordinates(points);
+      } catch (_) {
+        // Оставляем в очереди; следующий цикл или WorkManager повторят.
+        return;
+      }
       final ids = coordinateActions.map((a) => a.id).whereType<int>();
       await store.removeAll(ids);
-    } catch (_) {
-      // Оставляем в очереди; следующий цикл или WorkManager повторят.
+    } finally {
+      _flushing = false;
     }
   }
 }
