@@ -87,7 +87,7 @@
 - `test/pending_action_store_test.dart` (расширить `services_test.dart`):
   - `enqueue`/`readPending` для `coordinates`.
   - Удаление отправленных записей.
-- `test/location_task_handler_test.dart` (новый или mock-виджет):
+- `test/flush_coordinate_actions_test.dart` (новый или mock-виджет):
   - `onRepeatEvent` собирает точку, кладёт в очередь и вызывает `sendCoordinates`.
 
 ## Не вошло в скоуп
