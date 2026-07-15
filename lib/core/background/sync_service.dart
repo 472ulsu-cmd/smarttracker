@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:workmanager/workmanager.dart';
 
 import '../../config/app_config.dart';
@@ -26,11 +27,15 @@ void syncCallbackDispatcher() {
     // WorkManager запускается в отдельном isolate — DI нужно инициализировать заново.
     try {
       await setupDependencies(AppConfig.production);
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('Ошибка инициализации DI в фоновой синхронизации: $e\n$st');
       return false;
     }
 
-    if (!getIt.isRegistered<OrdersRepository>()) return true;
+    if (!getIt.isRegistered<OrdersRepository>()) {
+      debugPrint('OrdersRepository не зарегистрирован после инициализации DI');
+      return false;
+    }
 
     final store = PendingActionStore.instance;
     final actions = await store.readPending();
@@ -46,7 +51,8 @@ void syncCallbackDispatcher() {
       try {
         await _process(action);
         if (action.id != null) await store.remove(action.id!);
-      } catch (_) {
+      } catch (e, st) {
+        debugPrint('Ошибка обработки действия ${action.type}: $e\n$st');
         if (action.id != null) await store.markFailedAttempt(action.id!);
       }
     }
@@ -57,7 +63,8 @@ void syncCallbackDispatcher() {
         await getIt<SyncRepository>().sendCoordinates(points);
         final ids = coordinateActions.map((a) => a.id).whereType<int>();
         await store.removeAll(ids);
-      } catch (_) {
+      } catch (e, st) {
+        debugPrint('Ошибка пакетной отправки координат: $e\n$st');
         for (final action in coordinateActions) {
           if (action.id != null) await store.markFailedAttempt(action.id!);
         }
@@ -85,8 +92,8 @@ Future<void> _process(PendingAction action) async {
       );
       break;
     case PendingActionType.coordinates:
-      // Координаты обрабатываются ранее пакетным вызовом;
-      // ветка оставлена только для исчерпывающего покрытия enum.
+      // Координаты обрабатываются пакетным вызовом до входа в [_process].
+      assert(false, 'Координаты не должны обрабатываться в [_process]');
       break;
   }
 }
