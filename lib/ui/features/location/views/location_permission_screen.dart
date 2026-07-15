@@ -106,13 +106,13 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                             size: 48, color: BrandColors.primary),
                       ),
                       const SizedBox(height: 24),
-                      Text('Доступ к геолокации',
+                      Text('Геолокация',
                           style: AppTextStyles.headlineLarge),
                       const SizedBox(height: 12),
                       Text(
                         'Приложение передаёт ваше местоположение в фоновом '
-                        'режиме, чтобы диспетчер видел вас на карте. '
-                        'Для этого выберите «Разрешать всегда».',
+                        'режиме, чтобы отображать вас на карте диспетчеру. '
+                        'Разрешите доступ к геолокации «Всегда».',
                         textAlign: TextAlign.center,
                         style: AppTextStyles.bodyMedium
                             .copyWith(color: BrandColors.grayDark),

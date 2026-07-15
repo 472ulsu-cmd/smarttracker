@@ -5,8 +5,6 @@ import '../../../../domain/models/order_status.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/date_format.dart';
 import '../../../core/theme/brand_colors.dart';
-import '../../../core/theme/brand_radius.dart';
-import '../../../core/widgets/brand_card.dart';
 import '../../../core/widgets/status_chip.dart';
 
 /// Карточка одной заявки в списке.
@@ -23,15 +21,21 @@ class OrderListTile extends StatelessWidget {
             ? 'Маршрут не указан'
             : '${order.routeFrom} → ${order.routeTo}')
         : order.route;
+    final statusLabel = OrderStatus.listLabelForId(order.status);
 
     return MergeSemantics(
       child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(BrandRadius.md),
+        color: BrandColors.white,
+        borderRadius: BorderRadius.circular(12),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(BrandRadius.md),
-          child: BrandCard(
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: BrandColors.grayLighter),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -39,11 +43,11 @@ class OrderListTile extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('№ ${order.num}', style: AppTextStyles.titleMedium),
-                    if (OrderStatus.fromId(order.status) != null)
+                    if (statusLabel != null)
                       StatusChip(statusId: order.status),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     const Icon(Icons.route_rounded,

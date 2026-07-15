@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/refresh_bus.dart';
 import '../../../../config/service_locator.dart';
-import '../../../../domain/repositories/orders_repository.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../view_models/orders_view_model.dart';
@@ -27,7 +26,7 @@ class _OrdersScreenState extends State<OrdersScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _viewModel = OrdersViewModel(getIt<OrdersRepository>());
+    _viewModel = getIt<OrdersViewModel>();
     _viewModel.addListener(_onChanged);
     // Обновление списка при смене статуса заявки или новом уведомлении.
     _refreshBus = getIt<OrdersRefreshBus>();

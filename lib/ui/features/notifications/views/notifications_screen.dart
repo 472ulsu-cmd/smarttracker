@@ -4,10 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/refresh_bus.dart';
 import '../../../../config/service_locator.dart';
 import '../../../../domain/models/notification_item.dart';
-import '../../../../domain/repositories/notifications_repository.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/utils/date_format.dart';
+import '../../../core/widgets/brand_card.dart';
 import '../view_models/notifications_view_model.dart';
 
 /// Экран уведомлений с переключателем push.
@@ -25,7 +25,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
-    _viewModel = NotificationsViewModel(getIt<NotificationsRepository>());
+    _viewModel = getIt<NotificationsViewModel>();
     _viewModel.addListener(_onChanged);
     // Обновление списка при новом FCM-уведомлении.
     _refreshBus = getIt<NotificationsRefreshBus>();
@@ -80,7 +80,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       return Center(
         child: Text(
           _viewModel.errorMessage ?? 'Пока нет уведомлений. Здесь появятся сообщения по заявкам.',
-          style: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayMid),
+          style: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayDark),
         ),
       );
     }
@@ -118,29 +118,26 @@ class _PushToggle extends StatelessWidget {
     return ListenableBuilder(
       listenable: viewModel.settings,
       builder: (context, _) {
-        return Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          decoration: BoxDecoration(
-            color: BrandColors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: BrandColors.grayLighter),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.notifications_active_outlined,
-                  color: BrandColors.primary),
-              const SizedBox(width: 12),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text('Получать push-уведомления', style: AppTextStyles.bodyLarge),
-              ),
-              Switch(
-                value: viewModel.settings.pushEnabled,
-                activeColor: BrandColors.primary,
-                onChanged: viewModel.togglePush,
-              ),
-            ],
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: BrandCard(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                const Icon(Icons.notifications_active_outlined,
+                    color: BrandColors.primary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text('Получать push-уведомления',
+                      style: AppTextStyles.bodyLarge),
+                ),
+                Switch(
+                  value: viewModel.settings.pushEnabled,
+                  activeColor: BrandColors.primary,
+                  onChanged: viewModel.togglePush,
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -180,13 +177,13 @@ class _NotificationTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Индикатор непрочитанного.
             Padding(
-              padding: const EdgeInsets.only(top: 6),
+              padding: const EdgeInsets.only(top: 4),
               child: Container(
                 width: 8,
                 height: 8,
@@ -203,19 +200,18 @@ class _NotificationTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.message,
-                      style: item.isRead
-                          ? AppTextStyles.bodyMedium
-                              .copyWith(color: BrandColors.grayDark)
-                          : AppTextStyles.titleMedium.copyWith(
-                              fontWeight: FontWeight.w700,
-                            )),
+                  Text(
+                    item.message,
+                    style: item.isRead
+                        ? AppTextStyles.bodyMedium
+                            .copyWith(color: BrandColors.grayDark)
+                        : AppTextStyles.titleMedium,
+                  ),
                   if (item.datetime.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
                       DateFormatUtil.dateTime(item.datetime),
-                      style: AppTextStyles.caption
-                          .copyWith(color: BrandColors.grayMid),
+                      style: AppTextStyles.caption,
                     ),
                   ],
                   if (item.hasOrder) ...[
@@ -230,10 +226,13 @@ class _NotificationTile extends StatelessWidget {
               ),
             ),
             if (item.hasOrder)
-              const Padding(
-                padding: EdgeInsets.only(left: 8, top: 2),
-                child: Icon(Icons.chevron_right_rounded,
-                    color: BrandColors.grayMid),
+              const SizedBox(
+                width: 48,
+                height: 48,
+                child: Center(
+                  child: Icon(Icons.chevron_right_rounded,
+                      color: BrandColors.grayMid),
+                ),
               ),
           ],
         ),

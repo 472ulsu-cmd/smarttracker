@@ -62,7 +62,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
           content: Text(error),
           behavior: SnackBarBehavior.floating,
           action: SnackBarAction(
-            label: 'Загрузить снова',
+            label: 'Повторить',
             onPressed: _viewModel.load,
           ),
         ),
@@ -75,7 +75,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Фото по заявке')),
+      appBar: AppBar(title: const Text('Фотографии')),
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {
@@ -85,10 +85,10 @@ class _PhotoScreenState extends State<PhotoScreen> {
           if (_viewModel.groups.isEmpty) {
             return _Center(
               text: _viewModel.errorMessage ??
-                  'Для этой заявки пока нет фото. Здесь появятся фото погрузки и разгрузки.',
+                  'Нет фото для этой заявки',
               action: _viewModel.errorMessage != null
                   ? _CenterAction(
-                      label: 'Загрузить снова',
+                      label: 'Повторить',
                       onPressed: _viewModel.load,
                     )
                   : null,
@@ -159,7 +159,7 @@ class _PhotoGroupCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                'В этой группе пока нет фото.',
+                'Фотографии ещё не загружены',
                 style: AppTextStyles.bodySmall
                     .copyWith(color: BrandColors.grayMid),
               ),
@@ -186,7 +186,7 @@ class _PhotoGroupCard extends StatelessWidget {
                       : () => viewModel.uploadForGroup(
                           group, ImageSourceOption.camera),
                   icon: const Icon(Icons.camera_alt_outlined),
-                  label: const Text('Сделать фото'),
+                  label: const Text('Камера'),
                 ),
               ),
               const SizedBox(width: 8),
@@ -197,7 +197,7 @@ class _PhotoGroupCard extends StatelessWidget {
                       : () => viewModel.uploadForGroup(
                           group, ImageSourceOption.gallery),
                   icon: const Icon(Icons.image_outlined),
-                  label: const Text('Выбрать фото'),
+                  label: const Text('Галерея'),
                 ),
               ),
             ],
@@ -314,7 +314,7 @@ class _UploadingBadge extends StatelessWidget {
                 strokeWidth: 2, color: BrandColors.white),
           ),
           const SizedBox(width: 10),
-          Text('Загружаем фото…',
+          Text('Загрузка…',
               style: AppTextStyles.bodySmall.copyWith(color: BrandColors.white)),
         ],
       ),
