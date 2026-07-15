@@ -96,8 +96,9 @@ Future<void> _process(PendingAction action) async {
       break;
     case PendingActionType.coordinates:
       // Координаты обрабатываются пакетным вызовом до входа в [_process].
-      assert(false, 'Координаты не должны обрабатываться в [_process]');
-      break;
+      throw UnsupportedError(
+        'Coordinates must be processed as a batch outside _process',
+      );
   }
 }
 
