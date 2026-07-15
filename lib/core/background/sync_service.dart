@@ -30,7 +30,7 @@ void syncCallbackDispatcher() {
       return false;
     }
 
-    if (!getIt.isRegistered<OrdersRepository>()) return false;
+    if (!getIt.isRegistered<OrdersRepository>()) return true;
 
     final store = PendingActionStore.instance;
     final actions = await store.readPending();

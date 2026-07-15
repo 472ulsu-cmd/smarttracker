@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -86,7 +87,11 @@ class LocationTaskHandler extends TaskHandler {
 
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    await setupDependencies(AppConfig.production);
+    try {
+      await setupDependencies(AppConfig.production);
+    } catch (e) {
+      debugPrint('Не удалось инициализировать DI в foreground-сервисе: $e');
+    }
     await _collect();
   }
 
@@ -130,24 +135,37 @@ class LocationTaskHandler extends TaskHandler {
     if (_flushing) return;
     _flushing = true;
     try {
-      final store = PendingActionStore.instance;
-      final actions = await store.readPending();
-      final coordinateActions = actions
-          .where((a) => a.type == PendingActionType.coordinates)
-          .toList();
-      if (coordinateActions.isEmpty) return;
-
-      final points = geoPointsFromActions(coordinateActions);
-      try {
-        await getIt<SyncRepository>().sendCoordinates(points);
-      } catch (_) {
-        // Оставляем в очереди; следующий цикл или WorkManager повторят.
-        return;
-      }
-      final ids = coordinateActions.map((a) => a.id).whereType<int>();
-      await store.removeAll(ids);
+      await flushCoordinateActions(
+        store: PendingActionStore.instance,
+        syncRepository: getIt<SyncRepository>(),
+      );
     } finally {
       _flushing = false;
     }
   }
+}
+
+/// Пытается отправить накопленные координатные действия и удаляет их из очереди.
+///
+/// Вынесено в отдельную функцию для тестирования без запуска foreground-сервиса.
+Future<void> flushCoordinateActions({
+  required PendingActionStore store,
+  required SyncRepository syncRepository,
+}) async {
+  final actions = await store.readPending();
+  final coordinateActions = actions
+      .where((a) => a.type == PendingActionType.coordinates)
+      .toList();
+  if (coordinateActions.isEmpty) return;
+
+  final points = geoPointsFromActions(coordinateActions);
+  try {
+    await syncRepository.sendCoordinates(points);
+  } catch (e) {
+    debugPrint('Ошибка отправки координат: $e');
+    // Оставляем в очереди; следующий цикл или WorkManager повторят.
+    return;
+  }
+  final ids = coordinateActions.map((a) => a.id).whereType<int>();
+  await store.removeAll(ids);
 }

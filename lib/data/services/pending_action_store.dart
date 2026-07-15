@@ -70,6 +70,19 @@ class PendingActionStore {
     return rows.map(_fromRow).toList(growable: false);
   }
 
+  /// Прочитать все действия со статусом failed (старые первыми).
+  Future<List<PendingAction>> readFailed({int limit = 50}) async {
+    final db = await _database();
+    final rows = await db.query(
+      _table,
+      where: '$_colStatus = ?',
+      whereArgs: [PendingActionStatus.failed.name],
+      orderBy: '$_colCreatedAt ASC',
+      limit: limit,
+    );
+    return rows.map(_fromRow).toList(growable: false);
+  }
+
   /// Увеличить счётчик попыток; при превышении — пометить failed.
   Future<void> markFailedAttempt(int id) async {
     final db = await _database();
@@ -102,13 +115,15 @@ class PendingActionStore {
 
   /// Удалить несколько действий (после успешной пакетной отправки).
   Future<void> removeAll(Iterable<int> ids) async {
-    if (ids.isEmpty) return;
+    final idList = ids.toList(growable: false);
+    if (idList.isEmpty) return;
     final db = await _database();
-    final batch = db.batch();
-    for (final id in ids) {
-      batch.delete(_table, where: '$_colId = ?', whereArgs: [id]);
-    }
-    await batch.commit(noResult: true);
+    final placeholders = List.filled(idList.length, '?').join(',');
+    await db.delete(
+      _table,
+      where: '$_colId IN ($placeholders)',
+      whereArgs: idList,
+    );
   }
 
   /// Закрыть соединение с базой (для тестов и явного освобождения ресурсов).

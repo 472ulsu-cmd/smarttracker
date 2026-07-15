@@ -23,6 +23,54 @@ void main() {
     await tempDir.delete(recursive: true);
   });
 
+  group('PendingActionStore.enqueue + readPending', () {
+    test('сохраняет и возвращает координатное действие', () async {
+      final id = await PendingActionStore.instance.enqueue(
+        PendingAction(
+          type: PendingActionType.coordinates,
+          payload: {'lat': 55.75, 'lng': 37.61},
+        ),
+      );
+
+      final pending = await PendingActionStore.instance.readPending();
+
+      expect(pending.length, 1);
+      expect(pending.first.id, id);
+      expect(pending.first.type, PendingActionType.coordinates);
+      expect(pending.first.payload['lat'], 55.75);
+      expect(pending.first.payload['lng'], 37.61);
+      expect(pending.first.status, PendingActionStatus.pending);
+      expect(pending.first.retryCount, 0);
+    });
+  });
+
+  group('PendingActionStore.markFailedAttempt', () {
+    test('после 5 попыток помечает запись как failed', () async {
+      final id = await PendingActionStore.instance.enqueue(
+        PendingAction(
+          type: PendingActionType.coordinates,
+          payload: {'lat': 55.0, 'lng': 37.0},
+        ),
+      );
+
+      for (var i = 0; i < PendingAction.maxRetries - 1; i++) {
+        await PendingActionStore.instance.markFailedAttempt(id);
+      }
+      var pending = await PendingActionStore.instance.readPending();
+      expect(pending.length, 1);
+      expect(pending.first.retryCount, PendingAction.maxRetries - 1);
+
+      await PendingActionStore.instance.markFailedAttempt(id);
+
+      pending = await PendingActionStore.instance.readPending();
+      expect(pending, isEmpty);
+      final failed = await PendingActionStore.instance.readFailed();
+      expect(failed.length, 1);
+      expect(failed.first.id, id);
+      expect(failed.first.status, PendingActionStatus.failed);
+    });
+  });
+
   group('PendingActionStore.removeAll', () {
     test('удаляет переданные идентификаторы', () async {
       final id1 = await PendingActionStore.instance.enqueue(
