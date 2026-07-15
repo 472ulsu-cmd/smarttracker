@@ -165,6 +165,10 @@ class LocationTaskHandler extends TaskHandler {
 /// Пытается отправить накопленные координатные действия и удаляет их из очереди.
 ///
 /// Вынесено в отдельную функцию для тестирования без запуска foreground-сервиса.
+///
+/// Повреждённые payload пропускаются при парсинге, но после успешной отправки
+/// все coordinate-действия удаляются из очереди (включая нераспарсенные),
+/// чтобы не засорять хранилище.
 Future<void> flushCoordinateActions({
   required PendingActionStore store,
   required SyncRepository syncRepository,

@@ -58,6 +58,9 @@ void syncCallbackDispatcher() {
     }
 
     if (coordinateActions.isNotEmpty) {
+      // Повреждённые payload пропускаются при парсинге; после успешной отправки
+      // все coordinate-действия удаляются из очереди (включая нераспарсенные),
+      // чтобы не засорять хранилище.
       try {
         final points = geoPointsFromActions(coordinateActions);
         await getIt<SyncRepository>().sendCoordinates(points);
