@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../config/service_locator.dart';
 import '../../../../domain/models/user.dart';
@@ -53,7 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
           final user = _viewModel.user;
           if (user == null) {
-            return _Center(text: _viewModel.errorMessage ?? 'Профиль недоступен');
+            return _Center(text: _viewModel.errorMessage ?? 'Не удалось загрузить профиль. Проверьте подключение и попробуйте ещё раз.');
           }
           return ListView(
             padding: const EdgeInsets.all(16),
@@ -65,7 +64,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               _FieldRow(
                 label: 'Телефон',
                 value: user.formattedPhone,
-                onTap: () => _callPhone(user.phone),
               ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
@@ -93,14 +91,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-
-  Future<void> _callPhone(String phone) async {
-    final cleaned = phone.replaceAll(RegExp(r'\D'), '');
-    final uri = Uri.parse('tel:+7$cleaned');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    }
-  }
 }
 
 Future<void> _showAvatarSource(
@@ -116,12 +106,12 @@ Future<void> _showAvatarSource(
         children: [
           ListTile(
             leading: const Icon(Icons.camera_alt_outlined),
-            title: const Text('Камера'),
+            title: const Text('Сделать фото'),
             onTap: () => Navigator.pop(ctx, ImageSource.camera),
           ),
           ListTile(
             leading: const Icon(Icons.image_outlined),
-            title: const Text('Галерея'),
+            title: const Text('Выбрать из галереи'),
             onTap: () => Navigator.pop(ctx, ImageSource.gallery),
           ),
         ],
@@ -153,7 +143,7 @@ class _AvatarHeader extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'Нажмите на аватар, чтобы изменить',
+          'Нажмите на аватар, чтобы изменить фото',
           style: AppTextStyles.caption.copyWith(color: BrandColors.grayMid),
         ),
       ],
@@ -162,37 +152,23 @@ class _AvatarHeader extends StatelessWidget {
 }
 
 class _FieldRow extends StatelessWidget {
-  const _FieldRow({required this.label, required this.value, this.onTap});
+  const _FieldRow({required this.label, required this.value});
 
   final String label;
   final String value;
-  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label,
-                      style: AppTextStyles.caption
-                          .copyWith(color: BrandColors.grayMid)),
-                  Text(value, style: AppTextStyles.bodyLarge),
-                ],
-              ),
-            ),
-            if (onTap != null)
-              const Icon(Icons.phone_in_talk_outlined,
-                  color: BrandColors.primary),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: AppTextStyles.caption
+                  .copyWith(color: BrandColors.grayMid)),
+          Text(value, style: AppTextStyles.bodyLarge),
+        ],
       ),
     );
   }
@@ -214,11 +190,11 @@ class _LogoutButton extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Выход'),
-        content: const Text('Вы уверены, что хотите выйти из аккаунта?'),
+        content: const Text('Выйти из аккаунта? Вам нужно будет войти снова.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Отмена')),
+              child: const Text('Остаться')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: BrandColors.error),
             onPressed: () => Navigator.pop(ctx, true),

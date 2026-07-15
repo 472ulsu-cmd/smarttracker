@@ -1,0 +1,292 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../config/refresh_bus.dart';
+import '../../../../config/service_locator.dart';
+import '../../../../domain/repositories/orders_repository.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/theme/brand_colors.dart';
+import '../view_models/orders_view_model.dart';
+import 'order_list_tile.dart';
+
+/// Экран списка заявок с вкладками: Новые / В работе / Архив.
+class OrdersScreen extends StatefulWidget {
+  const OrdersScreen({super.key});
+
+  @override
+  State<OrdersScreen> createState() => _OrdersScreenState();
+}
+
+class _OrdersScreenState extends State<OrdersScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+  late final OrdersViewModel _viewModel;
+  late final OrdersRefreshBus _refreshBus;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _viewModel = OrdersViewModel(getIt<OrdersRepository>());
+    _viewModel.addListener(_onChanged);
+    // Обновление списка при смене статуса заявки или новом уведомлении.
+    _refreshBus = getIt<OrdersRefreshBus>();
+    _refreshBus.addListener(_onExternalRefresh);
+    _viewModel.loadAll();
+  }
+
+  @override
+  void dispose() {
+    _viewModel.removeListener(_onChanged);
+    _refreshBus.removeListener(_onExternalRefresh);
+    _viewModel.dispose();
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _onExternalRefresh() {
+    if (mounted) _viewModel.loadAll();
+  }
+
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Заявки'),
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: BrandColors.primary,
+          unselectedLabelColor: BrandColors.grayDark,
+          indicatorColor: BrandColors.primary,
+          labelStyle: AppTextStyles.titleMedium,
+          tabs: const [
+            Tab(text: 'Новые'),
+            Tab(text: 'В работе'),
+            Tab(text: 'Архив'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _OrdersTabBody(
+            viewModel: _viewModel,
+            tab: OrdersTab.newOrders,
+            emptyText: 'Нет новых заявок',
+            emptyHint: 'Новые заявки появятся здесь автоматически.',
+          ),
+          _OrdersTabBody(
+            viewModel: _viewModel,
+            tab: OrdersTab.inProgress,
+            emptyText: 'Нет заявок в работе',
+            emptyHint:
+                'Примите заявку из вкладки «Новые», чтобы начать работу.',
+          ),
+          _OrdersTabBody(
+            viewModel: _viewModel,
+            tab: OrdersTab.archive,
+            emptyText: 'В архиве нет заявок',
+            emptyHint:
+                'Завершённые и отклонённые заявки будут отображаться здесь.',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrdersTabBody extends StatelessWidget {
+  const _OrdersTabBody({
+    required this.viewModel,
+    required this.tab,
+    required this.emptyText,
+    this.emptyHint,
+  });
+
+  final OrdersViewModel viewModel;
+  final OrdersTab tab;
+  final String emptyText;
+  final String? emptyHint;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: viewModel,
+      builder: (context, _) {
+        if (viewModel.isLoadingOf(tab) && viewModel.ordersOf(tab).isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final error = viewModel.errorOf(tab);
+        if (error != null && viewModel.ordersOf(tab).isEmpty) {
+          return _ErrorState(
+              message: error, onRetry: () => viewModel.loadTab(tab));
+        }
+        final orders = viewModel.ordersOf(tab);
+        if (orders.isEmpty) {
+          return _EmptyState(
+            text: emptyText,
+            hint: emptyHint,
+            onRefresh: () => viewModel.loadTab(tab),
+          );
+        }
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: TextField(
+                onChanged: viewModel.setSearchQuery,
+                decoration: const InputDecoration(
+                  hintText: 'Поиск по номеру или маршруту',
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+            if (error != null)
+              _UpdateErrorBanner(
+                message: error,
+                onRetry: () => viewModel.loadTab(tab),
+              ),
+            Expanded(
+              child: RefreshIndicator(
+                color: BrandColors.primary,
+                onRefresh: () => viewModel.loadTab(tab),
+                child: ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  itemCount: orders.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final order = orders[index];
+                    return OrderListTile(
+                      order: order,
+                      onTap: () => context.push('/main/orders/${order.id}'),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({required this.text, this.hint, this.onRefresh});
+  final String text;
+  final String? hint;
+  final VoidCallback? onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.inbox_outlined,
+                size: 56, color: BrandColors.grayMid),
+            const SizedBox(height: 12),
+            Text(text,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyMedium
+                    .copyWith(color: BrandColors.grayDark)),
+            if (hint != null) ...[
+              const SizedBox(height: 8),
+              Text(hint!,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: BrandColors.grayDark)),
+            ],
+            if (onRefresh != null) ...[
+              const SizedBox(height: 16),
+              OutlinedButton(
+                onPressed: onRefresh,
+                child: const Text('Обновить'),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorState extends StatelessWidget {
+  const _ErrorState({required this.message, required this.onRetry});
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.cloud_off_rounded,
+                size: 56, color: BrandColors.error),
+            const SizedBox(height: 12),
+            Text(message,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyMedium
+                    .copyWith(color: BrandColors.grayDark)),
+            const SizedBox(height: 16),
+            OutlinedButton(onPressed: onRetry, child: const Text('Повторить')),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Баннер ошибки обновления списка, когда кэш уже есть.
+class _UpdateErrorBanner extends StatelessWidget {
+  const _UpdateErrorBanner({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: BrandColors.error.withOpacity(0.08),
+        border: Border(
+          bottom: BorderSide(color: BrandColors.error.withOpacity(0.2)),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: BrandColors.error, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style:
+                  AppTextStyles.bodySmall.copyWith(color: BrandColors.error),
+            ),
+          ),
+          TextButton(
+            onPressed: onRetry,
+            style: TextButton.styleFrom(
+              minimumSize: const Size(48, 48),
+              padding: EdgeInsets.zero,
+            ),
+            child: const Text('Повторить'),
+          ),
+        ],
+      ),
+    );
+  }
+}

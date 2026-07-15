@@ -5,6 +5,8 @@ import '../../../../domain/models/order_status.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/date_format.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../core/theme/brand_radius.dart';
+import '../../../core/widgets/brand_card.dart';
 import '../../../core/widgets/status_chip.dart';
 
 /// Карточка одной заявки в списке.
@@ -21,21 +23,15 @@ class OrderListTile extends StatelessWidget {
             ? 'Маршрут не указан'
             : '${order.routeFrom} → ${order.routeTo}')
         : order.route;
-    final statusLabel = OrderStatus.listLabelForId(order.status);
 
     return MergeSemantics(
       child: Material(
-        color: BrandColors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(BrandRadius.md),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(color: BrandColors.grayLighter),
-              borderRadius: BorderRadius.circular(12),
-            ),
+          borderRadius: BorderRadius.circular(BrandRadius.md),
+          child: BrandCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -43,11 +39,11 @@ class OrderListTile extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('№ ${order.num}', style: AppTextStyles.titleMedium),
-                    if (statusLabel != null)
+                    if (OrderStatus.fromId(order.status) != null)
                       StatusChip(statusId: order.status),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     const Icon(Icons.route_rounded,
@@ -57,26 +53,10 @@ class OrderListTile extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        routeText,
+                        '$routeText · ${DateFormatUtil.date(order.loadingDate)} — ${DateFormatUtil.date(order.unloadingDate)}',
                         style: AppTextStyles.bodyLarge,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    _DateChip(
-                        icon: Icons.event_outlined,
-                        text: DateFormatUtil.date(order.loadingDate),
-                        label: 'Погрузка',
-                        semanticLabel: 'Дата погрузки'),
-                    const SizedBox(width: 12),
-                    _DateChip(
-                        icon: Icons.flag_outlined,
-                        text: DateFormatUtil.date(order.unloadingDate),
-                        label: 'Разгрузка',
-                        semanticLabel: 'Дата разгрузки'),
                   ],
                 ),
               ],
@@ -84,36 +64,6 @@ class OrderListTile extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _DateChip extends StatelessWidget {
-  const _DateChip({
-    required this.icon,
-    required this.text,
-    required this.label,
-    this.semanticLabel,
-  });
-
-  final IconData icon;
-  final String text;
-  final String label;
-  final String? semanticLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    if (text.isEmpty) return const SizedBox.shrink();
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon,
-            size: 15, color: BrandColors.grayMid, semanticLabel: semanticLabel),
-        const SizedBox(width: 4),
-        Text('$label: $text',
-            style:
-                AppTextStyles.bodySmall.copyWith(color: BrandColors.grayDark)),
-      ],
     );
   }
 }
