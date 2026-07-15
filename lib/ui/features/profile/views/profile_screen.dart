@@ -52,13 +52,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           }
           final user = _viewModel.user;
           if (user == null) {
-            return _Center(text: _viewModel.errorMessage ?? 'Не удалось загрузить профиль. Проверьте подключение и попробуйте ещё раз.');
+            return _Center(text: _viewModel.errorMessage ?? 'Профиль недоступен');
           }
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
               _AvatarHeader(user: user, onPick: _viewModel.uploadAvatar),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               _FieldRow(label: 'ФИО', value: user.fullName),
               _FieldRow(label: 'Паспорт', value: user.login),
               _FieldRow(
@@ -71,19 +71,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: const Icon(Icons.edit_outlined),
                 label: const Text('Редактировать профиль'),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: () => context.push('/main/profile/password'),
                 icon: const Icon(Icons.lock_outline),
                 label: const Text('Сменить пароль'),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: () => context.push('/main/profile/feedback'),
                 icon: const Icon(Icons.feedback_outlined),
                 label: const Text('Обратная связь'),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               _LogoutButton(),
             ],
           );
@@ -106,12 +106,12 @@ Future<void> _showAvatarSource(
         children: [
           ListTile(
             leading: const Icon(Icons.camera_alt_outlined),
-            title: const Text('Сделать фото'),
+            title: const Text('Камера'),
             onTap: () => Navigator.pop(ctx, ImageSource.camera),
           ),
           ListTile(
             leading: const Icon(Icons.image_outlined),
-            title: const Text('Выбрать из галереи'),
+            title: const Text('Галерея'),
             onTap: () => Navigator.pop(ctx, ImageSource.gallery),
           ),
         ],
@@ -143,7 +143,7 @@ class _AvatarHeader extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'Нажмите на аватар, чтобы изменить фото',
+          'Нажмите на аватар, чтобы изменить',
           style: AppTextStyles.caption.copyWith(color: BrandColors.grayMid),
         ),
       ],
@@ -190,11 +190,11 @@ class _LogoutButton extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Выход'),
-        content: const Text('Выйти из аккаунта? Вам нужно будет войти снова.'),
+        content: const Text('Вы уверены, что хотите выйти из аккаунта?'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Остаться')),
+              child: const Text('Отмена')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: BrandColors.error),
             onPressed: () => Navigator.pop(ctx, true),

@@ -70,28 +70,45 @@ class _OrdersScreenState extends State<OrdersScreen>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _OrdersTabBody(
-            viewModel: _viewModel,
-            tab: OrdersTab.newOrders,
-            emptyText: 'Нет новых заявок',
-            emptyHint: 'Новые заявки появятся здесь автоматически.',
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: TextField(
+              onChanged: _viewModel.setSearchQuery,
+              decoration: const InputDecoration(
+                hintText: 'Поиск по номеру или маршруту',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+            ),
           ),
-          _OrdersTabBody(
-            viewModel: _viewModel,
-            tab: OrdersTab.inProgress,
-            emptyText: 'Нет заявок в работе',
-            emptyHint:
-                'Примите заявку из вкладки «Новые», чтобы начать работу.',
-          ),
-          _OrdersTabBody(
-            viewModel: _viewModel,
-            tab: OrdersTab.archive,
-            emptyText: 'В архиве нет заявок',
-            emptyHint:
-                'Завершённые и отклонённые заявки будут отображаться здесь.',
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _OrdersTabBody(
+                  viewModel: _viewModel,
+                  tab: OrdersTab.newOrders,
+                  emptyText: 'Нет новых заявок',
+                  emptyHint: 'Новые заявки появятся здесь автоматически.',
+                ),
+                _OrdersTabBody(
+                  viewModel: _viewModel,
+                  tab: OrdersTab.inProgress,
+                  emptyText: 'Нет заявок в работе',
+                  emptyHint:
+                      'Примите заявку из вкладки «Новые», чтобы начать работу.',
+                ),
+                _OrdersTabBody(
+                  viewModel: _viewModel,
+                  tab: OrdersTab.archive,
+                  emptyText: 'В архиве нет заявок',
+                  emptyHint:
+                      'Завершённые и отклонённые заявки будут отображаться здесь.',
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -135,17 +152,6 @@ class _OrdersTabBody extends StatelessWidget {
         }
         return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: TextField(
-                onChanged: viewModel.setSearchQuery,
-                decoration: const InputDecoration(
-                  hintText: 'Поиск по номеру или маршруту',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ),
             if (error != null)
               _UpdateErrorBanner(
                 message: error,
