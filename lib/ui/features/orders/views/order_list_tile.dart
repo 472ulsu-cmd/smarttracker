@@ -42,12 +42,19 @@ class OrderListTile extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('№ ${order.num}', style: AppTextStyles.titleMedium),
+                    Expanded(
+                      child: Text(
+                        '№ ${order.num}',
+                        style: AppTextStyles.titleMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     if (statusLabel != null)
                       StatusChip(statusId: order.status),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     const Icon(Icons.route_rounded,
@@ -59,6 +66,8 @@ class OrderListTile extends StatelessWidget {
                       child: Text(
                         '$routeText · ${DateFormatUtil.date(order.loadingDate)} — ${DateFormatUtil.date(order.unloadingDate)}',
                         style: AppTextStyles.bodyLarge,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],

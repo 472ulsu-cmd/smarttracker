@@ -9,6 +9,8 @@ import '../../../../domain/repositories/photo_repository.dart';
 
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../core/theme/brand_radius.dart';
+import '../../../core/widgets/brand_card.dart';
 import '../view_models/photo_view_model.dart';
 
 /// Экран фото по заявке.
@@ -59,10 +61,14 @@ class _PhotoScreenState extends State<PhotoScreen> {
       _lastErrorMessage = error;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error),
+          content: Text(
+            error,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+          ),
           behavior: SnackBarBehavior.floating,
           action: SnackBarAction(
-            label: 'Повторить',
+            label: 'Загрузить снова',
             onPressed: _viewModel.load,
           ),
         ),
@@ -75,7 +81,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Фотографии')),
+      appBar: AppBar(title: const Text('Фото по заявке')),
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {
@@ -85,10 +91,10 @@ class _PhotoScreenState extends State<PhotoScreen> {
           if (_viewModel.groups.isEmpty) {
             return _Center(
               text: _viewModel.errorMessage ??
-                  'Нет фото для этой заявки',
+                  'Для этой заявки пока нет фото. Здесь появятся фото погрузки и разгрузки.',
               action: _viewModel.errorMessage != null
                   ? _CenterAction(
-                      label: 'Повторить',
+                      label: 'Загрузить снова',
                       onPressed: _viewModel.load,
                     )
                   : null,
@@ -132,15 +138,39 @@ class _PhotoGroupCard extends StatelessWidget {
   final OrderPhotoGroup group;
   final PhotoViewModel viewModel;
 
+  Future<void> _onResend(BuildContext context, OrderPhoto photo) async {
+    final cached = viewModel.cachedPath(photo.id);
+    if (cached != null) {
+      await viewModel.resend(photo);
+      return;
+    }
+    final source = await showModalBottomSheet<ImageSourceOption>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('Сделать снимок'),
+              onTap: () => Navigator.pop(ctx, ImageSourceOption.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.image_outlined),
+              title: const Text('Выбрать из галереи'),
+              onTap: () => Navigator.pop(ctx, ImageSourceOption.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+    await viewModel.resend(photo, source: source);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: BrandColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: BrandColors.grayLighter),
-      ),
+    return BrandCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -150,7 +180,12 @@ class _PhotoGroupCard extends StatelessWidget {
                   color: BrandColors.primary, size: 20),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(group.type, style: AppTextStyles.titleMedium),
+                child: Text(
+                  group.type,
+                  style: AppTextStyles.titleMedium,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),
@@ -159,9 +194,9 @@ class _PhotoGroupCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                'Фотографии ещё не загружены',
+                'В этой группе пока нет фото.',
                 style: AppTextStyles.bodySmall
-                    .copyWith(color: BrandColors.grayMid),
+                    .copyWith(color: BrandColors.grayDark),
               ),
             )
           else
@@ -172,6 +207,7 @@ class _PhotoGroupCard extends StatelessWidget {
                 for (final photo in group.photos)
                   _PhotoThumb(
                     photo: photo,
+                    onResend: () => _onResend(context, photo),
                     viewModel: viewModel,
                   ),
               ],
@@ -186,7 +222,7 @@ class _PhotoGroupCard extends StatelessWidget {
                       : () => viewModel.uploadForGroup(
                           group, ImageSourceOption.camera),
                   icon: const Icon(Icons.camera_alt_outlined),
-                  label: const Text('Камера'),
+                  label: const Text('Сделать фото'),
                 ),
               ),
               const SizedBox(width: 8),
@@ -197,7 +233,7 @@ class _PhotoGroupCard extends StatelessWidget {
                       : () => viewModel.uploadForGroup(
                           group, ImageSourceOption.gallery),
                   icon: const Icon(Icons.image_outlined),
-                  label: const Text('Галерея'),
+                  label: const Text('Выбрать фото'),
                 ),
               ),
             ],
@@ -211,10 +247,12 @@ class _PhotoGroupCard extends StatelessWidget {
 class _PhotoThumb extends StatelessWidget {
   const _PhotoThumb({
     required this.photo,
+    required this.onResend,
     required this.viewModel,
   });
 
   final OrderPhoto photo;
+  final VoidCallback onResend;
   final PhotoViewModel viewModel;
 
   Color _statusColor(OrderPhotoStatus s) {
@@ -237,51 +275,82 @@ class _PhotoThumb extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: photo.url.isEmpty
-              ? Container(
-                  width: 96,
-                  height: 96,
-                  color: BrandColors.grayLighter,
-                  child: const Icon(Icons.broken_image_outlined,
-                      color: BrandColors.grayMid),
-                )
-              : CachedNetworkImage(
-                  imageUrl: photo.url,
-                  width: 96,
-                  height: 96,
-                  fit: BoxFit.cover,
-                  placeholder: (_, __) => Container(
-                    width: 96,
-                    height: 96,
-                    color: BrandColors.grayLighter,
-                  ),
-                  errorWidget: (_, __, ___) => Container(
-                    width: 96,
-                    height: 96,
-                    color: BrandColors.grayLighter,
-                    child: const Icon(Icons.broken_image_outlined,
-                        color: BrandColors.grayMid),
+        Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(BrandRadius.sm),
+              child: photo.url.isEmpty
+                  ? Container(
+                      width: 96,
+                      height: 96,
+                      color: BrandColors.grayLighter,
+                      child: const Icon(Icons.broken_image_outlined,
+                          color: BrandColors.grayMid),
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: photo.url,
+                      width: 96,
+                      height: 96,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => Container(
+                        width: 96,
+                        height: 96,
+                        color: BrandColors.grayLighter,
+                      ),
+                      errorWidget: (_, __, ___) => Container(
+                        width: 96,
+                        height: 96,
+                        color: BrandColors.grayLighter,
+                        child: const Icon(Icons.broken_image_outlined,
+                            color: BrandColors.grayMid),
+                      ),
+                    ),
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Semantics(
+                label: 'Переотправить фото',
+                child: Material(
+                  type: MaterialType.circle,
+                  color: BrandColors.graphite,
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: onResend,
+                    customBorder: const CircleBorder(),
+                    child: const SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Icon(
+                        Icons.refresh,
+                        size: 18,
+                        color: BrandColors.white,
+                      ),
+                    ),
                   ),
                 ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 4),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
             color: _statusColor(photo.status).withOpacity(0.12),
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(BrandRadius.sm),
           ),
           child: Text(
             photo.status.label,
             style: AppTextStyles.caption
                 .copyWith(color: _statusColor(photo.status)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         if (photo.status == OrderPhotoStatus.rejected && reason.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(top: 2),
+            padding: const EdgeInsets.only(top: 4),
             child: Text(
               reason,
               style: AppTextStyles.caption.copyWith(color: BrandColors.error),
@@ -299,10 +368,10 @@ class _UploadingBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: BrandColors.graphite,
-        borderRadius: BorderRadius.circular(999),
+        borderRadius: BorderRadius.circular(BrandRadius.pill),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -313,9 +382,13 @@ class _UploadingBadge extends StatelessWidget {
             child: CircularProgressIndicator(
                 strokeWidth: 2, color: BrandColors.white),
           ),
-          const SizedBox(width: 10),
-          Text('Загрузка…',
-              style: AppTextStyles.bodySmall.copyWith(color: BrandColors.white)),
+          const SizedBox(width: 8),
+          Text(
+            'Загружаем фото…',
+            style: AppTextStyles.bodySmall.copyWith(color: BrandColors.white),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );
@@ -341,10 +414,14 @@ class _Center extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(text,
-                textAlign: TextAlign.center,
-                style: AppTextStyles.bodyMedium
-                    .copyWith(color: BrandColors.grayDark)),
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: BrandColors.grayDark),
+              maxLines: 5,
+              overflow: TextOverflow.ellipsis,
+            ),
             if (action != null) ...[
               const SizedBox(height: 16),
               OutlinedButton(

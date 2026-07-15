@@ -62,6 +62,10 @@ class OrdersViewModel extends ChangeNotifier {
 
   /// Загружает активные заявки один раз и распределяет по вкладкам Новые/В работе.
   Future<void> _loadActiveTabs() async {
+    if (_loading[OrdersTab.newOrders] == true ||
+        _loading[OrdersTab.inProgress] == true) {
+      return;
+    }
     _loading[OrdersTab.newOrders] = true;
     _loading[OrdersTab.inProgress] = true;
     _errors[OrdersTab.newOrders] = null;
@@ -92,6 +96,7 @@ class OrdersViewModel extends ChangeNotifier {
   }
 
   Future<void> loadTab(OrdersTab tab) async {
+    if (_loading[tab] == true) return;
     _loading[tab] = true;
     _errors[tab] = null;
     notifyListeners();

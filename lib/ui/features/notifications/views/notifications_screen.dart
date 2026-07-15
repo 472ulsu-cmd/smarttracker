@@ -46,7 +46,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   void _onChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    setState(() {});
+
+    final actionError = _viewModel.consumeActionError();
+    final transientError = actionError == null ? _viewModel.takeTransientError() : null;
+    final errorMessage = actionError ?? transientError;
+    if (errorMessage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMessage)),
+          );
+        }
+      });
+    }
   }
 
   @override
@@ -62,6 +76,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               if (_viewModel.unreadCount > 0)
                 _MarkAllBar(
                   count: _viewModel.unreadCount,
+                  enabled: !_viewModel.isBusy,
                   onTap: _viewModel.markAllRead,
                 ),
               Expanded(child: _body()),
@@ -73,34 +88,72 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _body() {
-    if (_viewModel.isLoading && _viewModel.items.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_viewModel.items.isEmpty) {
-      return Center(
-        child: Text(
-          _viewModel.errorMessage ?? 'Пока нет уведомлений. Здесь появятся сообщения по заявкам.',
-          style: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayDark),
-        ),
-      );
-    }
     return RefreshIndicator(
       onRefresh: _viewModel.load,
       color: BrandColors.primary,
-      child: ListView.separated(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        itemCount: _viewModel.items.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
-        itemBuilder: (context, index) {
-          final item = _viewModel.items[index];
-          return _NotificationTile(
-            item: item,
-            onTap: () async {
-              if (!item.isRead) await _viewModel.markAsRead(item.id);
-              if (item.hasOrder && context.mounted) {
-                context.push('/main/orders/${item.orderId}');
-              }
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (_viewModel.isLoading && _viewModel.items.isEmpty) {
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+            );
+          }
+          if (_viewModel.items.isEmpty) {
+            final errorMessage = _viewModel.errorMessage;
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          errorMessage ?? 'Пока нет уведомлений. Здесь появятся сообщения по заявкам.',
+                          style: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayDark),
+                          textAlign: TextAlign.center,
+                          maxLines: 5,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (errorMessage != null) ...[
+                          const SizedBox(height: 16),
+                          ElevatedButton.icon(
+                            onPressed: _viewModel.isBusy ? null : _viewModel.load,
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Повторить'),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+          return ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            itemCount: _viewModel.items.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final item = _viewModel.items[index];
+              return _NotificationTile(
+                item: item,
+                enabled: !_viewModel.isBusy,
+                onTap: () async {
+                  if (_viewModel.isBusy) return;
+                  if (!item.isRead) await _viewModel.markAsRead(item.id);
+                  if (item.hasOrder && context.mounted) {
+                    context.push('/main/orders/${item.orderId}');
+                  }
+                },
+              );
             },
           );
         },
@@ -115,40 +168,45 @@ class _PushToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: viewModel.settings,
-      builder: (context, _) {
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: BrandCard(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                const Icon(Icons.notifications_active_outlined,
-                    color: BrandColors.primary),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text('Получать push-уведомления',
-                      style: AppTextStyles.bodyLarge),
-                ),
-                Switch(
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: BrandCard(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            const Icon(Icons.notifications_active_outlined,
+                color: BrandColors.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Получать push-уведомления',
+                style: AppTextStyles.bodyLarge,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            ListenableBuilder(
+              listenable: viewModel.settings,
+              builder: (context, _) {
+                return Switch(
                   value: viewModel.settings.pushEnabled,
                   activeColor: BrandColors.primary,
-                  onChanged: viewModel.togglePush,
-                ),
-              ],
+                  onChanged: viewModel.isBusy ? null : viewModel.togglePush,
+                );
+              },
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 }
 
 class _MarkAllBar extends StatelessWidget {
-  const _MarkAllBar({required this.count, required this.onTap});
+  const _MarkAllBar({required this.count, required this.onTap, this.enabled = true});
   final int count;
   final VoidCallback onTap;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -157,9 +215,13 @@ class _MarkAllBar extends StatelessWidget {
       child: Align(
         alignment: Alignment.centerRight,
         child: TextButton.icon(
-          onPressed: onTap,
+          onPressed: enabled ? onTap : null,
           icon: const Icon(Icons.done_all_rounded, size: 18),
-          label: Text('Прочитать все ($count)'),
+          label: Text(
+            'Прочитать все ($count)',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ),
     );
@@ -167,31 +229,34 @@ class _MarkAllBar extends StatelessWidget {
 }
 
 class _NotificationTile extends StatelessWidget {
-  const _NotificationTile({required this.item, required this.onTap});
+  const _NotificationTile({required this.item, required this.onTap, this.enabled = true});
 
   final NotificationItem item;
   final VoidCallback onTap;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
+      onTap: enabled ? onTap : null,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Индикатор непрочитанного.
             Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: item.isRead
-                      ? Colors.transparent
-                      : BrandColors.primary,
+              child: ExcludeSemantics(
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: item.isRead
+                        ? Colors.transparent
+                        : BrandColors.primary,
+                  ),
                 ),
               ),
             ),
@@ -206,12 +271,16 @@ class _NotificationTile extends StatelessWidget {
                         ? AppTextStyles.bodyMedium
                             .copyWith(color: BrandColors.grayDark)
                         : AppTextStyles.titleMedium,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   if (item.datetime.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
                       DateFormatUtil.dateTime(item.datetime),
                       style: AppTextStyles.caption,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                   if (item.hasOrder) ...[
@@ -220,6 +289,8 @@ class _NotificationTile extends StatelessWidget {
                       'Заявка № ${item.orderId}',
                       style: AppTextStyles.caption
                           .copyWith(color: BrandColors.primary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ],
@@ -230,8 +301,10 @@ class _NotificationTile extends StatelessWidget {
                 width: 48,
                 height: 48,
                 child: Center(
-                  child: Icon(Icons.chevron_right_rounded,
-                      color: BrandColors.grayMid),
+                  child: ExcludeSemantics(
+                    child: Icon(Icons.chevron_right_rounded,
+                        color: BrandColors.grayMid),
+                  ),
                 ),
               ),
           ],

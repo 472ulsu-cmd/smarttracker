@@ -52,7 +52,11 @@ class _OrderRouteScreenState extends State<OrderRouteScreen> {
           listenable: _viewModel,
           builder: (context, _) {
             final order = _viewModel.order;
-            return Text(order == null ? 'Маршрут' : 'Маршрут №${order.num}');
+            return Text(
+              order == null ? 'Маршрут' : 'Маршрут №${order.num}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            );
           },
         ),
       ),
@@ -87,6 +91,8 @@ class _OrderRouteScreenState extends State<OrderRouteScreen> {
                     Text(
                       message,
                       textAlign: TextAlign.center,
+                      maxLines: 5,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bodyMedium
                           .copyWith(color: BrandColors.grayDark),
                     ),
@@ -137,17 +143,27 @@ class _OrderRouteScreenState extends State<OrderRouteScreen> {
   }
 }
 
-class _RouteTimelineTile extends StatelessWidget {
+class _RouteTimelineTile extends StatefulWidget {
   const _RouteTimelineTile({required this.point, required this.isLast});
 
   final OrderRouteDetail point;
   final bool isLast;
 
+  @override
+  State<_RouteTimelineTile> createState() => _RouteTimelineTileState();
+}
+
+class _RouteTimelineTileState extends State<_RouteTimelineTile> {
+  bool _isLaunchingMap = false;
+
   Future<void> _openMap(BuildContext context) async {
+    if (_isLaunchingMap) return;
     HapticFeedback.lightImpact();
-    final lat = point.lat;
-    final lon = point.lon;
+    final lat = widget.point.lat;
+    final lon = widget.point.lon;
     if (lat == null || lon == null) return;
+
+    setState(() => _isLaunchingMap = true);
 
     // Приоритет: нативные российские навигаторы → web-версии → Google Maps.
     final candidates = [
@@ -158,16 +174,20 @@ class _RouteTimelineTile extends StatelessWidget {
       Uri.parse('https://maps.google.com/maps?q=$lat,$lon&z=17'),
     ];
 
-    for (final uri in candidates) {
-      if (await canLaunchUrl(uri)) {
-        try {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-          return;
-        } catch (_) {
-          // Если конкретное приложение упало, пробуем следующий fallback.
-          continue;
+    try {
+      for (final uri in candidates) {
+        if (await canLaunchUrl(uri)) {
+          try {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+            return;
+          } catch (_) {
+            // Если конкретное приложение упало, пробуем следующий fallback.
+            continue;
+          }
         }
       }
+    } finally {
+      if (mounted) setState(() => _isLaunchingMap = false);
     }
 
     if (context.mounted) {
@@ -181,6 +201,8 @@ class _RouteTimelineTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final point = widget.point;
+    final isLast = widget.isLast;
     final color = point.isLoading ? BrandColors.primary : BrandColors.grayMid;
     final canOpenMap = point.lat != null && point.lon != null;
     return IntrinsicHeight(
@@ -226,128 +248,150 @@ class _RouteTimelineTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                  Semantics(
-                    header: true,
-                    child: Text(
-                      point.isLoading ? 'Погрузка' : 'Разгрузка',
-                      style: AppTextStyles.labelMedium.copyWith(color: color),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    point.city,
-                    style: AppTextStyles.titleMedium,
-                  ),
-                  if (point.address.isNotEmpty)
-                    _FieldLine(
-                      icon: Icons.place_outlined,
-                      text: point.address,
-                      semanticLabel: 'Адрес',
-                      trailing: canOpenMap
-                          ? TextButton.icon(
-                              onPressed: () => _openMap(context),
-                              icon: const Icon(Icons.map_outlined, size: 16),
-                              label: const Text('На карте'),
-                              style: TextButton.styleFrom(
-                                minimumSize: const Size(48, 48),
-                              ),
-                            )
-                          : null,
-                    ),
-                  if (point.date.isNotEmpty)
-                    _FieldLine(
-                      icon: Icons.event_outlined,
-                      text: '${DateFormatUtil.date(point.date)}  '
-                          '${DateFormatUtil.time(point.timeFrom)}–'
-                          '${DateFormatUtil.time(point.timeTo)}',
-                      semanticLabel: 'Дата и время',
-                    ),
-                  if (point.cargoType.isNotEmpty)
-                    _FieldLine(
-                      icon: Icons.inventory_2_outlined,
-                      text: point.cargoType,
-                      semanticLabel: 'Тип груза',
-                    ),
-                  if (point.loadingMethod.isNotEmpty)
-                    _FieldLine(
-                      icon: Icons.local_shipping_outlined,
-                      text: 'Погрузка: ${point.loadingMethod}',
-                      semanticLabel: 'Способ погрузки',
-                    ),
-                  if (point.mass.isNotEmpty)
-                    _FieldLine(
-                        icon: Icons.scale_outlined,
-                        text: 'Масса: ${point.mass} т',
-                        semanticLabel: 'Масса'),
-                  if (point.volume.isNotEmpty)
-                    _FieldLine(
-                      icon: Icons.water_drop_outlined,
-                      text: 'Объём: ${point.volume} м³',
-                      semanticLabel: 'Объём',
-                    ),
-                  if (point.comment.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: BrandColors.paperWarm,
-                        borderRadius: BorderRadius.circular(BrandRadius.sm),
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        point.isLoading ? 'Погрузка' : 'Разгрузка',
+                        style: AppTextStyles.labelMedium.copyWith(color: color),
                       ),
-                      child: Text(point.comment,
-                          style: AppTextStyles.bodySmall),
                     ),
-                  ],
-                  if (point.client.org.isNotEmpty ||
-                      point.client.manager.isNotEmpty ||
-                      point.client.phone.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Text('Заказчик в точке',
-                        style: AppTextStyles.bodySmall
-                            .copyWith(color: BrandColors.grayDark)),
-                    if (point.client.org.isNotEmpty)
+                    const SizedBox(height: 4),
+                    Text(
+                      point.city,
+                      style: AppTextStyles.titleMedium,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (point.address.isNotEmpty)
                       _FieldLine(
-                          icon: Icons.business_outlined,
-                          text: point.client.org,
-                          semanticLabel: 'Организация'),
-                    if (point.client.manager.isNotEmpty)
+                        icon: Icons.place_outlined,
+                        text: point.address,
+                        semanticLabel: 'Адрес',
+                        trailing: canOpenMap
+                            ? TextButton.icon(
+                                onPressed: _isLaunchingMap
+                                    ? null
+                                    : () => _openMap(context),
+                                icon: const Icon(Icons.map_outlined, size: 16),
+                                label: const Text('На карте'),
+                                style: TextButton.styleFrom(
+                                  minimumSize: const Size(48, 48),
+                                ),
+                              )
+                            : null,
+                      ),
+                    if (point.date.isNotEmpty)
                       _FieldLine(
-                          icon: Icons.person_outline,
-                          text: point.client.manager,
-                          semanticLabel: 'Контактное лицо'),
-                    if (point.client.phone.isNotEmpty)
-                      _PhoneFieldLine(phone: point.client.phone),
+                        icon: Icons.event_outlined,
+                        text: '${DateFormatUtil.date(point.date)}  '
+                            '${DateFormatUtil.time(point.timeFrom)}–'
+                            '${DateFormatUtil.time(point.timeTo)}',
+                        semanticLabel: 'Дата и время',
+                      ),
+                    if (point.cargoType.isNotEmpty)
+                      _FieldLine(
+                        icon: Icons.inventory_2_outlined,
+                        text: point.cargoType,
+                        semanticLabel: 'Тип груза',
+                      ),
+                    if (point.loadingMethod.isNotEmpty)
+                      _FieldLine(
+                        icon: Icons.local_shipping_outlined,
+                        text: 'Погрузка: ${point.loadingMethod}',
+                        semanticLabel: 'Способ погрузки',
+                      ),
+                    if (point.mass.isNotEmpty)
+                      _FieldLine(
+                          icon: Icons.scale_outlined,
+                          text: 'Масса: ${point.mass} т',
+                          semanticLabel: 'Масса'),
+                    if (point.volume.isNotEmpty)
+                      _FieldLine(
+                        icon: Icons.water_drop_outlined,
+                        text: 'Объём: ${point.volume} м³',
+                        semanticLabel: 'Объём',
+                      ),
+                    if (point.comment.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: BrandColors.paperWarm,
+                          borderRadius: BorderRadius.circular(BrandRadius.sm),
+                        ),
+                        child: Text(
+                          point.comment,
+                          style: AppTextStyles.bodySmall,
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                    if (point.client.org.isNotEmpty ||
+                        point.client.manager.isNotEmpty ||
+                        point.client.phone.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text('Заказчик в точке',
+                          style: AppTextStyles.bodySmall
+                              .copyWith(color: BrandColors.grayDark)),
+                      if (point.client.org.isNotEmpty)
+                        _FieldLine(
+                            icon: Icons.business_outlined,
+                            text: point.client.org,
+                            semanticLabel: 'Организация'),
+                      if (point.client.manager.isNotEmpty)
+                        _FieldLine(
+                            icon: Icons.person_outline,
+                            text: point.client.manager,
+                            semanticLabel: 'Контактное лицо'),
+                      if (point.client.phone.isNotEmpty)
+                        _PhoneFieldLine(phone: point.client.phone),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
       ),
     );
   }
 }
 
 /// Кликабельная строка с телефоном.
-class _PhoneFieldLine extends StatelessWidget {
+class _PhoneFieldLine extends StatefulWidget {
   const _PhoneFieldLine({required this.phone});
   final String phone;
 
+  @override
+  State<_PhoneFieldLine> createState() => _PhoneFieldLineState();
+}
+
+class _PhoneFieldLineState extends State<_PhoneFieldLine> {
+  bool _isCalling = false;
+
   Future<void> _call(BuildContext context) async {
+    if (_isCalling) return;
     HapticFeedback.lightImpact();
-    final normalized = normalizePhone(phone);
+    final normalized = normalizePhone(widget.phone);
     if (normalized.isEmpty) return;
     final uri = Uri.parse('tel:$normalized');
 
-    if (await canLaunchUrl(uri)) {
-      try {
-        await launchUrl(uri);
-        return;
-      } catch (_) {
-        // Падение dialer'а — пробуем fallback ниже.
+    setState(() => _isCalling = true);
+    try {
+      if (await canLaunchUrl(uri)) {
+        try {
+          await launchUrl(uri);
+          return;
+        } catch (_) {
+          // Падение dialer'а — пробуем fallback ниже.
+        }
       }
+    } finally {
+      if (mounted) setState(() => _isCalling = false);
     }
+
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Не удалось позвонить. Попробуйте позже.')),
@@ -361,7 +405,7 @@ class _PhoneFieldLine extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(top: 4),
         child: InkWell(
-          onTap: () => _call(context),
+          onTap: _isCalling ? null : () => _call(context),
           borderRadius: BorderRadius.circular(BrandRadius.sm),
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 48),
@@ -375,12 +419,14 @@ class _PhoneFieldLine extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    phone,
+                    widget.phone,
                     style: AppTextStyles.bodySmall.copyWith(
                       color: BrandColors.graphite,
                       decoration: TextDecoration.underline,
                       decorationColor: BrandColors.graphite,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -418,9 +464,13 @@ class _FieldLine extends StatelessWidget {
               semanticLabel: semanticLabel),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(text,
-                style: AppTextStyles.bodySmall
-                    .copyWith(color: BrandColors.grayDark)),
+            child: Text(
+              text,
+              style: AppTextStyles.bodySmall
+                  .copyWith(color: BrandColors.grayDark),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           if (trailing != null) trailing!,
         ],

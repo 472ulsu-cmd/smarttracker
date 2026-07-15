@@ -41,19 +41,22 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          title: const Text('Спасибо'),
-          content: const Text('Ваше сообщение отправлено.'),
+          title: const Text('Сообщение отправлено'),
+          content: const Text('Спасибо за обратную связь. Мы ответим вам в ближайшее время.'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(ctx);
                 if (context.mounted) context.pop();
               },
-              child: const Text('OK'),
+              child: const Text('Закрыть'),
             ),
           ],
         ),
       );
+    }
+    if (!_viewModel.sent) {
+      _didShowSuccessDialog = false;
     }
     if (mounted) setState(() {});
   }
@@ -76,7 +79,6 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             maxLines: 5,
             decoration: const InputDecoration(
               hintText: 'Ваше сообщение',
-              border: OutlineInputBorder(),
             ),
           ),
           if (_viewModel.errorMessage != null) ...[

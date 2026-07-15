@@ -240,10 +240,14 @@ class _ErrorState extends StatelessWidget {
             const Icon(Icons.cloud_off_rounded,
                 size: 56, color: BrandColors.error),
             const SizedBox(height: 12),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: AppTextStyles.bodyMedium
-                    .copyWith(color: BrandColors.grayDark)),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              maxLines: 5,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: BrandColors.grayDark),
+            ),
             const SizedBox(height: 16),
             OutlinedButton(onPressed: onRetry, child: const Text('Повторить')),
           ],
@@ -280,6 +284,8 @@ class _UpdateErrorBanner extends StatelessWidget {
               message,
               style:
                   AppTextStyles.bodySmall.copyWith(color: BrandColors.error),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           TextButton(

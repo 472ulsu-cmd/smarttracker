@@ -79,7 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 onPick: _viewModel.uploadAvatar,
                 isSaving: _viewModel.isSaving,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               _FieldRow(label: 'ФИО', value: user.fullName),
               _FieldRow(label: 'Паспорт', value: user.login),
               _FieldRow(
@@ -92,19 +92,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: const Icon(Icons.edit_outlined),
                 label: const Text('Редактировать профиль'),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: () => context.push('/main/profile/password'),
                 icon: const Icon(Icons.lock_outline),
                 label: const Text('Сменить пароль'),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: () => context.push('/main/profile/feedback'),
                 icon: const Icon(Icons.feedback_outlined),
                 label: const Text('Обратная связь'),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               _LogoutButton(),
             ],
           );

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/service_locator.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../core/theme/brand_radius.dart';
 import '../view_models/location_permission_view_model.dart';
 
 /// Экран запроса разрешения на геолокацию «Всегда».
@@ -82,6 +83,8 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isBusy = _viewModel.isRequesting || _viewModel.isOpeningSettings;
+
     return Scaffold(
       body: SafeArea(
         child: ListenableBuilder(
@@ -106,13 +109,17 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                             size: 48, color: BrandColors.primary),
                       ),
                       const SizedBox(height: 24),
-                      Text('Геолокация',
-                          style: AppTextStyles.headlineLarge),
+                      Text(
+                        'Доступ к геолокации',
+                        style: AppTextStyles.headlineLarge,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       const SizedBox(height: 12),
                       Text(
                         'Приложение передаёт ваше местоположение в фоновом '
-                        'режиме, чтобы отображать вас на карте диспетчеру. '
-                        'Разрешите доступ к геолокации «Всегда».',
+                        'режиме, чтобы диспетчер видел вас на карте. '
+                        'Для этого выберите «Разрешать всегда».',
                         textAlign: TextAlign.center,
                         style: AppTextStyles.bodyMedium
                             .copyWith(color: BrandColors.grayDark),
@@ -132,7 +139,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: BrandColors.error.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(BrandRadius.sm),
                           ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,6 +152,8 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                                   _viewModel.errorMessage!,
                                   style: AppTextStyles.bodySmall.copyWith(
                                       color: BrandColors.error),
+                                  maxLines: 5,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -155,7 +164,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _viewModel.isRequesting ? null : _request,
+                          onPressed: isBusy ? null : _request,
                           child: _viewModel.isRequesting
                               ? const SizedBox(
                                   height: 22,
@@ -174,7 +183,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
-                            onPressed: _openSettings,
+                            onPressed: isBusy ? null : _openSettings,
                             icon: const Icon(Icons.settings_outlined),
                             label: const Text('Открыть настройки'),
                           ),
@@ -186,7 +195,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                         'нажмите кнопку «Назад».',
                         textAlign: TextAlign.center,
                         style: AppTextStyles.caption
-                            .copyWith(color: BrandColors.grayMid),
+                            .copyWith(color: BrandColors.grayDark),
                       ),
                     ],
                   ),

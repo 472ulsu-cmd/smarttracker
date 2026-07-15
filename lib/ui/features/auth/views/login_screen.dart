@@ -6,6 +6,7 @@ import '../../../../config/app_config.dart';
 import '../../../../config/service_locator.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../core/theme/brand_radius.dart';
 import '../view_models/auth_view_model.dart';
 
 /// Экран входа по паспорту и паролю.
@@ -28,15 +29,21 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _loginController.addListener(() => setState(() {}));
-    _passwordController.addListener(() => setState(() {}));
+    _loginController.addListener(_onChanged);
+    _passwordController.addListener(_onChanged);
   }
 
   @override
   void dispose() {
+    _loginController.removeListener(_onChanged);
+    _passwordController.removeListener(_onChanged);
     _loginController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  void _onChanged() {
+    if (mounted) setState(() {});
   }
 
   bool get _isFormValid =>
@@ -50,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.errorMessage ?? 'Ошибка входа')),
+        SnackBar(content: Text(auth.errorMessage ?? 'Не удалось войти. Проверьте паспорт и пароль.')),
       );
     }
   }
@@ -78,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         const SizedBox(height: 24),
                         const _Logo(),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 24),
                         Text(
                           'Вход в приложение',
                           style: AppTextStyles.headlineMedium,
@@ -88,10 +95,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         Text(
                           'Войдите, используя серию и номер паспорта',
                           style: AppTextStyles.bodyMedium
-                              .copyWith(color: BrandColors.grayMid),
+                              .copyWith(color: BrandColors.grayDark),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 24),
                         _PassportField(controller: _loginController),
                         const SizedBox(height: 16),
                         _PasswordField(
@@ -108,6 +115,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: AppTextStyles.caption
                                 .copyWith(color: BrandColors.error),
                             textAlign: TextAlign.center,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                         const SizedBox(height: 24),
@@ -116,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           enabled: _isFormValid && !auth.isLoading,
                           onPressed: () => _handleLogin(auth),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -223,11 +232,16 @@ class _PasswordField extends StatelessWidget {
       contextMenuBuilder: (_, __) => const SizedBox.shrink(),
       decoration: InputDecoration(
         labelText: 'Пароль',
-        hintText: 'Пароль',
+        hintText: 'Введите пароль',
         prefixIcon: const Icon(Icons.lock_outline),
         suffixIcon: IconButton(
           icon: Icon(
             obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+          ),
+          tooltip: obscure ? 'Показать пароль' : 'Скрыть пароль',
+          style: IconButton.styleFrom(
+            minimumSize: const Size(48, 48),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           onPressed: onToggleVisibility,
         ),
@@ -276,10 +290,10 @@ class _MockHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: BrandColors.primary.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(BrandRadius.md),
         border: Border.all(color: BrandColors.primary.withOpacity(0.2)),
       ),
       child: Row(
@@ -287,10 +301,10 @@ class _MockHint extends StatelessWidget {
         children: [
           const Icon(Icons.info_outline_rounded,
               size: 20, color: BrandColors.primary),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Демо-режим: логин 1234567890, пароль 123456',
+              'Демо-режим: паспорт 1234567890, пароль 123456',
               style: AppTextStyles.bodySmall
                   .copyWith(color: BrandColors.graphite),
             ),

@@ -25,6 +25,9 @@ class LocationPermissionViewModel extends ChangeNotifier {
   bool _isRequesting = false;
   bool get isRequesting => _isRequesting;
 
+  bool _isOpeningSettings = false;
+  bool get isOpeningSettings => _isOpeningSettings;
+
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
@@ -32,14 +35,15 @@ class LocationPermissionViewModel extends ChangeNotifier {
 
   /// Проверить текущее разрешение без показа диалога.
   Future<void> check() async {
-    final permission = await Geolocator.checkPermission();
-    _applyPermission(permission);
+    try {
+      final permission = await Geolocator.checkPermission();
+      _applyPermission(permission);
+    } catch (_) {
+      _errorMessage =
+          'Не удалось проверить разрешение геолокации. Повторите попытку.';
+      _status = LocationPermissionStatus.denied;
+    }
     notifyListeners();
-  }
-
-  /// Проверить, включена ли служба геолокации на устройстве.
-  Future<bool> isLocationServiceEnabled() {
-    return Geolocator.isLocationServiceEnabled();
   }
 
   /// Запросить разрешение геолокации через нативные диалоги.
@@ -71,13 +75,15 @@ class LocationPermissionViewModel extends ChangeNotifier {
       }
 
       if (!isGranted) {
-        _errorMessage = 'Разрешите доступ к геолокации «Разрешать всегда».';
+        _errorMessage =
+            'В настройках приложения выберите «Разрешать всегда» для геолокации.';
       }
       _isRequesting = false;
       notifyListeners();
       return isGranted;
     } catch (_) {
-      _errorMessage = 'Не удалось запросить разрешение.';
+      _errorMessage =
+          'Не удалось запросить разрешение. Откройте настройки и выберите «Разрешать всегда» для геолокации.';
       _status = LocationPermissionStatus.denied;
       _isRequesting = false;
       notifyListeners();
@@ -87,7 +93,19 @@ class LocationPermissionViewModel extends ChangeNotifier {
 
   /// Открыть настройки приложения (когда выдан deniedForever).
   Future<void> openAppSettings() async {
-    await Geolocator.openAppSettings();
+    _isOpeningSettings = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await Geolocator.openAppSettings();
+    } catch (_) {
+      _errorMessage =
+          'Не удалось открыть настройки. Откройте их вручную и выберите «Разрешать всегда» для геолокации.';
+    } finally {
+      _isOpeningSettings = false;
+      notifyListeners();
+    }
   }
 
   void _applyPermission(LocationPermission permission) {

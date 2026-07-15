@@ -98,7 +98,7 @@ class AuthViewModel extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (_) {
-      _errorMessage = 'Не удалось войти. Попробуйте позже.';
+      _errorMessage = 'Не удалось войти. Проверьте соединение и попробуйте ещё раз.';
       notifyListeners();
       return false;
     } finally {

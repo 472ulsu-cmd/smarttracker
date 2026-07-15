@@ -18,8 +18,9 @@ class FeedbackViewModel extends ChangeNotifier {
   bool get sent => _sent;
 
   Future<bool> send(String message) async {
+    if (_isSending) return false;
     if (message.trim().isEmpty) {
-      _errorMessage = 'Введите сообщение.';
+      _errorMessage = 'Сообщение пустое. Напишите, что произошло или что хотите предложить.';
       notifyListeners();
       return false;
     }
@@ -38,7 +39,7 @@ class FeedbackViewModel extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (_) {
-      _errorMessage = 'Не удалось отправить сообщение.';
+      _errorMessage = 'Не удалось отправить сообщение. Проверьте подключение к интернету и попробуйте ещё раз.';
       notifyListeners();
       return false;
     } finally {
