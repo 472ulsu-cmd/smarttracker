@@ -24,9 +24,13 @@ const syncTaskName = 'smarttracker-sync';
 void syncCallbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     // WorkManager запускается в отдельном isolate — DI нужно инициализировать заново.
-    await setupDependencies(AppConfig.production);
+    try {
+      await setupDependencies(AppConfig.production);
+    } catch (_) {
+      return false;
+    }
 
-    if (!getIt.isRegistered<OrdersRepository>()) return true;
+    if (!getIt.isRegistered<OrdersRepository>()) return false;
 
     final store = PendingActionStore.instance;
     final actions = await store.readPending();
@@ -81,6 +85,8 @@ Future<void> _process(PendingAction action) async {
       );
       break;
     case PendingActionType.coordinates:
+      // Координаты обрабатываются ранее пакетным вызовом;
+      // ветка оставлена только для исчерпывающего покрытия enum.
       break;
   }
 }
@@ -112,6 +118,6 @@ class SyncService {
 
   /// Отмена фоновой задачи (при выходе).
   Future<void> cancel() async {
-    await Workmanager().cancelByTag(syncTaskName);
+    await Workmanager().cancelByUniqueName(syncTaskName);
   }
 }
