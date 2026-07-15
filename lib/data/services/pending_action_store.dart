@@ -102,12 +102,22 @@ class PendingActionStore {
 
   /// Удалить несколько действий (после успешной пакетной отправки).
   Future<void> removeAll(Iterable<int> ids) async {
+    if (ids.isEmpty) return;
     final db = await _database();
     final batch = db.batch();
     for (final id in ids) {
       batch.delete(_table, where: '$_colId = ?', whereArgs: [id]);
     }
     await batch.commit(noResult: true);
+  }
+
+  /// Закрыть соединение с базой (для тестов и явного освобождения ресурсов).
+  Future<void> close() async {
+    final db = _db;
+    _db = null;
+    if (db != null && db.isOpen) {
+      await db.close();
+    }
   }
 
   PendingAction _fromRow(Map<String, dynamic> row) {
