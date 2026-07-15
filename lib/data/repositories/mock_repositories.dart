@@ -82,12 +82,35 @@ class MockOrdersRepository implements OrdersRepository {
       client: const OrderClient(
           org: 'ООО Тест', manager: 'Иванов', phone: '+79990000000'),
       routeDetails: const [
-        OrderRouteDetail(routeDetailId: 1, operationType: 0,
-            city: 'Москва', address: 'ул. Ленина, 1', date: '2024-06-15',
-            timeFrom: '08:00', timeTo: '12:00', loadingMethod: 'Задняя'),
-        OrderRouteDetail(routeDetailId: 2, operationType: 1,
-            city: 'Казань', address: 'ул. Пушкина, 10', date: '2024-06-16',
-            timeFrom: '09:00', timeTo: '13:00'),
+        OrderRouteDetail(
+          routeDetailId: 1,
+          operationType: 0,
+          city: 'Москва',
+          address: 'ул. Ленина, 1',
+          date: '2024-06-15',
+          timeFrom: '08:00',
+          timeTo: '12:00',
+          loadingMethod: 'Задняя',
+          client: OrderClient(
+            org: 'ООО Грузоотправитель',
+            manager: 'Петров Сергей',
+            phone: '+7 (495) 111-22-33',
+          ),
+        ),
+        OrderRouteDetail(
+          routeDetailId: 2,
+          operationType: 1,
+          city: 'Казань',
+          address: 'ул. Пушкина, 10',
+          date: '2024-06-16',
+          timeFrom: '09:00',
+          timeTo: '13:00',
+          client: OrderClient(
+            org: 'ООО Грузополучатель',
+            manager: 'Иванова Анна',
+            phone: '+7 (843) 222-33-44',
+          ),
+        ),
       ],
       photos: const [
         OrderPhotoGroup(id: 1, type: 'Погрузка'),

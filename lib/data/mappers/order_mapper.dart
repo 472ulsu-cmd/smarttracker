@@ -88,11 +88,15 @@ class OrderMapper {
   }
 
   static OrderPhoto _toPhoto(api.OrdersResponseOrderRoutePhoto p) {
+    final status = OrderPhotoStatus.fromApiStatus(p.status);
+    final comment = p.comment ?? '';
     return OrderPhoto(
       id: p.id ?? 0,
       url: p.url ?? '',
-      status: OrderPhotoStatus.fromApiStatus(p.status),
-      comment: p.comment ?? '',
+      status: status,
+      comment: comment,
+      rejectionReason:
+          status == OrderPhotoStatus.rejected ? comment : '',
     );
   }
 }

@@ -203,8 +203,20 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
   Widget build(BuildContext context) {
     final point = widget.point;
     final isLast = widget.isLast;
-    final color = point.isLoading ? BrandColors.primary : BrandColors.grayMid;
+    final isLoading = point.isLoading;
+    final accentColor = isLoading ? BrandColors.primary : BrandColors.grayMid;
     final canOpenMap = point.lat != null && point.lon != null;
+
+    final hasWhere =
+        point.city.isNotEmpty || point.address.isNotEmpty || point.date.isNotEmpty;
+    final hasCargo = point.cargoType.isNotEmpty ||
+        point.loadingMethod.isNotEmpty ||
+        point.mass.isNotEmpty ||
+        point.volume.isNotEmpty;
+    final hasContacts = point.client.org.isNotEmpty ||
+        point.client.manager.isNotEmpty ||
+        point.client.phone.isNotEmpty;
+
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,17 +229,15 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: color,
+                    color: accentColor,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    point.isLoading
-                        ? Icons.upload_rounded
-                        : Icons.download_rounded,
+                    isLoading ? Icons.upload_rounded : Icons.download_rounded,
                     color: BrandColors.white,
                     size: 14,
                     semanticLabel:
-                        point.isLoading ? 'Точка погрузки' : 'Точка разгрузки',
+                        isLoading ? 'Точка погрузки' : 'Точка разгрузки',
                   ),
                 ),
                 if (!isLast)
@@ -248,111 +258,226 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Semantics(
-                      header: true,
-                      child: Text(
-                        point.isLoading ? 'Погрузка' : 'Разгрузка',
-                        style: AppTextStyles.labelMedium.copyWith(color: color),
-                      ),
+                    // Тип операции: иконка + текст (погрузка/разгрузка).
+                    Row(
+                      children: [
+                        Icon(
+                          isLoading
+                              ? Icons.upload_rounded
+                              : Icons.download_rounded,
+                          size: 16,
+                          color: accentColor,
+                          semanticLabel:
+                              isLoading ? 'Погрузка' : 'Разгрузка',
+                        ),
+                        const SizedBox(width: 6),
+                        Semantics(
+                          header: true,
+                          child: Text(
+                            isLoading ? 'Погрузка' : 'Разгрузка',
+                            style: AppTextStyles.labelMedium.copyWith(
+                              color: accentColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      point.city,
-                      style: AppTextStyles.titleMedium,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (point.address.isNotEmpty)
-                      _FieldLine(
-                        icon: Icons.place_outlined,
-                        text: point.address,
-                        semanticLabel: 'Адрес',
-                        trailing: canOpenMap
-                            ? TextButton.icon(
-                                onPressed: _isLaunchingMap
-                                    ? null
-                                    : () => _openMap(context),
-                                icon: const Icon(Icons.map_outlined, size: 16),
-                                label: const Text('На карте'),
-                                style: TextButton.styleFrom(
-                                  minimumSize: const Size(48, 48),
-                                ),
-                              )
-                            : null,
-                      ),
-                    if (point.date.isNotEmpty)
-                      _FieldLine(
-                        icon: Icons.event_outlined,
-                        text: '${DateFormatUtil.date(point.date)}  '
-                            '${DateFormatUtil.time(point.timeFrom)}–'
-                            '${DateFormatUtil.time(point.timeTo)}',
-                        semanticLabel: 'Дата и время',
-                      ),
-                    if (point.cargoType.isNotEmpty)
-                      _FieldLine(
-                        icon: Icons.inventory_2_outlined,
-                        text: point.cargoType,
-                        semanticLabel: 'Тип груза',
-                      ),
-                    if (point.loadingMethod.isNotEmpty)
-                      _FieldLine(
-                        icon: Icons.local_shipping_outlined,
-                        text: 'Погрузка: ${point.loadingMethod}',
-                        semanticLabel: 'Способ погрузки',
-                      ),
-                    if (point.mass.isNotEmpty)
-                      _FieldLine(
-                          icon: Icons.scale_outlined,
-                          text: 'Масса: ${point.mass} т',
-                          semanticLabel: 'Масса'),
-                    if (point.volume.isNotEmpty)
-                      _FieldLine(
-                        icon: Icons.water_drop_outlined,
-                        text: 'Объём: ${point.volume} м³',
-                        semanticLabel: 'Объём',
-                      ),
+                    const SizedBox(height: 16),
+                    // 1. Куда и когда.
+                    if (hasWhere) ...[
+                      const _SectionHeader('Куда и когда'),
+                      if (point.city.isNotEmpty)
+                        Text(
+                          point.city,
+                          style: AppTextStyles.titleMedium,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      if (point.address.isNotEmpty) ...[
+                        if (point.city.isNotEmpty) const SizedBox(height: 8),
+                        _FieldLine(
+                          icon: Icons.place_outlined,
+                          text: point.address,
+                          semanticLabel: 'Адрес',
+                          minHeight: 48,
+                          trailing: canOpenMap
+                              ? TextButton.icon(
+                                  onPressed: _isLaunchingMap
+                                      ? null
+                                      : () => _openMap(context),
+                                  icon: const Icon(Icons.map_outlined, size: 18),
+                                  label: const Text('На карте'),
+                                  style: TextButton.styleFrom(
+                                    minimumSize: const Size(48, 48),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.padded,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ],
+                      if (point.date.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        _FieldLine(
+                          icon: Icons.event_outlined,
+                          text: '${DateFormatUtil.date(point.date)}  '
+                              '${DateFormatUtil.time(point.timeFrom)}–'
+                              '${DateFormatUtil.time(point.timeTo)}',
+                          semanticLabel: 'Дата и время',
+                        ),
+                      ],
+                    ],
+                    // Примечание к точке.
                     if (point.comment.isNotEmpty) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: BrandColors.paperWarm,
                           borderRadius: BorderRadius.circular(BrandRadius.sm),
                         ),
                         child: Text(
                           point.comment,
-                          style: AppTextStyles.bodySmall,
+                          style: AppTextStyles.bodySmall
+                              .copyWith(color: BrandColors.grayDark),
                           maxLines: 4,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
-                    if (point.client.org.isNotEmpty ||
-                        point.client.manager.isNotEmpty ||
-                        point.client.phone.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text('Заказчик в точке',
-                          style: AppTextStyles.bodySmall
-                              .copyWith(color: BrandColors.grayDark)),
+                    // 2. Груз.
+                    if (hasCargo) ...[
+                      const SizedBox(height: 16),
+                      const _SectionHeader('Груз'),
+                      if (point.cargoType.isNotEmpty)
+                        _FieldLine(
+                          icon: Icons.inventory_2_outlined,
+                          text: point.cargoType,
+                          semanticLabel: 'Тип груза',
+                        ),
+                      if (point.loadingMethod.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        _FieldLine(
+                          icon: Icons.local_shipping_outlined,
+                          text: 'Погрузка: ${point.loadingMethod}',
+                          semanticLabel: 'Способ погрузки',
+                        ),
+                      ],
+                      if (point.mass.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        _FieldLine(
+                          icon: Icons.scale_outlined,
+                          text: 'Масса: ${point.mass} т',
+                          semanticLabel: 'Масса',
+                        ),
+                      ],
+                      if (point.volume.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        _FieldLine(
+                          icon: Icons.water_drop_outlined,
+                          text: 'Объём: ${point.volume} м³',
+                          semanticLabel: 'Объём',
+                        ),
+                      ],
+                    ],
+                    // 3. Контакты.
+                    if (hasContacts) ...[
+                      const SizedBox(height: 16),
+                      const _SectionHeader('Контакты'),
                       if (point.client.org.isNotEmpty)
                         _FieldLine(
-                            icon: Icons.business_outlined,
-                            text: point.client.org,
-                            semanticLabel: 'Организация'),
-                      if (point.client.manager.isNotEmpty)
+                          icon: Icons.business_outlined,
+                          text: point.client.org,
+                          semanticLabel: 'Организация',
+                        ),
+                      if (point.client.manager.isNotEmpty) ...[
+                        const SizedBox(height: 4),
                         _FieldLine(
-                            icon: Icons.person_outline,
-                            text: point.client.manager,
-                            semanticLabel: 'Контактное лицо'),
-                      if (point.client.phone.isNotEmpty)
+                          icon: Icons.person_outline,
+                          text: point.client.manager,
+                          semanticLabel: 'Контактное лицо',
+                        ),
+                      ],
+                      if (point.client.phone.isNotEmpty) ...[
+                        const SizedBox(height: 4),
                         _PhoneFieldLine(phone: point.client.phone),
+                      ],
                     ],
                   ],
                 ),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Заголовок внутри карточки точки маршрута.
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader(this.title);
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        title,
+        style: AppTextStyles.labelMedium.copyWith(
+          color: BrandColors.grayDark,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+/// Строка с иконкой для поля точки маршрута.
+class _FieldLine extends StatelessWidget {
+  const _FieldLine({
+    required this.icon,
+    required this.text,
+    this.trailing,
+    this.semanticLabel,
+    this.minHeight = 48,
+  });
+
+  final IconData icon;
+  final String text;
+  final Widget? trailing;
+  final String? semanticLabel;
+  final double minHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: minHeight),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: BrandColors.grayMid,
+            semanticLabel: semanticLabel,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: BrandColors.grayDark,
+              ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (trailing != null) trailing!,
         ],
       ),
     );
@@ -394,7 +519,8 @@ class _PhoneFieldLineState extends State<_PhoneFieldLine> {
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Не удалось позвонить. Попробуйте позже.')),
+        const SnackBar(
+            content: Text('Не удалось позвонить. Попробуйте позже.')),
       );
     }
   }
@@ -402,78 +528,36 @@ class _PhoneFieldLineState extends State<_PhoneFieldLine> {
   @override
   Widget build(BuildContext context) {
     return MergeSemantics(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: InkWell(
-          onTap: _isCalling ? null : () => _call(context),
-          borderRadius: BorderRadius.circular(BrandRadius.sm),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 48),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.phone_outlined,
-                    size: 16,
-                    color: BrandColors.primary,
-                    semanticLabel: 'Позвонить'),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    widget.phone,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: BrandColors.graphite,
-                      decoration: TextDecoration.underline,
-                      decorationColor: BrandColors.graphite,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+      child: InkWell(
+        onTap: _isCalling ? null : () => _call(context),
+        borderRadius: BorderRadius.circular(BrandRadius.sm),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.phone_outlined,
+                size: 16,
+                color: BrandColors.primary,
+                semanticLabel: 'Позвонить',
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  widget.phone,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: BrandColors.graphite,
+                    decoration: TextDecoration.underline,
+                    decorationColor: BrandColors.graphite,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-/// Строка с иконкой для поля точки маршрута.
-class _FieldLine extends StatelessWidget {
-  const _FieldLine({
-    required this.icon,
-    required this.text,
-    this.trailing,
-    this.semanticLabel,
-  });
-  final IconData icon;
-  final String text;
-  final Widget? trailing;
-  final String? semanticLabel;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon,
-              size: 15,
-              color: BrandColors.grayMid,
-              semanticLabel: semanticLabel),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: AppTextStyles.bodySmall
-                  .copyWith(color: BrandColors.grayDark),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          if (trailing != null) trailing!,
-        ],
       ),
     );
   }

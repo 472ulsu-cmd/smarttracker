@@ -1,0 +1,1047 @@
+openapi: 3.0.3
+info:
+  title: com.b2blogist.smarttracker
+  version: 1.4.0
+  description: API, извлечённое из APK через Retrofit интерфейс
+servers:
+- url: https://st.b2b-logist.com/api/
+security:
+- bearerAuth: []
+paths:
+  /code_list:
+    get:
+      operationId: codeList
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CodeListResponseItem'
+  /coordinates:
+    post:
+      operationId: coordinates
+      parameters: []
+      responses:
+        '204':
+          description: No Content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CoordinatesRequestItem'
+  /feedback:
+    put:
+      operationId: feedback
+      parameters: []
+      responses:
+        '204':
+          description: No Content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+  /google_maps:
+    get:
+      operationId: googleMaps
+      parameters:
+      - name: origin
+        in: query
+        schema:
+          type: string
+      - name: destination
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoogleMapResponse'
+  /login:
+    post:
+      operationId: login
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+  /logout:
+    post:
+      operationId: logout
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+  /notification/{type_id}:
+    get:
+      operationId: notification
+      parameters:
+      - name: type_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NotificationsResponseItem'
+  /notification/{notification_id}:
+    put:
+      operationId: notification
+      parameters:
+      - name: notification_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        '204':
+          description: No Content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+  /online:
+    get:
+      operationId: online
+      parameters: []
+      responses:
+        '204':
+          description: No Content
+  /orders:
+    get:
+      operationId: orders
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrdersResponseItem'
+  /orders/{orderId}/main:
+    get:
+      operationId: orders
+      parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrdersResponse'
+  /orders/history:
+    get:
+      operationId: ordersHistory
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrdersResponseItem'
+  /orders/{orderId}/photo/{routePhotoId}:
+    delete:
+      operationId: ordersRoutePhoto
+      parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: routePhotoId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        '204':
+          description: No Content
+    post:
+      operationId: ordersRoutePhoto
+      parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: routePhotoId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrdersRoutePhotoResponse'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                photo:
+                  type: string
+                  format: binary
+  /orders/{orderId}/photo_type/{routePhotoTypeId}/photo:
+    post:
+      operationId: ordersRoutePhotoType
+      parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: routePhotoTypeId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrdersRoutePhotoTypeResponse'
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                photo:
+                  type: string
+                  format: binary
+  /orders/{orderId}/status/{statusId}:
+    post:
+      operationId: ordersStatus
+      parameters:
+      - name: orderId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: statusId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        '204':
+          description: No Content
+  /registration:
+    post:
+      operationId: registration
+      parameters: []
+      responses:
+        '204':
+          description: No Content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationRequest'
+  /restore:
+    post:
+      operationId: restore
+      parameters: []
+      responses:
+        '204':
+          description: No Content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RestoreRequest'
+  /user/send_phone_code:
+    post:
+      operationId: sendPhoneCode
+      parameters: []
+      responses:
+        '204':
+          description: No Content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendPhoneCodeRequest'
+  /user/send_restoring_phone_code:
+    post:
+      operationId: sendRestoringPhoneCode
+      parameters: []
+      responses:
+        '204':
+          description: No Content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendRestoringPhoneCodeRequest'
+  /sync:
+    get:
+      operationId: sync
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResponse'
+  /user:
+    get:
+      operationId: user
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+    post:
+      operationId: user
+      parameters: []
+      responses:
+        '204':
+          description: No Content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+  /user/notification:
+    put:
+      operationId: userNotification
+      parameters: []
+      responses:
+        '204':
+          description: No Content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserNotificationRequest'
+  /user/password:
+    post:
+      operationId: userPassword
+      parameters: []
+      responses:
+        '204':
+          description: No Content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPasswordRequest'
+  /user/photo:
+    delete:
+      operationId: userPhoto
+      parameters: []
+      responses:
+        '204':
+          description: No Content
+    post:
+      operationId: userPhoto
+      parameters: []
+      responses:
+        '204':
+          description: No Content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPhotoRequest'
+  /user/verify_phone_code:
+    post:
+      operationId: verifyPhoneCode
+      parameters: []
+      responses:
+        '204':
+          description: No Content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyPhoneCodeRequest'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    CodeListResponseItem:
+      type: object
+      properties:
+        code:
+          type: string
+        country:
+          type: string
+        country_lat:
+          type: string
+        id:
+          type: integer
+          format: int32
+        is_default:
+          type: integer
+          format: int32
+        iso_code:
+          type: string
+        length:
+          type: integer
+          format: int32
+    CoordinatesRequestItem:
+      type: object
+      properties:
+        datetime:
+          type: string
+        lat:
+          type: number
+          format: double
+        lng:
+          type: number
+          format: double
+        nearest_city:
+          type: string
+    FeedbackRequest:
+      type: object
+      properties:
+        message:
+          type: string
+    GoogleMapResponse:
+      type: object
+      properties:
+        geocoded_waypoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/GoogleMapResponse_GeocodedWaypoint'
+        routes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GoogleMapResponse_Route'
+        status:
+          type: string
+    GoogleMapResponse_GeocodedWaypoint:
+      type: object
+      properties:
+        geocoder_status:
+          type: string
+        place_id:
+          type: string
+        types:
+          type: array
+          items:
+            type: string
+    GoogleMapResponse_Route:
+      type: object
+      properties:
+        bounds:
+          $ref: '#/components/schemas/GoogleMapResponse_Bounds'
+        copyrights:
+          type: string
+        legs:
+          type: array
+          items:
+            $ref: '#/components/schemas/GoogleMapResponse_Leg'
+        overview_polyline:
+          $ref: '#/components/schemas/GoogleMapResponse_OverviewPolyline'
+        summary:
+          type: string
+    GoogleMapResponse_Bounds:
+      type: object
+      properties:
+        northeast:
+          $ref: '#/components/schemas/GoogleMapResponse_Northeast'
+        southwest:
+          $ref: '#/components/schemas/GoogleMapResponse_Southwest'
+    GoogleMapResponse_Northeast:
+      type: object
+      properties:
+        lat:
+          type: number
+          format: double
+        lng:
+          type: number
+          format: double
+    GoogleMapResponse_Southwest:
+      type: object
+      properties:
+        lat:
+          type: number
+          format: double
+        lng:
+          type: number
+          format: double
+    GoogleMapResponse_Leg:
+      type: object
+      properties:
+        distance:
+          $ref: '#/components/schemas/GoogleMapResponse_Distance'
+        duration:
+          $ref: '#/components/schemas/GoogleMapResponse_Duration'
+        end_address:
+          type: string
+        end_location:
+          $ref: '#/components/schemas/GoogleMapResponse_EndLocation'
+        start_address:
+          type: string
+        start_location:
+          $ref: '#/components/schemas/GoogleMapResponse_StartLocation'
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/GoogleMapResponse_Step'
+        traffic_speed_entry:
+          type: array
+          items:
+            type: object
+        via_waypoint:
+          type: array
+          items:
+            type: object
+    GoogleMapResponse_Distance:
+      type: object
+      properties:
+        text:
+          type: string
+        value:
+          type: integer
+          format: int32
+    GoogleMapResponse_Duration:
+      type: object
+      properties:
+        text:
+          type: string
+        value:
+          type: integer
+          format: int32
+    GoogleMapResponse_EndLocation:
+      type: object
+      properties:
+        lat:
+          type: number
+          format: double
+        lng:
+          type: number
+          format: double
+    GoogleMapResponse_StartLocation:
+      type: object
+      properties:
+        lat:
+          type: number
+          format: double
+        lng:
+          type: number
+          format: double
+    GoogleMapResponse_Step:
+      type: object
+      properties:
+        distance:
+          $ref: '#/components/schemas/GoogleMapResponse_DistanceX'
+        duration:
+          $ref: '#/components/schemas/GoogleMapResponse_DurationX'
+        end_location:
+          $ref: '#/components/schemas/GoogleMapResponse_EndLocation'
+        html_instructions:
+          type: string
+        maneuver:
+          type: string
+        polyline:
+          $ref: '#/components/schemas/GoogleMapResponse_Polyline'
+        start_location:
+          $ref: '#/components/schemas/GoogleMapResponse_StartLocationX'
+        travel_mode:
+          type: string
+    GoogleMapResponse_DistanceX:
+      type: object
+      properties:
+        text:
+          type: string
+        value:
+          type: integer
+          format: int32
+    GoogleMapResponse_DurationX:
+      type: object
+      properties:
+        text:
+          type: string
+        value:
+          type: integer
+          format: int32
+    GoogleMapResponse_Polyline:
+      type: object
+      properties:
+        points:
+          type: string
+    GoogleMapResponse_StartLocationX:
+      type: object
+      properties:
+        lat:
+          type: number
+          format: double
+        lng:
+          type: number
+          format: double
+    GoogleMapResponse_OverviewPolyline:
+      type: object
+      properties:
+        points:
+          type: string
+    LoginRequest:
+      type: object
+      properties:
+        login:
+          type: string
+        password:
+          type: string
+    LoginResponse:
+      type: object
+      properties:
+        account:
+          $ref: '#/components/schemas/LoginResponse_Account'
+        code:
+          type: integer
+          format: int32
+        token:
+          type: string
+    LoginResponse_Account:
+      type: object
+      properties:
+        avatar:
+          type: string
+        id:
+          type: integer
+          format: int32
+        login:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+        phone_code:
+          type: integer
+          format: int32
+        second_name:
+          type: string
+        surname:
+          type: string
+    LogoutResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+    NotificationsResponseItem:
+      type: object
+      properties:
+        datetime:
+          type: string
+        id:
+          type: integer
+          format: int32
+        message:
+          type: string
+        order_id:
+          type: integer
+          format: int32
+        route_photo_id:
+          type: integer
+          format: int32
+        route_photo_type_id:
+          type: integer
+          format: int32
+        status_id:
+          type: integer
+          format: int32
+    NotificationRequest:
+      type: object
+      properties:
+        status_id:
+          type: integer
+          format: int32
+    OrdersResponseItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        is_working:
+          type: integer
+          format: int32
+        loading_date:
+          type: string
+        num:
+          type: string
+        route:
+          type: string
+        route_from:
+          type: string
+        route_to:
+          type: string
+        status:
+          type: integer
+          format: int32
+        unloading_date:
+          type: string
+    OrdersResponse:
+      type: object
+      properties:
+        cargo_type:
+          type: string
+        client:
+          $ref: '#/components/schemas/OrdersResponse_Client'
+        id:
+          type: integer
+          format: int32
+        lat_fin:
+          type: number
+          format: double
+        lat_start:
+          type: number
+          format: double
+        lng_fin:
+          type: number
+          format: double
+        lng_start:
+          type: number
+          format: double
+        loading_date:
+          type: string
+        loading_time_from:
+          type: string
+        loading_time_to:
+          type: string
+        mass:
+          type: string
+        num:
+          type: string
+        photo:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrdersResponse_OrderPhoto'
+        route:
+          type: string
+        route_details:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrdersResponse_OrderRoute'
+        status:
+          type: integer
+          format: int32
+        unloading_date:
+          type: string
+        unloading_time_from:
+          type: string
+        unloading_time_to:
+          type: string
+        volume:
+          type: string
+    OrdersResponse_Client:
+      type: object
+      properties:
+        manager:
+          type: string
+        org:
+          type: string
+        phone:
+          type: string
+    OrdersResponse_OrderPhoto:
+      type: object
+      properties:
+        comment:
+          type: string
+        id:
+          type: integer
+          format: int32
+        route_photo:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrdersResponse_OrderRoutePhoto'
+        type:
+          type: string
+    OrdersResponse_OrderRoutePhoto:
+      type: object
+      properties:
+        comment:
+          type: string
+        id:
+          type: integer
+          format: int32
+        status:
+          type: integer
+          format: int32
+        url:
+          type: string
+    OrdersResponse_OrderRoute:
+      type: object
+      properties:
+        address:
+          type: string
+        cargo_type:
+          type: string
+        city:
+          type: string
+        client_detail:
+          $ref: '#/components/schemas/OrdersResponse_ClientDetail'
+        comment:
+          type: string
+        date:
+          type: string
+        lat:
+          type: number
+          format: double
+        loading_method:
+          type: string
+        lon:
+          type: number
+          format: double
+        mass:
+          type: string
+        operation_type:
+          type: integer
+          format: int32
+        route_detail_id:
+          type: integer
+          format: int32
+        time_from:
+          type: string
+        time_to:
+          type: string
+        volume:
+          type: string
+    OrdersResponse_ClientDetail:
+      type: object
+      properties:
+        manager:
+          type: string
+        org:
+          type: string
+        phone:
+          type: string
+        type:
+          type: integer
+          format: int32
+    OrdersRoutePhotoResponse:
+      type: object
+      properties:
+        url:
+          type: string
+    OrdersRoutePhotoTypeResponse:
+      type: object
+      properties:
+        photo_id:
+          type: integer
+          format: int32
+        url:
+          type: string
+    RegistrationRequest:
+      type: object
+      properties:
+        login:
+          type: string
+        password:
+          type: string
+        phone:
+          type: string
+        phone_code_id:
+          type: integer
+          format: int32
+    RestoreRequest:
+      type: object
+      properties:
+        login:
+          type: string
+        password:
+          type: string
+        phone:
+          type: string
+        phone_code_id:
+          type: integer
+          format: int32
+    SendPhoneCodeRequest:
+      type: object
+      properties:
+        login:
+          type: string
+        phone:
+          type: string
+        phone_code_id:
+          type: integer
+          format: int32
+    SendRestoringPhoneCodeRequest:
+      type: object
+      properties:
+        login:
+          type: string
+        phone:
+          type: string
+        phone_code_id:
+          type: integer
+          format: int32
+    SyncResponse:
+      type: object
+      properties:
+        coordinates_period:
+          type: integer
+          format: int64
+        sync_period:
+          type: integer
+          format: int64
+    UserResponse:
+      type: object
+      properties:
+        avatar:
+          type: string
+        id:
+          type: integer
+          format: int32
+        login:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+        phone_code:
+          type: integer
+          format: int32
+        second_name:
+          type: string
+        surname:
+          type: string
+    UserRequest:
+      type: object
+      properties:
+        add_phone:
+          type: string
+        add_phone_code:
+          type: integer
+        avatar:
+          type: string
+        id:
+          type: integer
+          format: int32
+        login:
+          type: string
+        name:
+          type: string
+        payload:
+          $ref: '#/components/schemas/UserRequest_Payload'
+        phone:
+          type: string
+        phone_code:
+          type: integer
+          format: int32
+        second_name:
+          type: string
+        surname:
+          type: string
+    UserRequest_Payload:
+      type: object
+      properties:
+        DEVICE_ID:
+          type: string
+        model:
+          type: string
+        version:
+          type: string
+    UserNotificationRequest:
+      type: object
+      properties:
+        token:
+          type: string
+    UserPasswordRequest:
+      type: object
+      properties:
+        old_password:
+          type: string
+        password:
+          type: string
+    UserPhotoRequest:
+      type: object
+      properties:
+        avatar:
+          type: string
+    VerifyPhoneCodeRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        login:
+          type: string
+        phone:
+          type: string
+        phone_code_id:
+          type: integer
+          format: int32

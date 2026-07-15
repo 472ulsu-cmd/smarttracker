@@ -15,13 +15,19 @@ enum OrderPhotoStatus {
     }
   }
 
+  /// Маппинг статуса фото из API.
+  ///
+  /// Сервер возвращает:
+  /// - `1` — фото одобрено (комментарий "Файл одобрен");
+  /// - `2` — фото отклонено (комментарий содержит причину);
+  /// - `0` или отсутствие значения — на рассмотрении.
   static OrderPhotoStatus fromApiStatus(int? value) {
     switch (value) {
-      case 2:
-        return OrderPhotoStatus.approved;
-      case 3:
-        return OrderPhotoStatus.rejected;
       case 1:
+        return OrderPhotoStatus.approved;
+      case 2:
+        return OrderPhotoStatus.rejected;
+      case 0:
       default:
         return OrderPhotoStatus.pending;
     }

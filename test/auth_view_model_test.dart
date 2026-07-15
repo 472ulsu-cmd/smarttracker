@@ -31,7 +31,7 @@ class _FakeAuthRepository implements AuthRepository {
   Future<AppSession> login(String login, String password) async {
     await Future.delayed(const Duration(milliseconds: 5));
     if (shouldFailLogin) {
-      throw const ValidationException(message: 'Неверный паспорт или пароль.');
+      throw const ValidationException(message: 'Неверный паспорт или пароль. Проверьте введённые данные.');
     }
     return const AppSession(token: 'tok', user: _demoUser);
   }
@@ -133,7 +133,7 @@ void main() {
 
       expect(ok, isFalse);
       expect(vm.isAuthenticated, isFalse);
-      expect(vm.errorMessage, 'Неверный паспорт или пароль.');
+      expect(vm.errorMessage, 'Неверный паспорт или пароль. Проверьте введённые данные.');
     });
 
     test('checkSession без сохранённой сессии → unauthenticated', () async {
