@@ -87,7 +87,7 @@ class LocationTaskHandler extends TaskHandler {
 
   /// Флаг готовности DI. Если инициализация в [onStart] не удалась,
   /// [onRepeatEvent] будет пытаться переинициализировать DI.
-  bool _diReady = true;
+  bool _diReady = false;
 
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
