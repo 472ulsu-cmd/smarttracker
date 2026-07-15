@@ -23,6 +23,10 @@ void main() {
       expect(points.first.lat, 55.75);
       expect(points.first.lng, 37.61);
       expect(points.first.nearestCity, 'Москва');
+      expect(
+        points.first.datetime,
+        DateTime.parse('2026-07-15T10:00:00+0000'),
+      );
     });
 
     test('пропускает не-координатные действия', () {
