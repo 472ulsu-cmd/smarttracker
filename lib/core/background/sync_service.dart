@@ -1,0 +1,117 @@
+import 'package:workmanager/workmanager.dart';
+
+import '../../config/app_config.dart';
+import '../../config/service_locator.dart';
+import '../../data/services/pending_action_store.dart';
+import '../../domain/models/pending_action.dart';
+import '../../domain/repositories/orders_repository.dart';
+import '../../domain/repositories/photo_repository.dart';
+import '../../domain/repositories/sync_repository.dart';
+import 'coordinate_batching.dart';
+
+/// Уникальное имя фоновой задачи синхронизации.
+const syncTaskName = 'smarttracker-sync';
+
+/// Точка входа фоновой задачи workmanager.
+///
+/// Читает ожидающие действия из [PendingActionStore] и выполняет
+/// соответствующие HTTP-запросы через репозитории. При неудаче увеличивает
+/// счётчик попыток; после 5 — помечает failed.
+///
+/// WorkManager запускается в отдельном isolate — DI нужно инициализировать
+/// заново.
+@pragma('vm:entry-point')
+void syncCallbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    // WorkManager запускается в отдельном isolate — DI нужно инициализировать заново.
+    await setupDependencies(AppConfig.production);
+
+    if (!getIt.isRegistered<OrdersRepository>()) return true;
+
+    final store = PendingActionStore.instance;
+    final actions = await store.readPending();
+
+    final coordinateActions = <PendingAction>[];
+
+    for (final action in actions) {
+      if (action.type == PendingActionType.coordinates) {
+        coordinateActions.add(action);
+        continue;
+      }
+
+      try {
+        await _process(action);
+        if (action.id != null) await store.remove(action.id!);
+      } catch (_) {
+        if (action.id != null) await store.markFailedAttempt(action.id!);
+      }
+    }
+
+    if (coordinateActions.isNotEmpty) {
+      try {
+        final points = geoPointsFromActions(coordinateActions);
+        await getIt<SyncRepository>().sendCoordinates(points);
+        final ids = coordinateActions.map((a) => a.id).whereType<int>();
+        await store.removeAll(ids);
+      } catch (_) {
+        for (final action in coordinateActions) {
+          if (action.id != null) await store.markFailedAttempt(action.id!);
+        }
+      }
+    }
+
+    return true;
+  });
+}
+
+Future<void> _process(PendingAction action) async {
+  final payload = action.payload;
+  switch (action.type) {
+    case PendingActionType.statusChange:
+      await getIt<OrdersRepository>().changeStatus(
+        (payload['orderId'] as num).toInt(),
+        (payload['statusId'] as num).toInt(),
+      );
+      break;
+    case PendingActionType.photoUpload:
+      await getIt<PhotoRepository>().uploadPhotoByType(
+        (payload['orderId'] as num).toInt(),
+        (payload['routePhotoTypeId'] as num).toInt(),
+        payload['filePath'] as String,
+      );
+      break;
+    case PendingActionType.coordinates:
+      break;
+  }
+}
+
+/// Регистрация фоновой задачи синхронизации.
+class SyncService {
+  SyncService._();
+  static final SyncService instance = SyncService._();
+
+  bool _initialized = false;
+
+  /// Инициализация workmanager (вызывается один раз при старте приложения).
+  Future<void> init() async {
+    if (_initialized) return;
+    await Workmanager().initialize(syncCallbackDispatcher);
+    _initialized = true;
+  }
+
+  /// Планирование периодической фоновой синхронизации.
+  /// Минимальный период — 15 минут.
+  Future<void> schedule({Duration period = const Duration(minutes: 15)}) async {
+    await Workmanager().registerPeriodicTask(
+      syncTaskName,
+      syncTaskName,
+      frequency: period,
+      constraints: Constraints(networkType: NetworkType.connected),
+    );
+  }
+
+  /// Отмена фоновой задачи (при выходе).
+  Future<void> cancel() async {
+    await Workmanager().cancelByTag(syncTaskName);
+  }
+}
