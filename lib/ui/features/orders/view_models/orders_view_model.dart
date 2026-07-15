@@ -9,7 +9,7 @@ import '../../../../domain/repositories/orders_repository.dart';
 enum OrdersTab { newOrders, inProgress, archive }
 
 /// Область поиска по списку заявок.
-enum OrdersSearchScope { number, route }
+enum OrdersSearchScope { number, route, customer }
 
 /// ViewModel списка заявок с тремя вкладками.
 ///
@@ -53,6 +53,8 @@ class OrdersViewModel extends ChangeNotifier {
           return o.route.toLowerCase().contains(_searchQuery) ||
               o.routeFrom.toLowerCase().contains(_searchQuery) ||
               o.routeTo.toLowerCase().contains(_searchQuery);
+        case OrdersSearchScope.customer:
+          return o.client.org.toLowerCase().contains(_searchQuery);
       }
     }).toList();
   }

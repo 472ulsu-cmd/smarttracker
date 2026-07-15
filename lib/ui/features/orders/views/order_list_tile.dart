@@ -14,16 +14,25 @@ class OrderListTile extends StatelessWidget {
     super.key,
     required this.order,
     this.onTap,
-    this.onAccept,
-    this.onReject,
-    this.isLoading = false,
   });
 
   final OrderListItem order;
   final VoidCallback? onTap;
-  final VoidCallback? onAccept;
-  final VoidCallback? onReject;
-  final bool isLoading;
+
+  bool get _hasRouteDates =>
+      order.loadingDate.isNotEmpty || order.unloadingDate.isNotEmpty;
+
+  String get _dateRangeText {
+    final loading = DateFormatUtil.date(order.loadingDate);
+    final unloading = DateFormatUtil.date(order.unloadingDate);
+    if (loading.isNotEmpty && unloading.isNotEmpty) {
+      return 'Погрузка: $loading — разгрузка: $unloading';
+    }
+    if (loading.isNotEmpty) {
+      return 'Погрузка: $loading';
+    }
+    return 'Разгрузка: $unloading';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,49 +42,6 @@ class OrderListTile extends StatelessWidget {
             : '${order.routeFrom} → ${order.routeTo}')
         : order.route;
     final statusLabel = OrderStatus.listLabelForId(order.status);
-    final showActions = onAccept != null && onReject != null;
-
-    final content = Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  '№ ${order.num}',
-                  style: AppTextStyles.titleMedium,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (statusLabel != null)
-                StatusChip(statusId: order.status),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.route_rounded,
-                  size: 22,
-                  color: BrandColors.primary,
-                  semanticLabel: 'Маршрут'),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '$routeText · ${DateFormatUtil.date(order.loadingDate)} — ${DateFormatUtil.date(order.unloadingDate)}',
-                  style: AppTextStyles.bodyLarge,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
 
     return Container(
       decoration: BoxDecoration(
@@ -83,63 +49,103 @@ class OrderListTile extends StatelessWidget {
         border: Border.all(color: BrandColors.grayLighter),
         borderRadius: BorderRadius.circular(BrandRadius.md),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (showActions)
-            InkWell(
-              onTap: onTap,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(BrandRadius.md),
-              ),
-              child: content,
-            )
-          else
-            InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(BrandRadius.md),
-              child: content,
-            ),
-          if (showActions) ...[
-            const Divider(height: 1, color: BrandColors.grayLighter),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(BrandRadius.md),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-              child: Row(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(52),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '№ ${order.num}',
+                          style: AppTextStyles.titleMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      onPressed: isLoading ? null : onReject,
-                      child: const Text('Отказаться'),
-                    ),
+                      if (statusLabel != null)
+                        StatusChip(statusId: order.status),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(52),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.route_rounded,
+                          size: 22,
+                          color: BrandColors.primary,
+                          semanticLabel: 'Маршрут'),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          routeText,
+                          style: AppTextStyles.bodyLarge,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      onPressed: isLoading ? null : onAccept,
-                      child: isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: BrandColors.white,
-                              ),
-                            )
-                          : const Text('Принять'),
-                    ),
+                    ],
                   ),
+                  if (_hasRouteDates) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(Icons.event_outlined,
+                            size: 18,
+                            color: BrandColors.grayMid,
+                            semanticLabel: 'Даты'),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _dateRangeText,
+                            style: AppTextStyles.bodySmall
+                                .copyWith(color: BrandColors.grayDark),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
+            if (order.client.org.isNotEmpty) ...[
+              const Divider(height: 1, color: BrandColors.grayLighter),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.business_outlined,
+                      size: 20,
+                      color: BrandColors.grayMid,
+                      semanticLabel: 'Заказчик',
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Заказчик: ${order.client.org}',
+                        style: AppTextStyles.bodyMedium
+                            .copyWith(color: BrandColors.graphite),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

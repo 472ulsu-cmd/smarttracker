@@ -81,26 +81,6 @@ class _OrdersScreenState extends State<OrdersScreen>
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextField(
-                      onChanged: _viewModel.setSearchQuery,
-                      decoration: InputDecoration(
-                        hintText: _viewModel.searchScope ==
-                                OrdersSearchScope.number
-                            ? 'Поиск по номеру'
-                            : 'Поиск по маршруту',
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _viewModel.searchQuery.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                tooltip: 'Очистить',
-                                onPressed: () {
-                                  _viewModel.setSearchQuery('');
-                                },
-                              )
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
                       children: [
@@ -118,7 +98,35 @@ class _OrdersScreenState extends State<OrdersScreen>
                           onSelected: () => _viewModel.setSearchScope(
                               OrdersSearchScope.route),
                         ),
+                        _SearchScopeChip(
+                          label: 'По заказчику',
+                          selected: _viewModel.searchScope ==
+                              OrdersSearchScope.customer,
+                          onSelected: () => _viewModel.setSearchScope(
+                              OrdersSearchScope.customer),
+                        ),
                       ],
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      onChanged: _viewModel.setSearchQuery,
+                      decoration: InputDecoration(
+                        hintText: switch (_viewModel.searchScope) {
+                          OrdersSearchScope.number => 'Поиск по номеру',
+                          OrdersSearchScope.route => 'Поиск по маршруту',
+                          OrdersSearchScope.customer => 'Поиск по заказчику',
+                        },
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: _viewModel.searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                tooltip: 'Очистить',
+                                onPressed: () {
+                                  _viewModel.setSearchQuery('');
+                                },
+                              )
+                            : null,
+                      ),
                     ),
                   ],
                 );
@@ -134,8 +142,6 @@ class _OrdersScreenState extends State<OrdersScreen>
                   tab: OrdersTab.newOrders,
                   emptyText: 'Нет новых заявок',
                   emptyHint: 'Новые заявки появятся здесь автоматически.',
-                  onAcceptOrder: _acceptOrder,
-                  onRejectOrder: _rejectOrder,
                 ),
                 _OrdersTabBody(
                   viewModel: _viewModel,
@@ -159,27 +165,6 @@ class _OrdersScreenState extends State<OrdersScreen>
     );
   }
 
-  Future<void> _acceptOrder(int id) async {
-    final ok = await _viewModel.acceptOrder(id);
-    if (!mounted) return;
-    if (ok) {
-      context.push('/main/orders/$id');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Не удалось принять заявку')),
-      );
-    }
-  }
-
-  Future<void> _rejectOrder(int id) async {
-    final ok = await _viewModel.rejectOrder(id);
-    if (!mounted) return;
-    if (!ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Не удалось отказаться от заявки')),
-      );
-    }
-  }
 }
 
 class _OrdersTabBody extends StatelessWidget {
@@ -188,22 +173,15 @@ class _OrdersTabBody extends StatelessWidget {
     required this.tab,
     required this.emptyText,
     this.emptyHint,
-    this.onAcceptOrder,
-    this.onRejectOrder,
   });
 
   final OrdersViewModel viewModel;
   final OrdersTab tab;
   final String emptyText;
   final String? emptyHint;
-  final Future<void> Function(int)? onAcceptOrder;
-  final Future<void> Function(int)? onRejectOrder;
 
   @override
   Widget build(BuildContext context) {
-    final showActions =
-        onAcceptOrder != null && onRejectOrder != null;
-
     return ListenableBuilder(
       listenable: viewModel,
       builder: (context, _) {
@@ -244,13 +222,6 @@ class _OrdersTabBody extends StatelessWidget {
                     return OrderListTile(
                       order: order,
                       onTap: () => context.push('/main/orders/${order.id}'),
-                      onAccept: showActions
-                          ? () => onAcceptOrder!(order.id)
-                          : null,
-                      onReject: showActions
-                          ? () => onRejectOrder!(order.id)
-                          : null,
-                      isLoading: viewModel.isOrderLoading(order.id),
                     );
                   },
                 ),
