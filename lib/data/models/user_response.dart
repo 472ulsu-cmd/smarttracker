@@ -5,7 +5,7 @@ part 'user_response.g.dart';
 
 /// Ответ `GET /user` (профиль водителя).
 @freezed
-class UserResponse with _$UserResponse {
+abstract class UserResponse with _$UserResponse {
   const factory UserResponse({
     int? id,
     String? login,

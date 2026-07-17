@@ -6,9 +6,9 @@ part of 'notifications_response.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$NotificationsResponseItemImpl _$$NotificationsResponseItemImplFromJson(
+_NotificationsResponseItem _$NotificationsResponseItemFromJson(
         Map<String, dynamic> json) =>
-    _$NotificationsResponseItemImpl(
+    _NotificationsResponseItem(
       id: (json['id'] as num?)?.toInt(),
       message: json['message'] as String?,
       datetime: json['datetime'] as String?,
@@ -18,8 +18,8 @@ _$NotificationsResponseItemImpl _$$NotificationsResponseItemImplFromJson(
       routePhotoTypeId: (json['route_photo_type_id'] as num?)?.toInt(),
     );
 
-Map<String, dynamic> _$$NotificationsResponseItemImplToJson(
-        _$NotificationsResponseItemImpl instance) =>
+Map<String, dynamic> _$NotificationsResponseItemToJson(
+        _NotificationsResponseItem instance) =>
     <String, dynamic>{
       'id': instance.id,
       'message': instance.message,

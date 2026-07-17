@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,85 +10,69 @@ part of 'user_photo_request.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-UserPhotoRequest _$UserPhotoRequestFromJson(Map<String, dynamic> json) {
-  return _UserPhotoRequest.fromJson(json);
-}
 
 /// @nodoc
 mixin _$UserPhotoRequest {
-  String? get avatar => throw _privateConstructorUsedError;
+  String? get avatar;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $UserPhotoRequestCopyWith<UserPhotoRequest> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $UserPhotoRequestCopyWith<$Res> {
-  factory $UserPhotoRequestCopyWith(
-          UserPhotoRequest value, $Res Function(UserPhotoRequest) then) =
-      _$UserPhotoRequestCopyWithImpl<$Res, UserPhotoRequest>;
-  @useResult
-  $Res call({String? avatar});
-}
-
-/// @nodoc
-class _$UserPhotoRequestCopyWithImpl<$Res, $Val extends UserPhotoRequest>
-    implements $UserPhotoRequestCopyWith<$Res> {
-  _$UserPhotoRequestCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
+  /// Create a copy of UserPhotoRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
+  $UserPhotoRequestCopyWith<UserPhotoRequest> get copyWith =>
+      _$UserPhotoRequestCopyWithImpl<UserPhotoRequest>(
+          this as UserPhotoRequest, _$identity);
+
+  /// Serializes this UserPhotoRequest to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? avatar = freezed,
-  }) {
-    return _then(_value.copyWith(
-      avatar: freezed == avatar
-          ? _value.avatar
-          : avatar // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is UserPhotoRequest &&
+            (identical(other.avatar, avatar) || other.avatar == avatar));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, avatar);
+
+  @override
+  String toString() {
+    return 'UserPhotoRequest(avatar: $avatar)';
   }
 }
 
 /// @nodoc
-abstract class _$$UserPhotoRequestImplCopyWith<$Res>
-    implements $UserPhotoRequestCopyWith<$Res> {
-  factory _$$UserPhotoRequestImplCopyWith(_$UserPhotoRequestImpl value,
-          $Res Function(_$UserPhotoRequestImpl) then) =
-      __$$UserPhotoRequestImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $UserPhotoRequestCopyWith<$Res> {
+  factory $UserPhotoRequestCopyWith(
+          UserPhotoRequest value, $Res Function(UserPhotoRequest) _then) =
+      _$UserPhotoRequestCopyWithImpl;
   @useResult
   $Res call({String? avatar});
 }
 
 /// @nodoc
-class __$$UserPhotoRequestImplCopyWithImpl<$Res>
-    extends _$UserPhotoRequestCopyWithImpl<$Res, _$UserPhotoRequestImpl>
-    implements _$$UserPhotoRequestImplCopyWith<$Res> {
-  __$$UserPhotoRequestImplCopyWithImpl(_$UserPhotoRequestImpl _value,
-      $Res Function(_$UserPhotoRequestImpl) _then)
-      : super(_value, _then);
+class _$UserPhotoRequestCopyWithImpl<$Res>
+    implements $UserPhotoRequestCopyWith<$Res> {
+  _$UserPhotoRequestCopyWithImpl(this._self, this._then);
 
+  final UserPhotoRequest _self;
+  final $Res Function(UserPhotoRequest) _then;
+
+  /// Create a copy of UserPhotoRequest
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? avatar = freezed,
   }) {
-    return _then(_$UserPhotoRequestImpl(
+    return _then(_self.copyWith(
       avatar: freezed == avatar
-          ? _value.avatar
+          ? _self.avatar
           : avatar // ignore: cast_nullable_to_non_nullable
               as String?,
     ));
@@ -96,58 +81,80 @@ class __$$UserPhotoRequestImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$UserPhotoRequestImpl implements _UserPhotoRequest {
-  const _$UserPhotoRequestImpl({this.avatar});
-
-  factory _$UserPhotoRequestImpl.fromJson(Map<String, dynamic> json) =>
-      _$$UserPhotoRequestImplFromJson(json);
+class _UserPhotoRequest implements UserPhotoRequest {
+  const _UserPhotoRequest({this.avatar});
+  factory _UserPhotoRequest.fromJson(Map<String, dynamic> json) =>
+      _$UserPhotoRequestFromJson(json);
 
   @override
   final String? avatar;
 
+  /// Create a copy of UserPhotoRequest
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'UserPhotoRequest(avatar: $avatar)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$UserPhotoRequestCopyWith<_UserPhotoRequest> get copyWith =>
+      __$UserPhotoRequestCopyWithImpl<_UserPhotoRequest>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$UserPhotoRequestToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$UserPhotoRequestImpl &&
+            other is _UserPhotoRequest &&
             (identical(other.avatar, avatar) || other.avatar == avatar));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, avatar);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$UserPhotoRequestImplCopyWith<_$UserPhotoRequestImpl> get copyWith =>
-      __$$UserPhotoRequestImplCopyWithImpl<_$UserPhotoRequestImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$UserPhotoRequestImplToJson(
-      this,
-    );
+  String toString() {
+    return 'UserPhotoRequest(avatar: $avatar)';
   }
 }
 
-abstract class _UserPhotoRequest implements UserPhotoRequest {
-  const factory _UserPhotoRequest({final String? avatar}) =
-      _$UserPhotoRequestImpl;
-
-  factory _UserPhotoRequest.fromJson(Map<String, dynamic> json) =
-      _$UserPhotoRequestImpl.fromJson;
-
+/// @nodoc
+abstract mixin class _$UserPhotoRequestCopyWith<$Res>
+    implements $UserPhotoRequestCopyWith<$Res> {
+  factory _$UserPhotoRequestCopyWith(
+          _UserPhotoRequest value, $Res Function(_UserPhotoRequest) _then) =
+      __$UserPhotoRequestCopyWithImpl;
   @override
-  String? get avatar;
-  @override
-  @JsonKey(ignore: true)
-  _$$UserPhotoRequestImplCopyWith<_$UserPhotoRequestImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @useResult
+  $Res call({String? avatar});
 }
+
+/// @nodoc
+class __$UserPhotoRequestCopyWithImpl<$Res>
+    implements _$UserPhotoRequestCopyWith<$Res> {
+  __$UserPhotoRequestCopyWithImpl(this._self, this._then);
+
+  final _UserPhotoRequest _self;
+  final $Res Function(_UserPhotoRequest) _then;
+
+  /// Create a copy of UserPhotoRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? avatar = freezed,
+  }) {
+    return _then(_UserPhotoRequest(
+      avatar: freezed == avatar
+          ? _self.avatar
+          : avatar // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+// dart format on

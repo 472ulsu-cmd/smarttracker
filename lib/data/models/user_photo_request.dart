@@ -5,7 +5,7 @@ part 'user_photo_request.g.dart';
 
 /// Тело запроса загрузки фото пользователя (`POST /user/photo`).
 @freezed
-class UserPhotoRequest with _$UserPhotoRequest {
+abstract class UserPhotoRequest with _$UserPhotoRequest {
   const factory UserPhotoRequest({
     String? avatar,
   }) = _UserPhotoRequest;

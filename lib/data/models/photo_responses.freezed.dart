@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,90 +10,69 @@ part of 'photo_responses.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-OrdersRoutePhotoResponse _$OrdersRoutePhotoResponseFromJson(
-    Map<String, dynamic> json) {
-  return _OrdersRoutePhotoResponse.fromJson(json);
-}
 
 /// @nodoc
 mixin _$OrdersRoutePhotoResponse {
-  String? get url => throw _privateConstructorUsedError;
+  String? get url;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $OrdersRoutePhotoResponseCopyWith<OrdersRoutePhotoResponse> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $OrdersRoutePhotoResponseCopyWith<$Res> {
-  factory $OrdersRoutePhotoResponseCopyWith(OrdersRoutePhotoResponse value,
-          $Res Function(OrdersRoutePhotoResponse) then) =
-      _$OrdersRoutePhotoResponseCopyWithImpl<$Res, OrdersRoutePhotoResponse>;
-  @useResult
-  $Res call({String? url});
-}
-
-/// @nodoc
-class _$OrdersRoutePhotoResponseCopyWithImpl<$Res,
-        $Val extends OrdersRoutePhotoResponse>
-    implements $OrdersRoutePhotoResponseCopyWith<$Res> {
-  _$OrdersRoutePhotoResponseCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
+  /// Create a copy of OrdersRoutePhotoResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
+  $OrdersRoutePhotoResponseCopyWith<OrdersRoutePhotoResponse> get copyWith =>
+      _$OrdersRoutePhotoResponseCopyWithImpl<OrdersRoutePhotoResponse>(
+          this as OrdersRoutePhotoResponse, _$identity);
+
+  /// Serializes this OrdersRoutePhotoResponse to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? url = freezed,
-  }) {
-    return _then(_value.copyWith(
-      url: freezed == url
-          ? _value.url
-          : url // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is OrdersRoutePhotoResponse &&
+            (identical(other.url, url) || other.url == url));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, url);
+
+  @override
+  String toString() {
+    return 'OrdersRoutePhotoResponse(url: $url)';
   }
 }
 
 /// @nodoc
-abstract class _$$OrdersRoutePhotoResponseImplCopyWith<$Res>
-    implements $OrdersRoutePhotoResponseCopyWith<$Res> {
-  factory _$$OrdersRoutePhotoResponseImplCopyWith(
-          _$OrdersRoutePhotoResponseImpl value,
-          $Res Function(_$OrdersRoutePhotoResponseImpl) then) =
-      __$$OrdersRoutePhotoResponseImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $OrdersRoutePhotoResponseCopyWith<$Res> {
+  factory $OrdersRoutePhotoResponseCopyWith(OrdersRoutePhotoResponse value,
+          $Res Function(OrdersRoutePhotoResponse) _then) =
+      _$OrdersRoutePhotoResponseCopyWithImpl;
   @useResult
   $Res call({String? url});
 }
 
 /// @nodoc
-class __$$OrdersRoutePhotoResponseImplCopyWithImpl<$Res>
-    extends _$OrdersRoutePhotoResponseCopyWithImpl<$Res,
-        _$OrdersRoutePhotoResponseImpl>
-    implements _$$OrdersRoutePhotoResponseImplCopyWith<$Res> {
-  __$$OrdersRoutePhotoResponseImplCopyWithImpl(
-      _$OrdersRoutePhotoResponseImpl _value,
-      $Res Function(_$OrdersRoutePhotoResponseImpl) _then)
-      : super(_value, _then);
+class _$OrdersRoutePhotoResponseCopyWithImpl<$Res>
+    implements $OrdersRoutePhotoResponseCopyWith<$Res> {
+  _$OrdersRoutePhotoResponseCopyWithImpl(this._self, this._then);
 
+  final OrdersRoutePhotoResponse _self;
+  final $Res Function(OrdersRoutePhotoResponse) _then;
+
+  /// Create a copy of OrdersRoutePhotoResponse
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? url = freezed,
   }) {
-    return _then(_$OrdersRoutePhotoResponseImpl(
+    return _then(_self.copyWith(
       url: freezed == url
-          ? _value.url
+          ? _self.url
           : url // ignore: cast_nullable_to_non_nullable
               as String?,
     ));
@@ -101,155 +81,153 @@ class __$$OrdersRoutePhotoResponseImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$OrdersRoutePhotoResponseImpl implements _OrdersRoutePhotoResponse {
-  const _$OrdersRoutePhotoResponseImpl({this.url});
-
-  factory _$OrdersRoutePhotoResponseImpl.fromJson(Map<String, dynamic> json) =>
-      _$$OrdersRoutePhotoResponseImplFromJson(json);
+class _OrdersRoutePhotoResponse implements OrdersRoutePhotoResponse {
+  const _OrdersRoutePhotoResponse({this.url});
+  factory _OrdersRoutePhotoResponse.fromJson(Map<String, dynamic> json) =>
+      _$OrdersRoutePhotoResponseFromJson(json);
 
   @override
   final String? url;
 
+  /// Create a copy of OrdersRoutePhotoResponse
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'OrdersRoutePhotoResponse(url: $url)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$OrdersRoutePhotoResponseCopyWith<_OrdersRoutePhotoResponse> get copyWith =>
+      __$OrdersRoutePhotoResponseCopyWithImpl<_OrdersRoutePhotoResponse>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$OrdersRoutePhotoResponseToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$OrdersRoutePhotoResponseImpl &&
+            other is _OrdersRoutePhotoResponse &&
             (identical(other.url, url) || other.url == url));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, url);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$OrdersRoutePhotoResponseImplCopyWith<_$OrdersRoutePhotoResponseImpl>
-      get copyWith => __$$OrdersRoutePhotoResponseImplCopyWithImpl<
-          _$OrdersRoutePhotoResponseImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$OrdersRoutePhotoResponseImplToJson(
-      this,
-    );
+  String toString() {
+    return 'OrdersRoutePhotoResponse(url: $url)';
   }
 }
 
-abstract class _OrdersRoutePhotoResponse implements OrdersRoutePhotoResponse {
-  const factory _OrdersRoutePhotoResponse({final String? url}) =
-      _$OrdersRoutePhotoResponseImpl;
-
-  factory _OrdersRoutePhotoResponse.fromJson(Map<String, dynamic> json) =
-      _$OrdersRoutePhotoResponseImpl.fromJson;
-
+/// @nodoc
+abstract mixin class _$OrdersRoutePhotoResponseCopyWith<$Res>
+    implements $OrdersRoutePhotoResponseCopyWith<$Res> {
+  factory _$OrdersRoutePhotoResponseCopyWith(_OrdersRoutePhotoResponse value,
+          $Res Function(_OrdersRoutePhotoResponse) _then) =
+      __$OrdersRoutePhotoResponseCopyWithImpl;
   @override
-  String? get url;
-  @override
-  @JsonKey(ignore: true)
-  _$$OrdersRoutePhotoResponseImplCopyWith<_$OrdersRoutePhotoResponseImpl>
-      get copyWith => throw _privateConstructorUsedError;
+  @useResult
+  $Res call({String? url});
 }
 
-OrdersRoutePhotoTypeResponse _$OrdersRoutePhotoTypeResponseFromJson(
-    Map<String, dynamic> json) {
-  return _OrdersRoutePhotoTypeResponse.fromJson(json);
+/// @nodoc
+class __$OrdersRoutePhotoResponseCopyWithImpl<$Res>
+    implements _$OrdersRoutePhotoResponseCopyWith<$Res> {
+  __$OrdersRoutePhotoResponseCopyWithImpl(this._self, this._then);
+
+  final _OrdersRoutePhotoResponse _self;
+  final $Res Function(_OrdersRoutePhotoResponse) _then;
+
+  /// Create a copy of OrdersRoutePhotoResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? url = freezed,
+  }) {
+    return _then(_OrdersRoutePhotoResponse(
+      url: freezed == url
+          ? _self.url
+          : url // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
 }
 
 /// @nodoc
 mixin _$OrdersRoutePhotoTypeResponse {
   @JsonKey(name: 'photo_id')
-  int? get photoId => throw _privateConstructorUsedError;
-  String? get url => throw _privateConstructorUsedError;
+  int? get photoId;
+  String? get url;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $OrdersRoutePhotoTypeResponseCopyWith<OrdersRoutePhotoTypeResponse>
-      get copyWith => throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $OrdersRoutePhotoTypeResponseCopyWith<$Res> {
-  factory $OrdersRoutePhotoTypeResponseCopyWith(
-          OrdersRoutePhotoTypeResponse value,
-          $Res Function(OrdersRoutePhotoTypeResponse) then) =
-      _$OrdersRoutePhotoTypeResponseCopyWithImpl<$Res,
-          OrdersRoutePhotoTypeResponse>;
-  @useResult
-  $Res call({@JsonKey(name: 'photo_id') int? photoId, String? url});
-}
-
-/// @nodoc
-class _$OrdersRoutePhotoTypeResponseCopyWithImpl<$Res,
-        $Val extends OrdersRoutePhotoTypeResponse>
-    implements $OrdersRoutePhotoTypeResponseCopyWith<$Res> {
-  _$OrdersRoutePhotoTypeResponseCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
+  /// Create a copy of OrdersRoutePhotoTypeResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
+  $OrdersRoutePhotoTypeResponseCopyWith<OrdersRoutePhotoTypeResponse>
+      get copyWith => _$OrdersRoutePhotoTypeResponseCopyWithImpl<
+              OrdersRoutePhotoTypeResponse>(
+          this as OrdersRoutePhotoTypeResponse, _$identity);
+
+  /// Serializes this OrdersRoutePhotoTypeResponse to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? photoId = freezed,
-    Object? url = freezed,
-  }) {
-    return _then(_value.copyWith(
-      photoId: freezed == photoId
-          ? _value.photoId
-          : photoId // ignore: cast_nullable_to_non_nullable
-              as int?,
-      url: freezed == url
-          ? _value.url
-          : url // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is OrdersRoutePhotoTypeResponse &&
+            (identical(other.photoId, photoId) || other.photoId == photoId) &&
+            (identical(other.url, url) || other.url == url));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, photoId, url);
+
+  @override
+  String toString() {
+    return 'OrdersRoutePhotoTypeResponse(photoId: $photoId, url: $url)';
   }
 }
 
 /// @nodoc
-abstract class _$$OrdersRoutePhotoTypeResponseImplCopyWith<$Res>
-    implements $OrdersRoutePhotoTypeResponseCopyWith<$Res> {
-  factory _$$OrdersRoutePhotoTypeResponseImplCopyWith(
-          _$OrdersRoutePhotoTypeResponseImpl value,
-          $Res Function(_$OrdersRoutePhotoTypeResponseImpl) then) =
-      __$$OrdersRoutePhotoTypeResponseImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $OrdersRoutePhotoTypeResponseCopyWith<$Res> {
+  factory $OrdersRoutePhotoTypeResponseCopyWith(
+          OrdersRoutePhotoTypeResponse value,
+          $Res Function(OrdersRoutePhotoTypeResponse) _then) =
+      _$OrdersRoutePhotoTypeResponseCopyWithImpl;
   @useResult
   $Res call({@JsonKey(name: 'photo_id') int? photoId, String? url});
 }
 
 /// @nodoc
-class __$$OrdersRoutePhotoTypeResponseImplCopyWithImpl<$Res>
-    extends _$OrdersRoutePhotoTypeResponseCopyWithImpl<$Res,
-        _$OrdersRoutePhotoTypeResponseImpl>
-    implements _$$OrdersRoutePhotoTypeResponseImplCopyWith<$Res> {
-  __$$OrdersRoutePhotoTypeResponseImplCopyWithImpl(
-      _$OrdersRoutePhotoTypeResponseImpl _value,
-      $Res Function(_$OrdersRoutePhotoTypeResponseImpl) _then)
-      : super(_value, _then);
+class _$OrdersRoutePhotoTypeResponseCopyWithImpl<$Res>
+    implements $OrdersRoutePhotoTypeResponseCopyWith<$Res> {
+  _$OrdersRoutePhotoTypeResponseCopyWithImpl(this._self, this._then);
 
+  final OrdersRoutePhotoTypeResponse _self;
+  final $Res Function(OrdersRoutePhotoTypeResponse) _then;
+
+  /// Create a copy of OrdersRoutePhotoTypeResponse
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? photoId = freezed,
     Object? url = freezed,
   }) {
-    return _then(_$OrdersRoutePhotoTypeResponseImpl(
+    return _then(_self.copyWith(
       photoId: freezed == photoId
-          ? _value.photoId
+          ? _self.photoId
           : photoId // ignore: cast_nullable_to_non_nullable
               as int?,
       url: freezed == url
-          ? _value.url
+          ? _self.url
           : url // ignore: cast_nullable_to_non_nullable
               as String?,
     ));
@@ -258,14 +236,11 @@ class __$$OrdersRoutePhotoTypeResponseImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$OrdersRoutePhotoTypeResponseImpl
-    implements _OrdersRoutePhotoTypeResponse {
-  const _$OrdersRoutePhotoTypeResponseImpl(
+class _OrdersRoutePhotoTypeResponse implements OrdersRoutePhotoTypeResponse {
+  const _OrdersRoutePhotoTypeResponse(
       {@JsonKey(name: 'photo_id') this.photoId, this.url});
-
-  factory _$OrdersRoutePhotoTypeResponseImpl.fromJson(
-          Map<String, dynamic> json) =>
-      _$$OrdersRoutePhotoTypeResponseImplFromJson(json);
+  factory _OrdersRoutePhotoTypeResponse.fromJson(Map<String, dynamic> json) =>
+      _$OrdersRoutePhotoTypeResponseFromJson(json);
 
   @override
   @JsonKey(name: 'photo_id')
@@ -273,57 +248,80 @@ class _$OrdersRoutePhotoTypeResponseImpl
   @override
   final String? url;
 
+  /// Create a copy of OrdersRoutePhotoTypeResponse
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'OrdersRoutePhotoTypeResponse(photoId: $photoId, url: $url)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$OrdersRoutePhotoTypeResponseCopyWith<_OrdersRoutePhotoTypeResponse>
+      get copyWith => __$OrdersRoutePhotoTypeResponseCopyWithImpl<
+          _OrdersRoutePhotoTypeResponse>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$OrdersRoutePhotoTypeResponseToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$OrdersRoutePhotoTypeResponseImpl &&
+            other is _OrdersRoutePhotoTypeResponse &&
             (identical(other.photoId, photoId) || other.photoId == photoId) &&
             (identical(other.url, url) || other.url == url));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, photoId, url);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$OrdersRoutePhotoTypeResponseImplCopyWith<
-          _$OrdersRoutePhotoTypeResponseImpl>
-      get copyWith => __$$OrdersRoutePhotoTypeResponseImplCopyWithImpl<
-          _$OrdersRoutePhotoTypeResponseImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$OrdersRoutePhotoTypeResponseImplToJson(
-      this,
-    );
+  String toString() {
+    return 'OrdersRoutePhotoTypeResponse(photoId: $photoId, url: $url)';
   }
 }
 
-abstract class _OrdersRoutePhotoTypeResponse
-    implements OrdersRoutePhotoTypeResponse {
-  const factory _OrdersRoutePhotoTypeResponse(
-      {@JsonKey(name: 'photo_id') final int? photoId,
-      final String? url}) = _$OrdersRoutePhotoTypeResponseImpl;
-
-  factory _OrdersRoutePhotoTypeResponse.fromJson(Map<String, dynamic> json) =
-      _$OrdersRoutePhotoTypeResponseImpl.fromJson;
-
+/// @nodoc
+abstract mixin class _$OrdersRoutePhotoTypeResponseCopyWith<$Res>
+    implements $OrdersRoutePhotoTypeResponseCopyWith<$Res> {
+  factory _$OrdersRoutePhotoTypeResponseCopyWith(
+          _OrdersRoutePhotoTypeResponse value,
+          $Res Function(_OrdersRoutePhotoTypeResponse) _then) =
+      __$OrdersRoutePhotoTypeResponseCopyWithImpl;
   @override
-  @JsonKey(name: 'photo_id')
-  int? get photoId;
-  @override
-  String? get url;
-  @override
-  @JsonKey(ignore: true)
-  _$$OrdersRoutePhotoTypeResponseImplCopyWith<
-          _$OrdersRoutePhotoTypeResponseImpl>
-      get copyWith => throw _privateConstructorUsedError;
+  @useResult
+  $Res call({@JsonKey(name: 'photo_id') int? photoId, String? url});
 }
+
+/// @nodoc
+class __$OrdersRoutePhotoTypeResponseCopyWithImpl<$Res>
+    implements _$OrdersRoutePhotoTypeResponseCopyWith<$Res> {
+  __$OrdersRoutePhotoTypeResponseCopyWithImpl(this._self, this._then);
+
+  final _OrdersRoutePhotoTypeResponse _self;
+  final $Res Function(_OrdersRoutePhotoTypeResponse) _then;
+
+  /// Create a copy of OrdersRoutePhotoTypeResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? photoId = freezed,
+    Object? url = freezed,
+  }) {
+    return _then(_OrdersRoutePhotoTypeResponse(
+      photoId: freezed == photoId
+          ? _self.photoId
+          : photoId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      url: freezed == url
+          ? _self.url
+          : url // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+// dart format on

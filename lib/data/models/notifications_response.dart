@@ -5,7 +5,7 @@ part 'notifications_response.g.dart';
 
 /// Элемент списка уведомлений (`GET /notification/{type_id}`).
 @freezed
-class NotificationsResponseItem with _$NotificationsResponseItem {
+abstract class NotificationsResponseItem with _$NotificationsResponseItem {
   const factory NotificationsResponseItem({
     int? id,
     String? message,

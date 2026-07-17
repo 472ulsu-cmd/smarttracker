@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,75 +10,53 @@ part of 'sync_response.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-SyncResponse _$SyncResponseFromJson(Map<String, dynamic> json) {
-  return _SyncResponse.fromJson(json);
-}
 
 /// @nodoc
 mixin _$SyncResponse {
   @JsonKey(name: 'coordinates_period')
-  int? get coordinatesPeriod => throw _privateConstructorUsedError;
+  int? get coordinatesPeriod;
   @JsonKey(name: 'sync_period')
-  int? get syncPeriod => throw _privateConstructorUsedError;
+  int? get syncPeriod;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $SyncResponseCopyWith<SyncResponse> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $SyncResponseCopyWith<$Res> {
-  factory $SyncResponseCopyWith(
-          SyncResponse value, $Res Function(SyncResponse) then) =
-      _$SyncResponseCopyWithImpl<$Res, SyncResponse>;
-  @useResult
-  $Res call(
-      {@JsonKey(name: 'coordinates_period') int? coordinatesPeriod,
-      @JsonKey(name: 'sync_period') int? syncPeriod});
-}
-
-/// @nodoc
-class _$SyncResponseCopyWithImpl<$Res, $Val extends SyncResponse>
-    implements $SyncResponseCopyWith<$Res> {
-  _$SyncResponseCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
+  /// Create a copy of SyncResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
+  $SyncResponseCopyWith<SyncResponse> get copyWith =>
+      _$SyncResponseCopyWithImpl<SyncResponse>(
+          this as SyncResponse, _$identity);
+
+  /// Serializes this SyncResponse to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? coordinatesPeriod = freezed,
-    Object? syncPeriod = freezed,
-  }) {
-    return _then(_value.copyWith(
-      coordinatesPeriod: freezed == coordinatesPeriod
-          ? _value.coordinatesPeriod
-          : coordinatesPeriod // ignore: cast_nullable_to_non_nullable
-              as int?,
-      syncPeriod: freezed == syncPeriod
-          ? _value.syncPeriod
-          : syncPeriod // ignore: cast_nullable_to_non_nullable
-              as int?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SyncResponse &&
+            (identical(other.coordinatesPeriod, coordinatesPeriod) ||
+                other.coordinatesPeriod == coordinatesPeriod) &&
+            (identical(other.syncPeriod, syncPeriod) ||
+                other.syncPeriod == syncPeriod));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, coordinatesPeriod, syncPeriod);
+
+  @override
+  String toString() {
+    return 'SyncResponse(coordinatesPeriod: $coordinatesPeriod, syncPeriod: $syncPeriod)';
   }
 }
 
 /// @nodoc
-abstract class _$$SyncResponseImplCopyWith<$Res>
-    implements $SyncResponseCopyWith<$Res> {
-  factory _$$SyncResponseImplCopyWith(
-          _$SyncResponseImpl value, $Res Function(_$SyncResponseImpl) then) =
-      __$$SyncResponseImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $SyncResponseCopyWith<$Res> {
+  factory $SyncResponseCopyWith(
+          SyncResponse value, $Res Function(SyncResponse) _then) =
+      _$SyncResponseCopyWithImpl;
   @useResult
   $Res call(
       {@JsonKey(name: 'coordinates_period') int? coordinatesPeriod,
@@ -85,26 +64,27 @@ abstract class _$$SyncResponseImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$SyncResponseImplCopyWithImpl<$Res>
-    extends _$SyncResponseCopyWithImpl<$Res, _$SyncResponseImpl>
-    implements _$$SyncResponseImplCopyWith<$Res> {
-  __$$SyncResponseImplCopyWithImpl(
-      _$SyncResponseImpl _value, $Res Function(_$SyncResponseImpl) _then)
-      : super(_value, _then);
+class _$SyncResponseCopyWithImpl<$Res> implements $SyncResponseCopyWith<$Res> {
+  _$SyncResponseCopyWithImpl(this._self, this._then);
 
+  final SyncResponse _self;
+  final $Res Function(SyncResponse) _then;
+
+  /// Create a copy of SyncResponse
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
     Object? coordinatesPeriod = freezed,
     Object? syncPeriod = freezed,
   }) {
-    return _then(_$SyncResponseImpl(
+    return _then(_self.copyWith(
       coordinatesPeriod: freezed == coordinatesPeriod
-          ? _value.coordinatesPeriod
+          ? _self.coordinatesPeriod
           : coordinatesPeriod // ignore: cast_nullable_to_non_nullable
               as int?,
       syncPeriod: freezed == syncPeriod
-          ? _value.syncPeriod
+          ? _self.syncPeriod
           : syncPeriod // ignore: cast_nullable_to_non_nullable
               as int?,
     ));
@@ -113,13 +93,12 @@ class __$$SyncResponseImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$SyncResponseImpl implements _SyncResponse {
-  const _$SyncResponseImpl(
+class _SyncResponse implements SyncResponse {
+  const _SyncResponse(
       {@JsonKey(name: 'coordinates_period') this.coordinatesPeriod,
       @JsonKey(name: 'sync_period') this.syncPeriod});
-
-  factory _$SyncResponseImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SyncResponseImplFromJson(json);
+  factory _SyncResponse.fromJson(Map<String, dynamic> json) =>
+      _$SyncResponseFromJson(json);
 
   @override
   @JsonKey(name: 'coordinates_period')
@@ -128,57 +107,82 @@ class _$SyncResponseImpl implements _SyncResponse {
   @JsonKey(name: 'sync_period')
   final int? syncPeriod;
 
+  /// Create a copy of SyncResponse
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'SyncResponse(coordinatesPeriod: $coordinatesPeriod, syncPeriod: $syncPeriod)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$SyncResponseCopyWith<_SyncResponse> get copyWith =>
+      __$SyncResponseCopyWithImpl<_SyncResponse>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SyncResponseToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SyncResponseImpl &&
+            other is _SyncResponse &&
             (identical(other.coordinatesPeriod, coordinatesPeriod) ||
                 other.coordinatesPeriod == coordinatesPeriod) &&
             (identical(other.syncPeriod, syncPeriod) ||
                 other.syncPeriod == syncPeriod));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, coordinatesPeriod, syncPeriod);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$SyncResponseImplCopyWith<_$SyncResponseImpl> get copyWith =>
-      __$$SyncResponseImplCopyWithImpl<_$SyncResponseImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$SyncResponseImplToJson(
-      this,
-    );
+  String toString() {
+    return 'SyncResponse(coordinatesPeriod: $coordinatesPeriod, syncPeriod: $syncPeriod)';
   }
 }
 
-abstract class _SyncResponse implements SyncResponse {
-  const factory _SyncResponse(
-          {@JsonKey(name: 'coordinates_period') final int? coordinatesPeriod,
-          @JsonKey(name: 'sync_period') final int? syncPeriod}) =
-      _$SyncResponseImpl;
-
-  factory _SyncResponse.fromJson(Map<String, dynamic> json) =
-      _$SyncResponseImpl.fromJson;
-
+/// @nodoc
+abstract mixin class _$SyncResponseCopyWith<$Res>
+    implements $SyncResponseCopyWith<$Res> {
+  factory _$SyncResponseCopyWith(
+          _SyncResponse value, $Res Function(_SyncResponse) _then) =
+      __$SyncResponseCopyWithImpl;
   @override
-  @JsonKey(name: 'coordinates_period')
-  int? get coordinatesPeriod;
-  @override
-  @JsonKey(name: 'sync_period')
-  int? get syncPeriod;
-  @override
-  @JsonKey(ignore: true)
-  _$$SyncResponseImplCopyWith<_$SyncResponseImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @useResult
+  $Res call(
+      {@JsonKey(name: 'coordinates_period') int? coordinatesPeriod,
+      @JsonKey(name: 'sync_period') int? syncPeriod});
 }
+
+/// @nodoc
+class __$SyncResponseCopyWithImpl<$Res>
+    implements _$SyncResponseCopyWith<$Res> {
+  __$SyncResponseCopyWithImpl(this._self, this._then);
+
+  final _SyncResponse _self;
+  final $Res Function(_SyncResponse) _then;
+
+  /// Create a copy of SyncResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? coordinatesPeriod = freezed,
+    Object? syncPeriod = freezed,
+  }) {
+    return _then(_SyncResponse(
+      coordinatesPeriod: freezed == coordinatesPeriod
+          ? _self.coordinatesPeriod
+          : coordinatesPeriod // ignore: cast_nullable_to_non_nullable
+              as int?,
+      syncPeriod: freezed == syncPeriod
+          ? _self.syncPeriod
+          : syncPeriod // ignore: cast_nullable_to_non_nullable
+              as int?,
+    ));
+  }
+}
+
+// dart format on

@@ -5,7 +5,7 @@ part 'photo_responses.g.dart';
 
 /// Ответ загрузки фото по ID (`POST /orders/{id}/photo/{routePhotoId}`).
 @freezed
-class OrdersRoutePhotoResponse with _$OrdersRoutePhotoResponse {
+abstract class OrdersRoutePhotoResponse with _$OrdersRoutePhotoResponse {
   const factory OrdersRoutePhotoResponse({
     String? url,
   }) = _OrdersRoutePhotoResponse;
@@ -16,7 +16,7 @@ class OrdersRoutePhotoResponse with _$OrdersRoutePhotoResponse {
 
 /// Ответ загрузки фото по типу (`POST /orders/{id}/photo_type/{typeId}/photo`).
 @freezed
-class OrdersRoutePhotoTypeResponse with _$OrdersRoutePhotoTypeResponse {
+abstract class OrdersRoutePhotoTypeResponse with _$OrdersRoutePhotoTypeResponse {
   const factory OrdersRoutePhotoTypeResponse({
     @JsonKey(name: 'photo_id') int? photoId,
     String? url,

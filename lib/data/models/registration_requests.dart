@@ -5,7 +5,7 @@ part 'registration_requests.g.dart';
 
 /// `POST /registration` и `POST /restore`.
 @freezed
-class RegistrationRequest with _$RegistrationRequest {
+abstract class RegistrationRequest with _$RegistrationRequest {
   const factory RegistrationRequest({
     required String login,
     required String password,
@@ -19,7 +19,7 @@ class RegistrationRequest with _$RegistrationRequest {
 
 /// Запрос SMS-кода (`POST /user/send_phone_code`, `send_restoring_phone_code`).
 @freezed
-class SendPhoneCodeRequest with _$SendPhoneCodeRequest {
+abstract class SendPhoneCodeRequest with _$SendPhoneCodeRequest {
   const factory SendPhoneCodeRequest({
     required String login,
     required String phone,
@@ -32,7 +32,7 @@ class SendPhoneCodeRequest with _$SendPhoneCodeRequest {
 
 /// Проверка SMS-кода (`POST /user/verify_phone_code`).
 @freezed
-class VerifyPhoneCodeRequest with _$VerifyPhoneCodeRequest {
+abstract class VerifyPhoneCodeRequest with _$VerifyPhoneCodeRequest {
   const factory VerifyPhoneCodeRequest({
     required String login,
     required String phone,

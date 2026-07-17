@@ -6,8 +6,8 @@ part of 'login_response.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$LoginResponseImpl _$$LoginResponseImplFromJson(Map<String, dynamic> json) =>
-    _$LoginResponseImpl(
+_LoginResponse _$LoginResponseFromJson(Map<String, dynamic> json) =>
+    _LoginResponse(
       code: (json['code'] as num?)?.toInt(),
       token: json['token'] as String?,
       account: json['account'] == null
@@ -15,16 +15,15 @@ _$LoginResponseImpl _$$LoginResponseImplFromJson(Map<String, dynamic> json) =>
           : AccountApiModel.fromJson(json['account'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$LoginResponseImplToJson(_$LoginResponseImpl instance) =>
+Map<String, dynamic> _$LoginResponseToJson(_LoginResponse instance) =>
     <String, dynamic>{
       'code': instance.code,
       'token': instance.token,
       'account': instance.account,
     };
 
-_$AccountApiModelImpl _$$AccountApiModelImplFromJson(
-        Map<String, dynamic> json) =>
-    _$AccountApiModelImpl(
+_AccountApiModel _$AccountApiModelFromJson(Map<String, dynamic> json) =>
+    _AccountApiModel(
       id: (json['id'] as num?)?.toInt(),
       login: json['login'] as String?,
       name: json['name'] as String?,
@@ -35,8 +34,7 @@ _$AccountApiModelImpl _$$AccountApiModelImplFromJson(
       avatar: json['avatar'] as String?,
     );
 
-Map<String, dynamic> _$$AccountApiModelImplToJson(
-        _$AccountApiModelImpl instance) =>
+Map<String, dynamic> _$AccountApiModelToJson(_AccountApiModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'login': instance.login,

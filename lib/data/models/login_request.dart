@@ -5,7 +5,7 @@ part 'login_request.g.dart';
 
 /// Тело запроса `POST /login`.
 @freezed
-class LoginRequest with _$LoginRequest {
+abstract class LoginRequest with _$LoginRequest {
   const factory LoginRequest({
     required String login,
     required String password,

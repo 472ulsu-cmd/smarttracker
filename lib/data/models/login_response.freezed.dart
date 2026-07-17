@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,33 +10,52 @@ part of 'login_response.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-LoginResponse _$LoginResponseFromJson(Map<String, dynamic> json) {
-  return _LoginResponse.fromJson(json);
-}
 
 /// @nodoc
 mixin _$LoginResponse {
   @JsonKey(name: 'code')
-  int? get code => throw _privateConstructorUsedError;
-  String? get token => throw _privateConstructorUsedError;
-  AccountApiModel? get account => throw _privateConstructorUsedError;
+  int? get code;
+  String? get token;
+  AccountApiModel? get account;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+  /// Create a copy of LoginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $LoginResponseCopyWith<LoginResponse> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$LoginResponseCopyWithImpl<LoginResponse>(
+          this as LoginResponse, _$identity);
+
+  /// Serializes this LoginResponse to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is LoginResponse &&
+            (identical(other.code, code) || other.code == code) &&
+            (identical(other.token, token) || other.token == token) &&
+            (identical(other.account, account) || other.account == account));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, code, token, account);
+
+  @override
+  String toString() {
+    return 'LoginResponse(code: $code, token: $token, account: $account)';
+  }
 }
 
 /// @nodoc
-abstract class $LoginResponseCopyWith<$Res> {
+abstract mixin class $LoginResponseCopyWith<$Res> {
   factory $LoginResponseCopyWith(
-          LoginResponse value, $Res Function(LoginResponse) then) =
-      _$LoginResponseCopyWithImpl<$Res, LoginResponse>;
+          LoginResponse value, $Res Function(LoginResponse) _then) =
+      _$LoginResponseCopyWithImpl;
   @useResult
   $Res call(
       {@JsonKey(name: 'code') int? code,
@@ -46,15 +66,15 @@ abstract class $LoginResponseCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$LoginResponseCopyWithImpl<$Res, $Val extends LoginResponse>
+class _$LoginResponseCopyWithImpl<$Res>
     implements $LoginResponseCopyWith<$Res> {
-  _$LoginResponseCopyWithImpl(this._value, this._then);
+  _$LoginResponseCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final LoginResponse _self;
+  final $Res Function(LoginResponse) _then;
 
+  /// Create a copy of LoginResponse
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -62,92 +82,44 @@ class _$LoginResponseCopyWithImpl<$Res, $Val extends LoginResponse>
     Object? token = freezed,
     Object? account = freezed,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       code: freezed == code
-          ? _value.code
+          ? _self.code
           : code // ignore: cast_nullable_to_non_nullable
               as int?,
       token: freezed == token
-          ? _value.token
+          ? _self.token
           : token // ignore: cast_nullable_to_non_nullable
               as String?,
       account: freezed == account
-          ? _value.account
+          ? _self.account
           : account // ignore: cast_nullable_to_non_nullable
               as AccountApiModel?,
-    ) as $Val);
+    ));
   }
 
+  /// Create a copy of LoginResponse
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $AccountApiModelCopyWith<$Res>? get account {
-    if (_value.account == null) {
+    if (_self.account == null) {
       return null;
     }
 
-    return $AccountApiModelCopyWith<$Res>(_value.account!, (value) {
-      return _then(_value.copyWith(account: value) as $Val);
+    return $AccountApiModelCopyWith<$Res>(_self.account!, (value) {
+      return _then(_self.copyWith(account: value));
     });
   }
 }
 
 /// @nodoc
-abstract class _$$LoginResponseImplCopyWith<$Res>
-    implements $LoginResponseCopyWith<$Res> {
-  factory _$$LoginResponseImplCopyWith(
-          _$LoginResponseImpl value, $Res Function(_$LoginResponseImpl) then) =
-      __$$LoginResponseImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {@JsonKey(name: 'code') int? code,
-      String? token,
-      AccountApiModel? account});
-
-  @override
-  $AccountApiModelCopyWith<$Res>? get account;
-}
-
-/// @nodoc
-class __$$LoginResponseImplCopyWithImpl<$Res>
-    extends _$LoginResponseCopyWithImpl<$Res, _$LoginResponseImpl>
-    implements _$$LoginResponseImplCopyWith<$Res> {
-  __$$LoginResponseImplCopyWithImpl(
-      _$LoginResponseImpl _value, $Res Function(_$LoginResponseImpl) _then)
-      : super(_value, _then);
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? code = freezed,
-    Object? token = freezed,
-    Object? account = freezed,
-  }) {
-    return _then(_$LoginResponseImpl(
-      code: freezed == code
-          ? _value.code
-          : code // ignore: cast_nullable_to_non_nullable
-              as int?,
-      token: freezed == token
-          ? _value.token
-          : token // ignore: cast_nullable_to_non_nullable
-              as String?,
-      account: freezed == account
-          ? _value.account
-          : account // ignore: cast_nullable_to_non_nullable
-              as AccountApiModel?,
-    ));
-  }
-}
-
-/// @nodoc
 @JsonSerializable()
-class _$LoginResponseImpl implements _LoginResponse {
-  const _$LoginResponseImpl(
+class _LoginResponse implements LoginResponse {
+  const _LoginResponse(
       {@JsonKey(name: 'code') this.code, this.token, this.account});
-
-  factory _$LoginResponseImpl.fromJson(Map<String, dynamic> json) =>
-      _$$LoginResponseImplFromJson(json);
+  factory _LoginResponse.fromJson(Map<String, dynamic> json) =>
+      _$LoginResponseFromJson(json);
 
   @override
   @JsonKey(name: 'code')
@@ -157,167 +129,163 @@ class _$LoginResponseImpl implements _LoginResponse {
   @override
   final AccountApiModel? account;
 
+  /// Create a copy of LoginResponse
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'LoginResponse(code: $code, token: $token, account: $account)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$LoginResponseCopyWith<_LoginResponse> get copyWith =>
+      __$LoginResponseCopyWithImpl<_LoginResponse>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$LoginResponseToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$LoginResponseImpl &&
+            other is _LoginResponse &&
             (identical(other.code, code) || other.code == code) &&
             (identical(other.token, token) || other.token == token) &&
             (identical(other.account, account) || other.account == account));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, code, token, account);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$LoginResponseImplCopyWith<_$LoginResponseImpl> get copyWith =>
-      __$$LoginResponseImplCopyWithImpl<_$LoginResponseImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$LoginResponseImplToJson(
-      this,
-    );
+  String toString() {
+    return 'LoginResponse(code: $code, token: $token, account: $account)';
   }
 }
 
-abstract class _LoginResponse implements LoginResponse {
-  const factory _LoginResponse(
-      {@JsonKey(name: 'code') final int? code,
-      final String? token,
-      final AccountApiModel? account}) = _$LoginResponseImpl;
+/// @nodoc
+abstract mixin class _$LoginResponseCopyWith<$Res>
+    implements $LoginResponseCopyWith<$Res> {
+  factory _$LoginResponseCopyWith(
+          _LoginResponse value, $Res Function(_LoginResponse) _then) =
+      __$LoginResponseCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {@JsonKey(name: 'code') int? code,
+      String? token,
+      AccountApiModel? account});
 
-  factory _LoginResponse.fromJson(Map<String, dynamic> json) =
-      _$LoginResponseImpl.fromJson;
-
   @override
-  @JsonKey(name: 'code')
-  int? get code;
-  @override
-  String? get token;
-  @override
-  AccountApiModel? get account;
-  @override
-  @JsonKey(ignore: true)
-  _$$LoginResponseImplCopyWith<_$LoginResponseImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  $AccountApiModelCopyWith<$Res>? get account;
 }
 
-AccountApiModel _$AccountApiModelFromJson(Map<String, dynamic> json) {
-  return _AccountApiModel.fromJson(json);
+/// @nodoc
+class __$LoginResponseCopyWithImpl<$Res>
+    implements _$LoginResponseCopyWith<$Res> {
+  __$LoginResponseCopyWithImpl(this._self, this._then);
+
+  final _LoginResponse _self;
+  final $Res Function(_LoginResponse) _then;
+
+  /// Create a copy of LoginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? code = freezed,
+    Object? token = freezed,
+    Object? account = freezed,
+  }) {
+    return _then(_LoginResponse(
+      code: freezed == code
+          ? _self.code
+          : code // ignore: cast_nullable_to_non_nullable
+              as int?,
+      token: freezed == token
+          ? _self.token
+          : token // ignore: cast_nullable_to_non_nullable
+              as String?,
+      account: freezed == account
+          ? _self.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as AccountApiModel?,
+    ));
+  }
+
+  /// Create a copy of LoginResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $AccountApiModelCopyWith<$Res>? get account {
+    if (_self.account == null) {
+      return null;
+    }
+
+    return $AccountApiModelCopyWith<$Res>(_self.account!, (value) {
+      return _then(_self.copyWith(account: value));
+    });
+  }
 }
 
 /// @nodoc
 mixin _$AccountApiModel {
-  int? get id => throw _privateConstructorUsedError;
-  String? get login => throw _privateConstructorUsedError;
-  String? get name => throw _privateConstructorUsedError;
+  int? get id;
+  String? get login;
+  String? get name;
   @JsonKey(name: 'second_name')
-  String? get secondName => throw _privateConstructorUsedError;
-  String? get surname => throw _privateConstructorUsedError;
-  String? get phone => throw _privateConstructorUsedError;
+  String? get secondName;
+  String? get surname;
+  String? get phone;
   @JsonKey(name: 'phone_code')
-  int? get phoneCode => throw _privateConstructorUsedError;
-  String? get avatar => throw _privateConstructorUsedError;
+  int? get phoneCode;
+  String? get avatar;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $AccountApiModelCopyWith<AccountApiModel> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $AccountApiModelCopyWith<$Res> {
-  factory $AccountApiModelCopyWith(
-          AccountApiModel value, $Res Function(AccountApiModel) then) =
-      _$AccountApiModelCopyWithImpl<$Res, AccountApiModel>;
-  @useResult
-  $Res call(
-      {int? id,
-      String? login,
-      String? name,
-      @JsonKey(name: 'second_name') String? secondName,
-      String? surname,
-      String? phone,
-      @JsonKey(name: 'phone_code') int? phoneCode,
-      String? avatar});
-}
-
-/// @nodoc
-class _$AccountApiModelCopyWithImpl<$Res, $Val extends AccountApiModel>
-    implements $AccountApiModelCopyWith<$Res> {
-  _$AccountApiModelCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
+  /// Create a copy of AccountApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
+  $AccountApiModelCopyWith<AccountApiModel> get copyWith =>
+      _$AccountApiModelCopyWithImpl<AccountApiModel>(
+          this as AccountApiModel, _$identity);
+
+  /// Serializes this AccountApiModel to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? id = freezed,
-    Object? login = freezed,
-    Object? name = freezed,
-    Object? secondName = freezed,
-    Object? surname = freezed,
-    Object? phone = freezed,
-    Object? phoneCode = freezed,
-    Object? avatar = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: freezed == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int?,
-      login: freezed == login
-          ? _value.login
-          : login // ignore: cast_nullable_to_non_nullable
-              as String?,
-      name: freezed == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-      secondName: freezed == secondName
-          ? _value.secondName
-          : secondName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      surname: freezed == surname
-          ? _value.surname
-          : surname // ignore: cast_nullable_to_non_nullable
-              as String?,
-      phone: freezed == phone
-          ? _value.phone
-          : phone // ignore: cast_nullable_to_non_nullable
-              as String?,
-      phoneCode: freezed == phoneCode
-          ? _value.phoneCode
-          : phoneCode // ignore: cast_nullable_to_non_nullable
-              as int?,
-      avatar: freezed == avatar
-          ? _value.avatar
-          : avatar // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is AccountApiModel &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.login, login) || other.login == login) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.secondName, secondName) ||
+                other.secondName == secondName) &&
+            (identical(other.surname, surname) || other.surname == surname) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.phoneCode, phoneCode) ||
+                other.phoneCode == phoneCode) &&
+            (identical(other.avatar, avatar) || other.avatar == avatar));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, login, name, secondName,
+      surname, phone, phoneCode, avatar);
+
+  @override
+  String toString() {
+    return 'AccountApiModel(id: $id, login: $login, name: $name, secondName: $secondName, surname: $surname, phone: $phone, phoneCode: $phoneCode, avatar: $avatar)';
   }
 }
 
 /// @nodoc
-abstract class _$$AccountApiModelImplCopyWith<$Res>
-    implements $AccountApiModelCopyWith<$Res> {
-  factory _$$AccountApiModelImplCopyWith(_$AccountApiModelImpl value,
-          $Res Function(_$AccountApiModelImpl) then) =
-      __$$AccountApiModelImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $AccountApiModelCopyWith<$Res> {
+  factory $AccountApiModelCopyWith(
+          AccountApiModel value, $Res Function(AccountApiModel) _then) =
+      _$AccountApiModelCopyWithImpl;
   @useResult
   $Res call(
       {int? id,
@@ -331,13 +299,15 @@ abstract class _$$AccountApiModelImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$AccountApiModelImplCopyWithImpl<$Res>
-    extends _$AccountApiModelCopyWithImpl<$Res, _$AccountApiModelImpl>
-    implements _$$AccountApiModelImplCopyWith<$Res> {
-  __$$AccountApiModelImplCopyWithImpl(
-      _$AccountApiModelImpl _value, $Res Function(_$AccountApiModelImpl) _then)
-      : super(_value, _then);
+class _$AccountApiModelCopyWithImpl<$Res>
+    implements $AccountApiModelCopyWith<$Res> {
+  _$AccountApiModelCopyWithImpl(this._self, this._then);
 
+  final AccountApiModel _self;
+  final $Res Function(AccountApiModel) _then;
+
+  /// Create a copy of AccountApiModel
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -350,37 +320,37 @@ class __$$AccountApiModelImplCopyWithImpl<$Res>
     Object? phoneCode = freezed,
     Object? avatar = freezed,
   }) {
-    return _then(_$AccountApiModelImpl(
+    return _then(_self.copyWith(
       id: freezed == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
       login: freezed == login
-          ? _value.login
+          ? _self.login
           : login // ignore: cast_nullable_to_non_nullable
               as String?,
       name: freezed == name
-          ? _value.name
+          ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String?,
       secondName: freezed == secondName
-          ? _value.secondName
+          ? _self.secondName
           : secondName // ignore: cast_nullable_to_non_nullable
               as String?,
       surname: freezed == surname
-          ? _value.surname
+          ? _self.surname
           : surname // ignore: cast_nullable_to_non_nullable
               as String?,
       phone: freezed == phone
-          ? _value.phone
+          ? _self.phone
           : phone // ignore: cast_nullable_to_non_nullable
               as String?,
       phoneCode: freezed == phoneCode
-          ? _value.phoneCode
+          ? _self.phoneCode
           : phoneCode // ignore: cast_nullable_to_non_nullable
               as int?,
       avatar: freezed == avatar
-          ? _value.avatar
+          ? _self.avatar
           : avatar // ignore: cast_nullable_to_non_nullable
               as String?,
     ));
@@ -389,8 +359,8 @@ class __$$AccountApiModelImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$AccountApiModelImpl implements _AccountApiModel {
-  const _$AccountApiModelImpl(
+class _AccountApiModel implements AccountApiModel {
+  const _AccountApiModel(
       {this.id,
       this.login,
       this.name,
@@ -399,9 +369,8 @@ class _$AccountApiModelImpl implements _AccountApiModel {
       this.phone,
       @JsonKey(name: 'phone_code') this.phoneCode,
       this.avatar});
-
-  factory _$AccountApiModelImpl.fromJson(Map<String, dynamic> json) =>
-      _$$AccountApiModelImplFromJson(json);
+  factory _AccountApiModel.fromJson(Map<String, dynamic> json) =>
+      _$AccountApiModelFromJson(json);
 
   @override
   final int? id;
@@ -422,16 +391,26 @@ class _$AccountApiModelImpl implements _AccountApiModel {
   @override
   final String? avatar;
 
+  /// Create a copy of AccountApiModel
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'AccountApiModel(id: $id, login: $login, name: $name, secondName: $secondName, surname: $surname, phone: $phone, phoneCode: $phoneCode, avatar: $avatar)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$AccountApiModelCopyWith<_AccountApiModel> get copyWith =>
+      __$AccountApiModelCopyWithImpl<_AccountApiModel>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$AccountApiModelToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$AccountApiModelImpl &&
+            other is _AccountApiModel &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.login, login) || other.login == login) &&
             (identical(other.name, name) || other.name == name) &&
@@ -444,60 +423,93 @@ class _$AccountApiModelImpl implements _AccountApiModel {
             (identical(other.avatar, avatar) || other.avatar == avatar));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, login, name, secondName,
       surname, phone, phoneCode, avatar);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$AccountApiModelImplCopyWith<_$AccountApiModelImpl> get copyWith =>
-      __$$AccountApiModelImplCopyWithImpl<_$AccountApiModelImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$AccountApiModelImplToJson(
-      this,
-    );
+  String toString() {
+    return 'AccountApiModel(id: $id, login: $login, name: $name, secondName: $secondName, surname: $surname, phone: $phone, phoneCode: $phoneCode, avatar: $avatar)';
   }
 }
 
-abstract class _AccountApiModel implements AccountApiModel {
-  const factory _AccountApiModel(
-      {final int? id,
-      final String? login,
-      final String? name,
-      @JsonKey(name: 'second_name') final String? secondName,
-      final String? surname,
-      final String? phone,
-      @JsonKey(name: 'phone_code') final int? phoneCode,
-      final String? avatar}) = _$AccountApiModelImpl;
-
-  factory _AccountApiModel.fromJson(Map<String, dynamic> json) =
-      _$AccountApiModelImpl.fromJson;
-
+/// @nodoc
+abstract mixin class _$AccountApiModelCopyWith<$Res>
+    implements $AccountApiModelCopyWith<$Res> {
+  factory _$AccountApiModelCopyWith(
+          _AccountApiModel value, $Res Function(_AccountApiModel) _then) =
+      __$AccountApiModelCopyWithImpl;
   @override
-  int? get id;
-  @override
-  String? get login;
-  @override
-  String? get name;
-  @override
-  @JsonKey(name: 'second_name')
-  String? get secondName;
-  @override
-  String? get surname;
-  @override
-  String? get phone;
-  @override
-  @JsonKey(name: 'phone_code')
-  int? get phoneCode;
-  @override
-  String? get avatar;
-  @override
-  @JsonKey(ignore: true)
-  _$$AccountApiModelImplCopyWith<_$AccountApiModelImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @useResult
+  $Res call(
+      {int? id,
+      String? login,
+      String? name,
+      @JsonKey(name: 'second_name') String? secondName,
+      String? surname,
+      String? phone,
+      @JsonKey(name: 'phone_code') int? phoneCode,
+      String? avatar});
 }
+
+/// @nodoc
+class __$AccountApiModelCopyWithImpl<$Res>
+    implements _$AccountApiModelCopyWith<$Res> {
+  __$AccountApiModelCopyWithImpl(this._self, this._then);
+
+  final _AccountApiModel _self;
+  final $Res Function(_AccountApiModel) _then;
+
+  /// Create a copy of AccountApiModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = freezed,
+    Object? login = freezed,
+    Object? name = freezed,
+    Object? secondName = freezed,
+    Object? surname = freezed,
+    Object? phone = freezed,
+    Object? phoneCode = freezed,
+    Object? avatar = freezed,
+  }) {
+    return _then(_AccountApiModel(
+      id: freezed == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int?,
+      login: freezed == login
+          ? _self.login
+          : login // ignore: cast_nullable_to_non_nullable
+              as String?,
+      name: freezed == name
+          ? _self.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      secondName: freezed == secondName
+          ? _self.secondName
+          : secondName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      surname: freezed == surname
+          ? _self.surname
+          : surname // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phone: freezed == phone
+          ? _self.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phoneCode: freezed == phoneCode
+          ? _self.phoneCode
+          : phoneCode // ignore: cast_nullable_to_non_nullable
+              as int?,
+      avatar: freezed == avatar
+          ? _self.avatar
+          : avatar // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+// dart format on

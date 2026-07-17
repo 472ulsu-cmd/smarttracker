@@ -8,7 +8,7 @@ String? _nullableToString(Object? value) => value?.toString();
 
 /// Элемент списка заявок (`GET /orders`, `GET /orders/history`).
 @freezed
-class OrdersResponseItem with _$OrdersResponseItem {
+abstract class OrdersResponseItem with _$OrdersResponseItem {
   const factory OrdersResponseItem({
     int? id,
     String? num,
@@ -28,7 +28,7 @@ class OrdersResponseItem with _$OrdersResponseItem {
 
 /// Детали заявки (`GET /orders/{id}/main`).
 @freezed
-class OrdersResponse with _$OrdersResponse {
+abstract class OrdersResponse with _$OrdersResponse {
   const factory OrdersResponse({
     int? id,
     String? num,
@@ -59,7 +59,7 @@ class OrdersResponse with _$OrdersResponse {
 
 /// Клиент заявки.
 @freezed
-class OrdersResponseClient with _$OrdersResponseClient {
+abstract class OrdersResponseClient with _$OrdersResponseClient {
   const factory OrdersResponseClient({
     String? org,
     String? manager,
@@ -72,7 +72,7 @@ class OrdersResponseClient with _$OrdersResponseClient {
 
 /// Точка маршрута.
 @freezed
-class OrdersResponseRouteDetail with _$OrdersResponseRouteDetail {
+abstract class OrdersResponseRouteDetail with _$OrdersResponseRouteDetail {
   const factory OrdersResponseRouteDetail({
     @JsonKey(name: 'route_detail_id') int? routeDetailId,
     @JsonKey(name: 'operation_type') int? operationType,
@@ -97,7 +97,7 @@ class OrdersResponseRouteDetail with _$OrdersResponseRouteDetail {
 
 /// Клиент в точке маршрута.
 @freezed
-class OrdersResponseClientDetail with _$OrdersResponseClientDetail {
+abstract class OrdersResponseClientDetail with _$OrdersResponseClientDetail {
   const factory OrdersResponseClientDetail({
     String? org,
     String? manager,
@@ -111,7 +111,7 @@ class OrdersResponseClientDetail with _$OrdersResponseClientDetail {
 
 /// Группа фото по типу.
 @freezed
-class OrdersResponseOrderPhoto with _$OrdersResponseOrderPhoto {
+abstract class OrdersResponseOrderPhoto with _$OrdersResponseOrderPhoto {
   const factory OrdersResponseOrderPhoto({
     int? id,
     String? type,
@@ -124,7 +124,7 @@ class OrdersResponseOrderPhoto with _$OrdersResponseOrderPhoto {
 
 /// Фото в группе.
 @freezed
-class OrdersResponseOrderRoutePhoto with _$OrdersResponseOrderRoutePhoto {
+abstract class OrdersResponseOrderRoutePhoto with _$OrdersResponseOrderRoutePhoto {
   const factory OrdersResponseOrderRoutePhoto({
     int? id,
     String? url,

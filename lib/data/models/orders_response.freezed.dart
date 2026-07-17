@@ -1,3 +1,4 @@
+// dart format width=80
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
@@ -9,134 +10,75 @@ part of 'orders_response.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-OrdersResponseItem _$OrdersResponseItemFromJson(Map<String, dynamic> json) {
-  return _OrdersResponseItem.fromJson(json);
-}
 
 /// @nodoc
 mixin _$OrdersResponseItem {
-  int? get id => throw _privateConstructorUsedError;
-  String? get num => throw _privateConstructorUsedError;
-  int? get status => throw _privateConstructorUsedError;
-  String? get route => throw _privateConstructorUsedError;
+  int? get id;
+  String? get num;
+  int? get status;
+  String? get route;
   @JsonKey(name: 'route_from')
-  String? get routeFrom => throw _privateConstructorUsedError;
+  String? get routeFrom;
   @JsonKey(name: 'route_to')
-  String? get routeTo => throw _privateConstructorUsedError;
+  String? get routeTo;
   @JsonKey(name: 'loading_date')
-  String? get loadingDate => throw _privateConstructorUsedError;
+  String? get loadingDate;
   @JsonKey(name: 'unloading_date')
-  String? get unloadingDate => throw _privateConstructorUsedError;
+  String? get unloadingDate;
   @JsonKey(name: 'is_working')
-  int? get isWorking => throw _privateConstructorUsedError;
-  OrdersResponseClient? get client => throw _privateConstructorUsedError;
+  int? get isWorking;
+  OrdersResponseClient? get client;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $OrdersResponseItemCopyWith<OrdersResponseItem> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $OrdersResponseItemCopyWith<$Res> {
-  factory $OrdersResponseItemCopyWith(
-          OrdersResponseItem value, $Res Function(OrdersResponseItem) then) =
-      _$OrdersResponseItemCopyWithImpl<$Res, OrdersResponseItem>;
-  @useResult
-  $Res call(
-      {int? id,
-      String? num,
-      int? status,
-      String? route,
-      @JsonKey(name: 'route_from') String? routeFrom,
-      @JsonKey(name: 'route_to') String? routeTo,
-      @JsonKey(name: 'loading_date') String? loadingDate,
-      @JsonKey(name: 'unloading_date') String? unloadingDate,
-      @JsonKey(name: 'is_working') int? isWorking,
-      OrdersResponseClient? client});
-}
-
-/// @nodoc
-class _$OrdersResponseItemCopyWithImpl<$Res, $Val extends OrdersResponseItem>
-    implements $OrdersResponseItemCopyWith<$Res> {
-  _$OrdersResponseItemCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
+  /// Create a copy of OrdersResponseItem
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
+  $OrdersResponseItemCopyWith<OrdersResponseItem> get copyWith =>
+      _$OrdersResponseItemCopyWithImpl<OrdersResponseItem>(
+          this as OrdersResponseItem, _$identity);
+
+  /// Serializes this OrdersResponseItem to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? id = freezed,
-    Object? num = freezed,
-    Object? status = freezed,
-    Object? route = freezed,
-    Object? routeFrom = freezed,
-    Object? routeTo = freezed,
-    Object? loadingDate = freezed,
-    Object? unloadingDate = freezed,
-    Object? isWorking = freezed,
-    Object? client = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: freezed == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int?,
-      num: freezed == num
-          ? _value.num
-          : num // ignore: cast_nullable_to_non_nullable
-              as String?,
-      status: freezed == status
-          ? _value.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as int?,
-      route: freezed == route
-          ? _value.route
-          : route // ignore: cast_nullable_to_non_nullable
-              as String?,
-      routeFrom: freezed == routeFrom
-          ? _value.routeFrom
-          : routeFrom // ignore: cast_nullable_to_non_nullable
-              as String?,
-      routeTo: freezed == routeTo
-          ? _value.routeTo
-          : routeTo // ignore: cast_nullable_to_non_nullable
-              as String?,
-      loadingDate: freezed == loadingDate
-          ? _value.loadingDate
-          : loadingDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-      unloadingDate: freezed == unloadingDate
-          ? _value.unloadingDate
-          : unloadingDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-      isWorking: freezed == isWorking
-          ? _value.isWorking
-          : isWorking // ignore: cast_nullable_to_non_nullable
-              as int?,
-      client: freezed == client
-          ? _value.client
-          : client // ignore: cast_nullable_to_non_nullable
-              as OrdersResponseClient?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is OrdersResponseItem &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.num, num) || other.num == num) &&
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.route, route) || other.route == route) &&
+            (identical(other.routeFrom, routeFrom) ||
+                other.routeFrom == routeFrom) &&
+            (identical(other.routeTo, routeTo) || other.routeTo == routeTo) &&
+            (identical(other.loadingDate, loadingDate) ||
+                other.loadingDate == loadingDate) &&
+            (identical(other.unloadingDate, unloadingDate) ||
+                other.unloadingDate == unloadingDate) &&
+            (identical(other.isWorking, isWorking) ||
+                other.isWorking == isWorking) &&
+            (identical(other.client, client) || other.client == client));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, num, status, route,
+      routeFrom, routeTo, loadingDate, unloadingDate, isWorking, client);
+
+  @override
+  String toString() {
+    return 'OrdersResponseItem(id: $id, num: $num, status: $status, route: $route, routeFrom: $routeFrom, routeTo: $routeTo, loadingDate: $loadingDate, unloadingDate: $unloadingDate, isWorking: $isWorking, client: $client)';
   }
 }
 
 /// @nodoc
-abstract class _$$OrdersResponseItemImplCopyWith<$Res>
-    implements $OrdersResponseItemCopyWith<$Res> {
-  factory _$$OrdersResponseItemImplCopyWith(_$OrdersResponseItemImpl value,
-          $Res Function(_$OrdersResponseItemImpl) then) =
-      __$$OrdersResponseItemImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $OrdersResponseItemCopyWith<$Res> {
+  factory $OrdersResponseItemCopyWith(
+          OrdersResponseItem value, $Res Function(OrdersResponseItem) _then) =
+      _$OrdersResponseItemCopyWithImpl;
   @useResult
   $Res call(
       {int? id,
@@ -149,16 +91,20 @@ abstract class _$$OrdersResponseItemImplCopyWith<$Res>
       @JsonKey(name: 'unloading_date') String? unloadingDate,
       @JsonKey(name: 'is_working') int? isWorking,
       OrdersResponseClient? client});
+
+  $OrdersResponseClientCopyWith<$Res>? get client;
 }
 
 /// @nodoc
-class __$$OrdersResponseItemImplCopyWithImpl<$Res>
-    extends _$OrdersResponseItemCopyWithImpl<$Res, _$OrdersResponseItemImpl>
-    implements _$$OrdersResponseItemImplCopyWith<$Res> {
-  __$$OrdersResponseItemImplCopyWithImpl(_$OrdersResponseItemImpl _value,
-      $Res Function(_$OrdersResponseItemImpl) _then)
-      : super(_value, _then);
+class _$OrdersResponseItemCopyWithImpl<$Res>
+    implements $OrdersResponseItemCopyWith<$Res> {
+  _$OrdersResponseItemCopyWithImpl(this._self, this._then);
 
+  final OrdersResponseItem _self;
+  final $Res Function(OrdersResponseItem) _then;
+
+  /// Create a copy of OrdersResponseItem
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -173,55 +119,69 @@ class __$$OrdersResponseItemImplCopyWithImpl<$Res>
     Object? isWorking = freezed,
     Object? client = freezed,
   }) {
-    return _then(_$OrdersResponseItemImpl(
+    return _then(_self.copyWith(
       id: freezed == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
       num: freezed == num
-          ? _value.num
+          ? _self.num
           : num // ignore: cast_nullable_to_non_nullable
               as String?,
       status: freezed == status
-          ? _value.status
+          ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as int?,
       route: freezed == route
-          ? _value.route
+          ? _self.route
           : route // ignore: cast_nullable_to_non_nullable
               as String?,
       routeFrom: freezed == routeFrom
-          ? _value.routeFrom
+          ? _self.routeFrom
           : routeFrom // ignore: cast_nullable_to_non_nullable
               as String?,
       routeTo: freezed == routeTo
-          ? _value.routeTo
+          ? _self.routeTo
           : routeTo // ignore: cast_nullable_to_non_nullable
               as String?,
       loadingDate: freezed == loadingDate
-          ? _value.loadingDate
+          ? _self.loadingDate
           : loadingDate // ignore: cast_nullable_to_non_nullable
               as String?,
       unloadingDate: freezed == unloadingDate
-          ? _value.unloadingDate
+          ? _self.unloadingDate
           : unloadingDate // ignore: cast_nullable_to_non_nullable
               as String?,
       isWorking: freezed == isWorking
-          ? _value.isWorking
+          ? _self.isWorking
           : isWorking // ignore: cast_nullable_to_non_nullable
               as int?,
       client: freezed == client
-          ? _value.client
+          ? _self.client
           : client // ignore: cast_nullable_to_non_nullable
               as OrdersResponseClient?,
     ));
+  }
+
+  /// Create a copy of OrdersResponseItem
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $OrdersResponseClientCopyWith<$Res>? get client {
+    if (_self.client == null) {
+      return null;
+    }
+
+    return $OrdersResponseClientCopyWith<$Res>(_self.client!, (value) {
+      return _then(_self.copyWith(client: value));
+    });
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$OrdersResponseItemImpl implements _OrdersResponseItem {
-  const _$OrdersResponseItemImpl(
+class _OrdersResponseItem implements OrdersResponseItem {
+  const _OrdersResponseItem(
       {this.id,
       this.num,
       this.status,
@@ -232,9 +192,8 @@ class _$OrdersResponseItemImpl implements _OrdersResponseItem {
       @JsonKey(name: 'unloading_date') this.unloadingDate,
       @JsonKey(name: 'is_working') this.isWorking,
       this.client});
-
-  factory _$OrdersResponseItemImpl.fromJson(Map<String, dynamic> json) =>
-      _$$OrdersResponseItemImplFromJson(json);
+  factory _OrdersResponseItem.fromJson(Map<String, dynamic> json) =>
+      _$OrdersResponseItemFromJson(json);
 
   @override
   final int? id;
@@ -262,16 +221,26 @@ class _$OrdersResponseItemImpl implements _OrdersResponseItem {
   @override
   final OrdersResponseClient? client;
 
+  /// Create a copy of OrdersResponseItem
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'OrdersResponseItem(id: $id, num: $num, status: $status, route: $route, routeFrom: $routeFrom, routeTo: $routeTo, loadingDate: $loadingDate, unloadingDate: $unloadingDate, isWorking: $isWorking, client: $client)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$OrdersResponseItemCopyWith<_OrdersResponseItem> get copyWith =>
+      __$OrdersResponseItemCopyWithImpl<_OrdersResponseItem>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$OrdersResponseItemToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$OrdersResponseItemImpl &&
+            other is _OrdersResponseItem &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.num, num) || other.num == num) &&
             (identical(other.status, status) || other.status == status) &&
@@ -288,293 +257,246 @@ class _$OrdersResponseItemImpl implements _OrdersResponseItem {
             (identical(other.client, client) || other.client == client));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, num, status, route,
       routeFrom, routeTo, loadingDate, unloadingDate, isWorking, client);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$OrdersResponseItemImplCopyWith<_$OrdersResponseItemImpl> get copyWith =>
-      __$$OrdersResponseItemImplCopyWithImpl<_$OrdersResponseItemImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$OrdersResponseItemImplToJson(
-      this,
-    );
+  String toString() {
+    return 'OrdersResponseItem(id: $id, num: $num, status: $status, route: $route, routeFrom: $routeFrom, routeTo: $routeTo, loadingDate: $loadingDate, unloadingDate: $unloadingDate, isWorking: $isWorking, client: $client)';
   }
 }
 
-abstract class _OrdersResponseItem implements OrdersResponseItem {
-  const factory _OrdersResponseItem(
-          {final int? id,
-          final String? num,
-          final int? status,
-          final String? route,
-          @JsonKey(name: 'route_from') final String? routeFrom,
-          @JsonKey(name: 'route_to') final String? routeTo,
-          @JsonKey(name: 'loading_date') final String? loadingDate,
-          @JsonKey(name: 'unloading_date') final String? unloadingDate,
-          @JsonKey(name: 'is_working') final int? isWorking,
-          final OrdersResponseClient? client}) =
-      _$OrdersResponseItemImpl;
-
-  factory _OrdersResponseItem.fromJson(Map<String, dynamic> json) =
-      _$OrdersResponseItemImpl.fromJson;
-
-  @override
-  int? get id;
-  @override
-  String? get num;
-  @override
-  int? get status;
-  @override
-  String? get route;
-  @override
-  @JsonKey(name: 'route_from')
-  String? get routeFrom;
-  @override
-  @JsonKey(name: 'route_to')
-  String? get routeTo;
-  @override
-  @JsonKey(name: 'loading_date')
-  String? get loadingDate;
-  @override
-  @JsonKey(name: 'unloading_date')
-  String? get unloadingDate;
-  @override
-  @JsonKey(name: 'is_working')
-  int? get isWorking;
-  @override
-  OrdersResponseClient? get client;
-  @override
-  @JsonKey(ignore: true)
-  _$$OrdersResponseItemImplCopyWith<_$OrdersResponseItemImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-OrdersResponse _$OrdersResponseFromJson(Map<String, dynamic> json) {
-  return _OrdersResponse.fromJson(json);
-}
-
 /// @nodoc
-mixin _$OrdersResponse {
-  int? get id => throw _privateConstructorUsedError;
-  String? get num => throw _privateConstructorUsedError;
-  int? get status => throw _privateConstructorUsedError;
-  String? get route => throw _privateConstructorUsedError;
-  @JsonKey(name: 'cargo_type')
-  String? get cargoType => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: _nullableToString)
-  String? get mass => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: _nullableToString)
-  String? get volume => throw _privateConstructorUsedError;
-  @JsonKey(name: 'loading_date')
-  String? get loadingDate => throw _privateConstructorUsedError;
-  @JsonKey(name: 'unloading_date')
-  String? get unloadingDate => throw _privateConstructorUsedError;
-  @JsonKey(name: 'loading_time_from')
-  String? get loadingTimeFrom => throw _privateConstructorUsedError;
-  @JsonKey(name: 'loading_time_to')
-  String? get loadingTimeTo => throw _privateConstructorUsedError;
-  @JsonKey(name: 'unloading_time_from')
-  String? get unloadingTimeFrom => throw _privateConstructorUsedError;
-  @JsonKey(name: 'unloading_time_to')
-  String? get unloadingTimeTo => throw _privateConstructorUsedError;
-  @JsonKey(name: 'lat_start')
-  double? get latStart => throw _privateConstructorUsedError;
-  @JsonKey(name: 'lng_start')
-  double? get lngStart => throw _privateConstructorUsedError;
-  @JsonKey(name: 'lat_fin')
-  double? get latFin => throw _privateConstructorUsedError;
-  @JsonKey(name: 'lng_fin')
-  double? get lngFin => throw _privateConstructorUsedError;
-  OrdersResponseClient? get client => throw _privateConstructorUsedError;
-  @JsonKey(name: 'route_details')
-  List<OrdersResponseRouteDetail>? get routeDetails =>
-      throw _privateConstructorUsedError;
-  List<OrdersResponseOrderPhoto>? get photo =>
-      throw _privateConstructorUsedError;
-
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $OrdersResponseCopyWith<OrdersResponse> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $OrdersResponseCopyWith<$Res> {
-  factory $OrdersResponseCopyWith(
-          OrdersResponse value, $Res Function(OrdersResponse) then) =
-      _$OrdersResponseCopyWithImpl<$Res, OrdersResponse>;
+abstract mixin class _$OrdersResponseItemCopyWith<$Res>
+    implements $OrdersResponseItemCopyWith<$Res> {
+  factory _$OrdersResponseItemCopyWith(
+          _OrdersResponseItem value, $Res Function(_OrdersResponseItem) _then) =
+      __$OrdersResponseItemCopyWithImpl;
+  @override
   @useResult
   $Res call(
       {int? id,
       String? num,
       int? status,
       String? route,
-      @JsonKey(name: 'cargo_type') String? cargoType,
-      @JsonKey(fromJson: _nullableToString) String? mass,
-      @JsonKey(fromJson: _nullableToString) String? volume,
+      @JsonKey(name: 'route_from') String? routeFrom,
+      @JsonKey(name: 'route_to') String? routeTo,
       @JsonKey(name: 'loading_date') String? loadingDate,
       @JsonKey(name: 'unloading_date') String? unloadingDate,
-      @JsonKey(name: 'loading_time_from') String? loadingTimeFrom,
-      @JsonKey(name: 'loading_time_to') String? loadingTimeTo,
-      @JsonKey(name: 'unloading_time_from') String? unloadingTimeFrom,
-      @JsonKey(name: 'unloading_time_to') String? unloadingTimeTo,
-      @JsonKey(name: 'lat_start') double? latStart,
-      @JsonKey(name: 'lng_start') double? lngStart,
-      @JsonKey(name: 'lat_fin') double? latFin,
-      @JsonKey(name: 'lng_fin') double? lngFin,
-      OrdersResponseClient? client,
-      @JsonKey(name: 'route_details')
-      List<OrdersResponseRouteDetail>? routeDetails,
-      List<OrdersResponseOrderPhoto>? photo});
+      @JsonKey(name: 'is_working') int? isWorking,
+      OrdersResponseClient? client});
 
+  @override
   $OrdersResponseClientCopyWith<$Res>? get client;
 }
 
 /// @nodoc
-class _$OrdersResponseCopyWithImpl<$Res, $Val extends OrdersResponse>
-    implements $OrdersResponseCopyWith<$Res> {
-  _$OrdersResponseCopyWithImpl(this._value, this._then);
+class __$OrdersResponseItemCopyWithImpl<$Res>
+    implements _$OrdersResponseItemCopyWith<$Res> {
+  __$OrdersResponseItemCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final _OrdersResponseItem _self;
+  final $Res Function(_OrdersResponseItem) _then;
 
-  @pragma('vm:prefer-inline')
+  /// Create a copy of OrdersResponseItem
+  /// with the given fields replaced by the non-null parameter values.
   @override
+  @pragma('vm:prefer-inline')
   $Res call({
     Object? id = freezed,
     Object? num = freezed,
     Object? status = freezed,
     Object? route = freezed,
-    Object? cargoType = freezed,
-    Object? mass = freezed,
-    Object? volume = freezed,
+    Object? routeFrom = freezed,
+    Object? routeTo = freezed,
     Object? loadingDate = freezed,
     Object? unloadingDate = freezed,
-    Object? loadingTimeFrom = freezed,
-    Object? loadingTimeTo = freezed,
-    Object? unloadingTimeFrom = freezed,
-    Object? unloadingTimeTo = freezed,
-    Object? latStart = freezed,
-    Object? lngStart = freezed,
-    Object? latFin = freezed,
-    Object? lngFin = freezed,
+    Object? isWorking = freezed,
     Object? client = freezed,
-    Object? routeDetails = freezed,
-    Object? photo = freezed,
   }) {
-    return _then(_value.copyWith(
+    return _then(_OrdersResponseItem(
       id: freezed == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
       num: freezed == num
-          ? _value.num
+          ? _self.num
           : num // ignore: cast_nullable_to_non_nullable
               as String?,
       status: freezed == status
-          ? _value.status
+          ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as int?,
       route: freezed == route
-          ? _value.route
+          ? _self.route
           : route // ignore: cast_nullable_to_non_nullable
               as String?,
-      cargoType: freezed == cargoType
-          ? _value.cargoType
-          : cargoType // ignore: cast_nullable_to_non_nullable
+      routeFrom: freezed == routeFrom
+          ? _self.routeFrom
+          : routeFrom // ignore: cast_nullable_to_non_nullable
               as String?,
-      mass: freezed == mass
-          ? _value.mass
-          : mass // ignore: cast_nullable_to_non_nullable
-              as String?,
-      volume: freezed == volume
-          ? _value.volume
-          : volume // ignore: cast_nullable_to_non_nullable
+      routeTo: freezed == routeTo
+          ? _self.routeTo
+          : routeTo // ignore: cast_nullable_to_non_nullable
               as String?,
       loadingDate: freezed == loadingDate
-          ? _value.loadingDate
+          ? _self.loadingDate
           : loadingDate // ignore: cast_nullable_to_non_nullable
               as String?,
       unloadingDate: freezed == unloadingDate
-          ? _value.unloadingDate
+          ? _self.unloadingDate
           : unloadingDate // ignore: cast_nullable_to_non_nullable
               as String?,
-      loadingTimeFrom: freezed == loadingTimeFrom
-          ? _value.loadingTimeFrom
-          : loadingTimeFrom // ignore: cast_nullable_to_non_nullable
-              as String?,
-      loadingTimeTo: freezed == loadingTimeTo
-          ? _value.loadingTimeTo
-          : loadingTimeTo // ignore: cast_nullable_to_non_nullable
-              as String?,
-      unloadingTimeFrom: freezed == unloadingTimeFrom
-          ? _value.unloadingTimeFrom
-          : unloadingTimeFrom // ignore: cast_nullable_to_non_nullable
-              as String?,
-      unloadingTimeTo: freezed == unloadingTimeTo
-          ? _value.unloadingTimeTo
-          : unloadingTimeTo // ignore: cast_nullable_to_non_nullable
-              as String?,
-      latStart: freezed == latStart
-          ? _value.latStart
-          : latStart // ignore: cast_nullable_to_non_nullable
-              as double?,
-      lngStart: freezed == lngStart
-          ? _value.lngStart
-          : lngStart // ignore: cast_nullable_to_non_nullable
-              as double?,
-      latFin: freezed == latFin
-          ? _value.latFin
-          : latFin // ignore: cast_nullable_to_non_nullable
-              as double?,
-      lngFin: freezed == lngFin
-          ? _value.lngFin
-          : lngFin // ignore: cast_nullable_to_non_nullable
-              as double?,
+      isWorking: freezed == isWorking
+          ? _self.isWorking
+          : isWorking // ignore: cast_nullable_to_non_nullable
+              as int?,
       client: freezed == client
-          ? _value.client
+          ? _self.client
           : client // ignore: cast_nullable_to_non_nullable
               as OrdersResponseClient?,
-      routeDetails: freezed == routeDetails
-          ? _value.routeDetails
-          : routeDetails // ignore: cast_nullable_to_non_nullable
-              as List<OrdersResponseRouteDetail>?,
-      photo: freezed == photo
-          ? _value.photo
-          : photo // ignore: cast_nullable_to_non_nullable
-              as List<OrdersResponseOrderPhoto>?,
-    ) as $Val);
+    ));
   }
 
+  /// Create a copy of OrdersResponseItem
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $OrdersResponseClientCopyWith<$Res>? get client {
-    if (_value.client == null) {
+    if (_self.client == null) {
       return null;
     }
 
-    return $OrdersResponseClientCopyWith<$Res>(_value.client!, (value) {
-      return _then(_value.copyWith(client: value) as $Val);
+    return $OrdersResponseClientCopyWith<$Res>(_self.client!, (value) {
+      return _then(_self.copyWith(client: value));
     });
   }
 }
 
 /// @nodoc
-abstract class _$$OrdersResponseImplCopyWith<$Res>
-    implements $OrdersResponseCopyWith<$Res> {
-  factory _$$OrdersResponseImplCopyWith(_$OrdersResponseImpl value,
-          $Res Function(_$OrdersResponseImpl) then) =
-      __$$OrdersResponseImplCopyWithImpl<$Res>;
+mixin _$OrdersResponse {
+  int? get id;
+  String? get num;
+  int? get status;
+  String? get route;
+  @JsonKey(name: 'cargo_type')
+  String? get cargoType;
+  @JsonKey(fromJson: _nullableToString)
+  String? get mass;
+  @JsonKey(fromJson: _nullableToString)
+  String? get volume;
+  @JsonKey(name: 'loading_date')
+  String? get loadingDate;
+  @JsonKey(name: 'unloading_date')
+  String? get unloadingDate;
+  @JsonKey(name: 'loading_time_from')
+  String? get loadingTimeFrom;
+  @JsonKey(name: 'loading_time_to')
+  String? get loadingTimeTo;
+  @JsonKey(name: 'unloading_time_from')
+  String? get unloadingTimeFrom;
+  @JsonKey(name: 'unloading_time_to')
+  String? get unloadingTimeTo;
+  @JsonKey(name: 'lat_start')
+  double? get latStart;
+  @JsonKey(name: 'lng_start')
+  double? get lngStart;
+  @JsonKey(name: 'lat_fin')
+  double? get latFin;
+  @JsonKey(name: 'lng_fin')
+  double? get lngFin;
+  OrdersResponseClient? get client;
+  @JsonKey(name: 'route_details')
+  List<OrdersResponseRouteDetail>? get routeDetails;
+  List<OrdersResponseOrderPhoto>? get photo;
+
+  /// Create a copy of OrdersResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $OrdersResponseCopyWith<OrdersResponse> get copyWith =>
+      _$OrdersResponseCopyWithImpl<OrdersResponse>(
+          this as OrdersResponse, _$identity);
+
+  /// Serializes this OrdersResponse to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is OrdersResponse &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.num, num) || other.num == num) &&
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.route, route) || other.route == route) &&
+            (identical(other.cargoType, cargoType) ||
+                other.cargoType == cargoType) &&
+            (identical(other.mass, mass) || other.mass == mass) &&
+            (identical(other.volume, volume) || other.volume == volume) &&
+            (identical(other.loadingDate, loadingDate) ||
+                other.loadingDate == loadingDate) &&
+            (identical(other.unloadingDate, unloadingDate) ||
+                other.unloadingDate == unloadingDate) &&
+            (identical(other.loadingTimeFrom, loadingTimeFrom) ||
+                other.loadingTimeFrom == loadingTimeFrom) &&
+            (identical(other.loadingTimeTo, loadingTimeTo) ||
+                other.loadingTimeTo == loadingTimeTo) &&
+            (identical(other.unloadingTimeFrom, unloadingTimeFrom) ||
+                other.unloadingTimeFrom == unloadingTimeFrom) &&
+            (identical(other.unloadingTimeTo, unloadingTimeTo) ||
+                other.unloadingTimeTo == unloadingTimeTo) &&
+            (identical(other.latStart, latStart) ||
+                other.latStart == latStart) &&
+            (identical(other.lngStart, lngStart) ||
+                other.lngStart == lngStart) &&
+            (identical(other.latFin, latFin) || other.latFin == latFin) &&
+            (identical(other.lngFin, lngFin) || other.lngFin == lngFin) &&
+            (identical(other.client, client) || other.client == client) &&
+            const DeepCollectionEquality()
+                .equals(other.routeDetails, routeDetails) &&
+            const DeepCollectionEquality().equals(other.photo, photo));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        num,
+        status,
+        route,
+        cargoType,
+        mass,
+        volume,
+        loadingDate,
+        unloadingDate,
+        loadingTimeFrom,
+        loadingTimeTo,
+        unloadingTimeFrom,
+        unloadingTimeTo,
+        latStart,
+        lngStart,
+        latFin,
+        lngFin,
+        client,
+        const DeepCollectionEquality().hash(routeDetails),
+        const DeepCollectionEquality().hash(photo)
+      ]);
+
+  @override
+  String toString() {
+    return 'OrdersResponse(id: $id, num: $num, status: $status, route: $route, cargoType: $cargoType, mass: $mass, volume: $volume, loadingDate: $loadingDate, unloadingDate: $unloadingDate, loadingTimeFrom: $loadingTimeFrom, loadingTimeTo: $loadingTimeTo, unloadingTimeFrom: $unloadingTimeFrom, unloadingTimeTo: $unloadingTimeTo, latStart: $latStart, lngStart: $lngStart, latFin: $latFin, lngFin: $lngFin, client: $client, routeDetails: $routeDetails, photo: $photo)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $OrdersResponseCopyWith<$Res> {
+  factory $OrdersResponseCopyWith(
+          OrdersResponse value, $Res Function(OrdersResponse) _then) =
+      _$OrdersResponseCopyWithImpl;
   @useResult
   $Res call(
       {int? id,
@@ -599,18 +521,19 @@ abstract class _$$OrdersResponseImplCopyWith<$Res>
       List<OrdersResponseRouteDetail>? routeDetails,
       List<OrdersResponseOrderPhoto>? photo});
 
-  @override
   $OrdersResponseClientCopyWith<$Res>? get client;
 }
 
 /// @nodoc
-class __$$OrdersResponseImplCopyWithImpl<$Res>
-    extends _$OrdersResponseCopyWithImpl<$Res, _$OrdersResponseImpl>
-    implements _$$OrdersResponseImplCopyWith<$Res> {
-  __$$OrdersResponseImplCopyWithImpl(
-      _$OrdersResponseImpl _value, $Res Function(_$OrdersResponseImpl) _then)
-      : super(_value, _then);
+class _$OrdersResponseCopyWithImpl<$Res>
+    implements $OrdersResponseCopyWith<$Res> {
+  _$OrdersResponseCopyWithImpl(this._self, this._then);
 
+  final OrdersResponse _self;
+  final $Res Function(OrdersResponse) _then;
+
+  /// Create a copy of OrdersResponse
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -635,95 +558,109 @@ class __$$OrdersResponseImplCopyWithImpl<$Res>
     Object? routeDetails = freezed,
     Object? photo = freezed,
   }) {
-    return _then(_$OrdersResponseImpl(
+    return _then(_self.copyWith(
       id: freezed == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
       num: freezed == num
-          ? _value.num
+          ? _self.num
           : num // ignore: cast_nullable_to_non_nullable
               as String?,
       status: freezed == status
-          ? _value.status
+          ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as int?,
       route: freezed == route
-          ? _value.route
+          ? _self.route
           : route // ignore: cast_nullable_to_non_nullable
               as String?,
       cargoType: freezed == cargoType
-          ? _value.cargoType
+          ? _self.cargoType
           : cargoType // ignore: cast_nullable_to_non_nullable
               as String?,
       mass: freezed == mass
-          ? _value.mass
+          ? _self.mass
           : mass // ignore: cast_nullable_to_non_nullable
               as String?,
       volume: freezed == volume
-          ? _value.volume
+          ? _self.volume
           : volume // ignore: cast_nullable_to_non_nullable
               as String?,
       loadingDate: freezed == loadingDate
-          ? _value.loadingDate
+          ? _self.loadingDate
           : loadingDate // ignore: cast_nullable_to_non_nullable
               as String?,
       unloadingDate: freezed == unloadingDate
-          ? _value.unloadingDate
+          ? _self.unloadingDate
           : unloadingDate // ignore: cast_nullable_to_non_nullable
               as String?,
       loadingTimeFrom: freezed == loadingTimeFrom
-          ? _value.loadingTimeFrom
+          ? _self.loadingTimeFrom
           : loadingTimeFrom // ignore: cast_nullable_to_non_nullable
               as String?,
       loadingTimeTo: freezed == loadingTimeTo
-          ? _value.loadingTimeTo
+          ? _self.loadingTimeTo
           : loadingTimeTo // ignore: cast_nullable_to_non_nullable
               as String?,
       unloadingTimeFrom: freezed == unloadingTimeFrom
-          ? _value.unloadingTimeFrom
+          ? _self.unloadingTimeFrom
           : unloadingTimeFrom // ignore: cast_nullable_to_non_nullable
               as String?,
       unloadingTimeTo: freezed == unloadingTimeTo
-          ? _value.unloadingTimeTo
+          ? _self.unloadingTimeTo
           : unloadingTimeTo // ignore: cast_nullable_to_non_nullable
               as String?,
       latStart: freezed == latStart
-          ? _value.latStart
+          ? _self.latStart
           : latStart // ignore: cast_nullable_to_non_nullable
               as double?,
       lngStart: freezed == lngStart
-          ? _value.lngStart
+          ? _self.lngStart
           : lngStart // ignore: cast_nullable_to_non_nullable
               as double?,
       latFin: freezed == latFin
-          ? _value.latFin
+          ? _self.latFin
           : latFin // ignore: cast_nullable_to_non_nullable
               as double?,
       lngFin: freezed == lngFin
-          ? _value.lngFin
+          ? _self.lngFin
           : lngFin // ignore: cast_nullable_to_non_nullable
               as double?,
       client: freezed == client
-          ? _value.client
+          ? _self.client
           : client // ignore: cast_nullable_to_non_nullable
               as OrdersResponseClient?,
       routeDetails: freezed == routeDetails
-          ? _value._routeDetails
+          ? _self.routeDetails
           : routeDetails // ignore: cast_nullable_to_non_nullable
               as List<OrdersResponseRouteDetail>?,
       photo: freezed == photo
-          ? _value._photo
+          ? _self.photo
           : photo // ignore: cast_nullable_to_non_nullable
               as List<OrdersResponseOrderPhoto>?,
     ));
+  }
+
+  /// Create a copy of OrdersResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $OrdersResponseClientCopyWith<$Res>? get client {
+    if (_self.client == null) {
+      return null;
+    }
+
+    return $OrdersResponseClientCopyWith<$Res>(_self.client!, (value) {
+      return _then(_self.copyWith(client: value));
+    });
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$OrdersResponseImpl implements _OrdersResponse {
-  const _$OrdersResponseImpl(
+class _OrdersResponse implements OrdersResponse {
+  const _OrdersResponse(
       {this.id,
       this.num,
       this.status,
@@ -747,9 +684,8 @@ class _$OrdersResponseImpl implements _OrdersResponse {
       final List<OrdersResponseOrderPhoto>? photo})
       : _routeDetails = routeDetails,
         _photo = photo;
-
-  factory _$OrdersResponseImpl.fromJson(Map<String, dynamic> json) =>
-      _$$OrdersResponseImplFromJson(json);
+  factory _OrdersResponse.fromJson(Map<String, dynamic> json) =>
+      _$OrdersResponseFromJson(json);
 
   @override
   final int? id;
@@ -821,16 +757,26 @@ class _$OrdersResponseImpl implements _OrdersResponse {
     return EqualUnmodifiableListView(value);
   }
 
+  /// Create a copy of OrdersResponse
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'OrdersResponse(id: $id, num: $num, status: $status, route: $route, cargoType: $cargoType, mass: $mass, volume: $volume, loadingDate: $loadingDate, unloadingDate: $unloadingDate, loadingTimeFrom: $loadingTimeFrom, loadingTimeTo: $loadingTimeTo, unloadingTimeFrom: $unloadingTimeFrom, unloadingTimeTo: $unloadingTimeTo, latStart: $latStart, lngStart: $lngStart, latFin: $latFin, lngFin: $lngFin, client: $client, routeDetails: $routeDetails, photo: $photo)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$OrdersResponseCopyWith<_OrdersResponse> get copyWith =>
+      __$OrdersResponseCopyWithImpl<_OrdersResponse>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$OrdersResponseToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$OrdersResponseImpl &&
+            other is _OrdersResponse &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.num, num) || other.num == num) &&
             (identical(other.status, status) || other.status == status) &&
@@ -863,7 +809,7 @@ class _$OrdersResponseImpl implements _OrdersResponse {
             const DeepCollectionEquality().equals(other._photo, _photo));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -889,187 +835,236 @@ class _$OrdersResponseImpl implements _OrdersResponse {
         const DeepCollectionEquality().hash(_photo)
       ]);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$OrdersResponseImplCopyWith<_$OrdersResponseImpl> get copyWith =>
-      __$$OrdersResponseImplCopyWithImpl<_$OrdersResponseImpl>(
-          this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$OrdersResponseImplToJson(
-      this,
-    );
+  String toString() {
+    return 'OrdersResponse(id: $id, num: $num, status: $status, route: $route, cargoType: $cargoType, mass: $mass, volume: $volume, loadingDate: $loadingDate, unloadingDate: $unloadingDate, loadingTimeFrom: $loadingTimeFrom, loadingTimeTo: $loadingTimeTo, unloadingTimeFrom: $unloadingTimeFrom, unloadingTimeTo: $unloadingTimeTo, latStart: $latStart, lngStart: $lngStart, latFin: $latFin, lngFin: $lngFin, client: $client, routeDetails: $routeDetails, photo: $photo)';
   }
 }
 
-abstract class _OrdersResponse implements OrdersResponse {
-  const factory _OrdersResponse(
-      {final int? id,
-      final String? num,
-      final int? status,
-      final String? route,
-      @JsonKey(name: 'cargo_type') final String? cargoType,
-      @JsonKey(fromJson: _nullableToString) final String? mass,
-      @JsonKey(fromJson: _nullableToString) final String? volume,
-      @JsonKey(name: 'loading_date') final String? loadingDate,
-      @JsonKey(name: 'unloading_date') final String? unloadingDate,
-      @JsonKey(name: 'loading_time_from') final String? loadingTimeFrom,
-      @JsonKey(name: 'loading_time_to') final String? loadingTimeTo,
-      @JsonKey(name: 'unloading_time_from') final String? unloadingTimeFrom,
-      @JsonKey(name: 'unloading_time_to') final String? unloadingTimeTo,
-      @JsonKey(name: 'lat_start') final double? latStart,
-      @JsonKey(name: 'lng_start') final double? lngStart,
-      @JsonKey(name: 'lat_fin') final double? latFin,
-      @JsonKey(name: 'lng_fin') final double? lngFin,
-      final OrdersResponseClient? client,
+/// @nodoc
+abstract mixin class _$OrdersResponseCopyWith<$Res>
+    implements $OrdersResponseCopyWith<$Res> {
+  factory _$OrdersResponseCopyWith(
+          _OrdersResponse value, $Res Function(_OrdersResponse) _then) =
+      __$OrdersResponseCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {int? id,
+      String? num,
+      int? status,
+      String? route,
+      @JsonKey(name: 'cargo_type') String? cargoType,
+      @JsonKey(fromJson: _nullableToString) String? mass,
+      @JsonKey(fromJson: _nullableToString) String? volume,
+      @JsonKey(name: 'loading_date') String? loadingDate,
+      @JsonKey(name: 'unloading_date') String? unloadingDate,
+      @JsonKey(name: 'loading_time_from') String? loadingTimeFrom,
+      @JsonKey(name: 'loading_time_to') String? loadingTimeTo,
+      @JsonKey(name: 'unloading_time_from') String? unloadingTimeFrom,
+      @JsonKey(name: 'unloading_time_to') String? unloadingTimeTo,
+      @JsonKey(name: 'lat_start') double? latStart,
+      @JsonKey(name: 'lng_start') double? lngStart,
+      @JsonKey(name: 'lat_fin') double? latFin,
+      @JsonKey(name: 'lng_fin') double? lngFin,
+      OrdersResponseClient? client,
       @JsonKey(name: 'route_details')
-      final List<OrdersResponseRouteDetail>? routeDetails,
-      final List<OrdersResponseOrderPhoto>? photo}) = _$OrdersResponseImpl;
-
-  factory _OrdersResponse.fromJson(Map<String, dynamic> json) =
-      _$OrdersResponseImpl.fromJson;
+      List<OrdersResponseRouteDetail>? routeDetails,
+      List<OrdersResponseOrderPhoto>? photo});
 
   @override
-  int? get id;
-  @override
-  String? get num;
-  @override
-  int? get status;
-  @override
-  String? get route;
-  @override
-  @JsonKey(name: 'cargo_type')
-  String? get cargoType;
-  @override
-  @JsonKey(fromJson: _nullableToString)
-  String? get mass;
-  @override
-  @JsonKey(fromJson: _nullableToString)
-  String? get volume;
-  @override
-  @JsonKey(name: 'loading_date')
-  String? get loadingDate;
-  @override
-  @JsonKey(name: 'unloading_date')
-  String? get unloadingDate;
-  @override
-  @JsonKey(name: 'loading_time_from')
-  String? get loadingTimeFrom;
-  @override
-  @JsonKey(name: 'loading_time_to')
-  String? get loadingTimeTo;
-  @override
-  @JsonKey(name: 'unloading_time_from')
-  String? get unloadingTimeFrom;
-  @override
-  @JsonKey(name: 'unloading_time_to')
-  String? get unloadingTimeTo;
-  @override
-  @JsonKey(name: 'lat_start')
-  double? get latStart;
-  @override
-  @JsonKey(name: 'lng_start')
-  double? get lngStart;
-  @override
-  @JsonKey(name: 'lat_fin')
-  double? get latFin;
-  @override
-  @JsonKey(name: 'lng_fin')
-  double? get lngFin;
-  @override
-  OrdersResponseClient? get client;
-  @override
-  @JsonKey(name: 'route_details')
-  List<OrdersResponseRouteDetail>? get routeDetails;
-  @override
-  List<OrdersResponseOrderPhoto>? get photo;
-  @override
-  @JsonKey(ignore: true)
-  _$$OrdersResponseImplCopyWith<_$OrdersResponseImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  $OrdersResponseClientCopyWith<$Res>? get client;
 }
 
-OrdersResponseClient _$OrdersResponseClientFromJson(Map<String, dynamic> json) {
-  return _OrdersResponseClient.fromJson(json);
+/// @nodoc
+class __$OrdersResponseCopyWithImpl<$Res>
+    implements _$OrdersResponseCopyWith<$Res> {
+  __$OrdersResponseCopyWithImpl(this._self, this._then);
+
+  final _OrdersResponse _self;
+  final $Res Function(_OrdersResponse) _then;
+
+  /// Create a copy of OrdersResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = freezed,
+    Object? num = freezed,
+    Object? status = freezed,
+    Object? route = freezed,
+    Object? cargoType = freezed,
+    Object? mass = freezed,
+    Object? volume = freezed,
+    Object? loadingDate = freezed,
+    Object? unloadingDate = freezed,
+    Object? loadingTimeFrom = freezed,
+    Object? loadingTimeTo = freezed,
+    Object? unloadingTimeFrom = freezed,
+    Object? unloadingTimeTo = freezed,
+    Object? latStart = freezed,
+    Object? lngStart = freezed,
+    Object? latFin = freezed,
+    Object? lngFin = freezed,
+    Object? client = freezed,
+    Object? routeDetails = freezed,
+    Object? photo = freezed,
+  }) {
+    return _then(_OrdersResponse(
+      id: freezed == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int?,
+      num: freezed == num
+          ? _self.num
+          : num // ignore: cast_nullable_to_non_nullable
+              as String?,
+      status: freezed == status
+          ? _self.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as int?,
+      route: freezed == route
+          ? _self.route
+          : route // ignore: cast_nullable_to_non_nullable
+              as String?,
+      cargoType: freezed == cargoType
+          ? _self.cargoType
+          : cargoType // ignore: cast_nullable_to_non_nullable
+              as String?,
+      mass: freezed == mass
+          ? _self.mass
+          : mass // ignore: cast_nullable_to_non_nullable
+              as String?,
+      volume: freezed == volume
+          ? _self.volume
+          : volume // ignore: cast_nullable_to_non_nullable
+              as String?,
+      loadingDate: freezed == loadingDate
+          ? _self.loadingDate
+          : loadingDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      unloadingDate: freezed == unloadingDate
+          ? _self.unloadingDate
+          : unloadingDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      loadingTimeFrom: freezed == loadingTimeFrom
+          ? _self.loadingTimeFrom
+          : loadingTimeFrom // ignore: cast_nullable_to_non_nullable
+              as String?,
+      loadingTimeTo: freezed == loadingTimeTo
+          ? _self.loadingTimeTo
+          : loadingTimeTo // ignore: cast_nullable_to_non_nullable
+              as String?,
+      unloadingTimeFrom: freezed == unloadingTimeFrom
+          ? _self.unloadingTimeFrom
+          : unloadingTimeFrom // ignore: cast_nullable_to_non_nullable
+              as String?,
+      unloadingTimeTo: freezed == unloadingTimeTo
+          ? _self.unloadingTimeTo
+          : unloadingTimeTo // ignore: cast_nullable_to_non_nullable
+              as String?,
+      latStart: freezed == latStart
+          ? _self.latStart
+          : latStart // ignore: cast_nullable_to_non_nullable
+              as double?,
+      lngStart: freezed == lngStart
+          ? _self.lngStart
+          : lngStart // ignore: cast_nullable_to_non_nullable
+              as double?,
+      latFin: freezed == latFin
+          ? _self.latFin
+          : latFin // ignore: cast_nullable_to_non_nullable
+              as double?,
+      lngFin: freezed == lngFin
+          ? _self.lngFin
+          : lngFin // ignore: cast_nullable_to_non_nullable
+              as double?,
+      client: freezed == client
+          ? _self.client
+          : client // ignore: cast_nullable_to_non_nullable
+              as OrdersResponseClient?,
+      routeDetails: freezed == routeDetails
+          ? _self._routeDetails
+          : routeDetails // ignore: cast_nullable_to_non_nullable
+              as List<OrdersResponseRouteDetail>?,
+      photo: freezed == photo
+          ? _self._photo
+          : photo // ignore: cast_nullable_to_non_nullable
+              as List<OrdersResponseOrderPhoto>?,
+    ));
+  }
+
+  /// Create a copy of OrdersResponse
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $OrdersResponseClientCopyWith<$Res>? get client {
+    if (_self.client == null) {
+      return null;
+    }
+
+    return $OrdersResponseClientCopyWith<$Res>(_self.client!, (value) {
+      return _then(_self.copyWith(client: value));
+    });
+  }
 }
 
 /// @nodoc
 mixin _$OrdersResponseClient {
-  String? get org => throw _privateConstructorUsedError;
-  String? get manager => throw _privateConstructorUsedError;
-  String? get phone => throw _privateConstructorUsedError;
+  String? get org;
+  String? get manager;
+  String? get phone;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $OrdersResponseClientCopyWith<OrdersResponseClient> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $OrdersResponseClientCopyWith<$Res> {
-  factory $OrdersResponseClientCopyWith(OrdersResponseClient value,
-          $Res Function(OrdersResponseClient) then) =
-      _$OrdersResponseClientCopyWithImpl<$Res, OrdersResponseClient>;
-  @useResult
-  $Res call({String? org, String? manager, String? phone});
-}
-
-/// @nodoc
-class _$OrdersResponseClientCopyWithImpl<$Res,
-        $Val extends OrdersResponseClient>
-    implements $OrdersResponseClientCopyWith<$Res> {
-  _$OrdersResponseClientCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
+  /// Create a copy of OrdersResponseClient
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
+  $OrdersResponseClientCopyWith<OrdersResponseClient> get copyWith =>
+      _$OrdersResponseClientCopyWithImpl<OrdersResponseClient>(
+          this as OrdersResponseClient, _$identity);
+
+  /// Serializes this OrdersResponseClient to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? org = freezed,
-    Object? manager = freezed,
-    Object? phone = freezed,
-  }) {
-    return _then(_value.copyWith(
-      org: freezed == org
-          ? _value.org
-          : org // ignore: cast_nullable_to_non_nullable
-              as String?,
-      manager: freezed == manager
-          ? _value.manager
-          : manager // ignore: cast_nullable_to_non_nullable
-              as String?,
-      phone: freezed == phone
-          ? _value.phone
-          : phone // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is OrdersResponseClient &&
+            (identical(other.org, org) || other.org == org) &&
+            (identical(other.manager, manager) || other.manager == manager) &&
+            (identical(other.phone, phone) || other.phone == phone));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, org, manager, phone);
+
+  @override
+  String toString() {
+    return 'OrdersResponseClient(org: $org, manager: $manager, phone: $phone)';
   }
 }
 
 /// @nodoc
-abstract class _$$OrdersResponseClientImplCopyWith<$Res>
-    implements $OrdersResponseClientCopyWith<$Res> {
-  factory _$$OrdersResponseClientImplCopyWith(_$OrdersResponseClientImpl value,
-          $Res Function(_$OrdersResponseClientImpl) then) =
-      __$$OrdersResponseClientImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $OrdersResponseClientCopyWith<$Res> {
+  factory $OrdersResponseClientCopyWith(OrdersResponseClient value,
+          $Res Function(OrdersResponseClient) _then) =
+      _$OrdersResponseClientCopyWithImpl;
   @useResult
   $Res call({String? org, String? manager, String? phone});
 }
 
 /// @nodoc
-class __$$OrdersResponseClientImplCopyWithImpl<$Res>
-    extends _$OrdersResponseClientCopyWithImpl<$Res, _$OrdersResponseClientImpl>
-    implements _$$OrdersResponseClientImplCopyWith<$Res> {
-  __$$OrdersResponseClientImplCopyWithImpl(_$OrdersResponseClientImpl _value,
-      $Res Function(_$OrdersResponseClientImpl) _then)
-      : super(_value, _then);
+class _$OrdersResponseClientCopyWithImpl<$Res>
+    implements $OrdersResponseClientCopyWith<$Res> {
+  _$OrdersResponseClientCopyWithImpl(this._self, this._then);
 
+  final OrdersResponseClient _self;
+  final $Res Function(OrdersResponseClient) _then;
+
+  /// Create a copy of OrdersResponseClient
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1077,17 +1072,17 @@ class __$$OrdersResponseClientImplCopyWithImpl<$Res>
     Object? manager = freezed,
     Object? phone = freezed,
   }) {
-    return _then(_$OrdersResponseClientImpl(
+    return _then(_self.copyWith(
       org: freezed == org
-          ? _value.org
+          ? _self.org
           : org // ignore: cast_nullable_to_non_nullable
               as String?,
       manager: freezed == manager
-          ? _value.manager
+          ? _self.manager
           : manager // ignore: cast_nullable_to_non_nullable
               as String?,
       phone: freezed == phone
-          ? _value.phone
+          ? _self.phone
           : phone // ignore: cast_nullable_to_non_nullable
               as String?,
     ));
@@ -1096,11 +1091,10 @@ class __$$OrdersResponseClientImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$OrdersResponseClientImpl implements _OrdersResponseClient {
-  const _$OrdersResponseClientImpl({this.org, this.manager, this.phone});
-
-  factory _$OrdersResponseClientImpl.fromJson(Map<String, dynamic> json) =>
-      _$$OrdersResponseClientImplFromJson(json);
+class _OrdersResponseClient implements OrdersResponseClient {
+  const _OrdersResponseClient({this.org, this.manager, this.phone});
+  factory _OrdersResponseClient.fromJson(Map<String, dynamic> json) =>
+      _$OrdersResponseClientFromJson(json);
 
   @override
   final String? org;
@@ -1109,365 +1103,319 @@ class _$OrdersResponseClientImpl implements _OrdersResponseClient {
   @override
   final String? phone;
 
+  /// Create a copy of OrdersResponseClient
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'OrdersResponseClient(org: $org, manager: $manager, phone: $phone)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$OrdersResponseClientCopyWith<_OrdersResponseClient> get copyWith =>
+      __$OrdersResponseClientCopyWithImpl<_OrdersResponseClient>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$OrdersResponseClientToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$OrdersResponseClientImpl &&
+            other is _OrdersResponseClient &&
             (identical(other.org, org) || other.org == org) &&
             (identical(other.manager, manager) || other.manager == manager) &&
             (identical(other.phone, phone) || other.phone == phone));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, org, manager, phone);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$OrdersResponseClientImplCopyWith<_$OrdersResponseClientImpl>
-      get copyWith =>
-          __$$OrdersResponseClientImplCopyWithImpl<_$OrdersResponseClientImpl>(
-              this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$OrdersResponseClientImplToJson(
-      this,
-    );
-  }
-}
-
-abstract class _OrdersResponseClient implements OrdersResponseClient {
-  const factory _OrdersResponseClient(
-      {final String? org,
-      final String? manager,
-      final String? phone}) = _$OrdersResponseClientImpl;
-
-  factory _OrdersResponseClient.fromJson(Map<String, dynamic> json) =
-      _$OrdersResponseClientImpl.fromJson;
-
-  @override
-  String? get org;
-  @override
-  String? get manager;
-  @override
-  String? get phone;
-  @override
-  @JsonKey(ignore: true)
-  _$$OrdersResponseClientImplCopyWith<_$OrdersResponseClientImpl>
-      get copyWith => throw _privateConstructorUsedError;
-}
-
-OrdersResponseRouteDetail _$OrdersResponseRouteDetailFromJson(
-    Map<String, dynamic> json) {
-  return _OrdersResponseRouteDetail.fromJson(json);
-}
-
-/// @nodoc
-mixin _$OrdersResponseRouteDetail {
-  @JsonKey(name: 'route_detail_id')
-  int? get routeDetailId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'operation_type')
-  int? get operationType => throw _privateConstructorUsedError;
-  String? get city => throw _privateConstructorUsedError;
-  String? get address => throw _privateConstructorUsedError;
-  String? get date => throw _privateConstructorUsedError;
-  @JsonKey(name: 'time_from')
-  String? get timeFrom => throw _privateConstructorUsedError;
-  @JsonKey(name: 'time_to')
-  String? get timeTo => throw _privateConstructorUsedError;
-  String? get comment => throw _privateConstructorUsedError;
-  @JsonKey(name: 'cargo_type')
-  String? get cargoType => throw _privateConstructorUsedError;
-  @JsonKey(name: 'loading_method')
-  String? get loadingMethod => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: _nullableToString)
-  String? get mass => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: _nullableToString)
-  String? get volume => throw _privateConstructorUsedError;
-  double? get lat => throw _privateConstructorUsedError;
-  double? get lon => throw _privateConstructorUsedError;
-  @JsonKey(name: 'client_detail')
-  OrdersResponseClientDetail? get clientDetail =>
-      throw _privateConstructorUsedError;
-
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $OrdersResponseRouteDetailCopyWith<OrdersResponseRouteDetail> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $OrdersResponseRouteDetailCopyWith<$Res> {
-  factory $OrdersResponseRouteDetailCopyWith(OrdersResponseRouteDetail value,
-          $Res Function(OrdersResponseRouteDetail) then) =
-      _$OrdersResponseRouteDetailCopyWithImpl<$Res, OrdersResponseRouteDetail>;
-  @useResult
-  $Res call(
-      {@JsonKey(name: 'route_detail_id') int? routeDetailId,
-      @JsonKey(name: 'operation_type') int? operationType,
-      String? city,
-      String? address,
-      String? date,
-      @JsonKey(name: 'time_from') String? timeFrom,
-      @JsonKey(name: 'time_to') String? timeTo,
-      String? comment,
-      @JsonKey(name: 'cargo_type') String? cargoType,
-      @JsonKey(name: 'loading_method') String? loadingMethod,
-      @JsonKey(fromJson: _nullableToString) String? mass,
-      @JsonKey(fromJson: _nullableToString) String? volume,
-      double? lat,
-      double? lon,
-      @JsonKey(name: 'client_detail')
-      OrdersResponseClientDetail? clientDetail});
-
-  $OrdersResponseClientDetailCopyWith<$Res>? get clientDetail;
-}
-
-/// @nodoc
-class _$OrdersResponseRouteDetailCopyWithImpl<$Res,
-        $Val extends OrdersResponseRouteDetail>
-    implements $OrdersResponseRouteDetailCopyWith<$Res> {
-  _$OrdersResponseRouteDetailCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? routeDetailId = freezed,
-    Object? operationType = freezed,
-    Object? city = freezed,
-    Object? address = freezed,
-    Object? date = freezed,
-    Object? timeFrom = freezed,
-    Object? timeTo = freezed,
-    Object? comment = freezed,
-    Object? cargoType = freezed,
-    Object? loadingMethod = freezed,
-    Object? mass = freezed,
-    Object? volume = freezed,
-    Object? lat = freezed,
-    Object? lon = freezed,
-    Object? clientDetail = freezed,
-  }) {
-    return _then(_value.copyWith(
-      routeDetailId: freezed == routeDetailId
-          ? _value.routeDetailId
-          : routeDetailId // ignore: cast_nullable_to_non_nullable
-              as int?,
-      operationType: freezed == operationType
-          ? _value.operationType
-          : operationType // ignore: cast_nullable_to_non_nullable
-              as int?,
-      city: freezed == city
-          ? _value.city
-          : city // ignore: cast_nullable_to_non_nullable
-              as String?,
-      address: freezed == address
-          ? _value.address
-          : address // ignore: cast_nullable_to_non_nullable
-              as String?,
-      date: freezed == date
-          ? _value.date
-          : date // ignore: cast_nullable_to_non_nullable
-              as String?,
-      timeFrom: freezed == timeFrom
-          ? _value.timeFrom
-          : timeFrom // ignore: cast_nullable_to_non_nullable
-              as String?,
-      timeTo: freezed == timeTo
-          ? _value.timeTo
-          : timeTo // ignore: cast_nullable_to_non_nullable
-              as String?,
-      comment: freezed == comment
-          ? _value.comment
-          : comment // ignore: cast_nullable_to_non_nullable
-              as String?,
-      cargoType: freezed == cargoType
-          ? _value.cargoType
-          : cargoType // ignore: cast_nullable_to_non_nullable
-              as String?,
-      loadingMethod: freezed == loadingMethod
-          ? _value.loadingMethod
-          : loadingMethod // ignore: cast_nullable_to_non_nullable
-              as String?,
-      mass: freezed == mass
-          ? _value.mass
-          : mass // ignore: cast_nullable_to_non_nullable
-              as String?,
-      volume: freezed == volume
-          ? _value.volume
-          : volume // ignore: cast_nullable_to_non_nullable
-              as String?,
-      lat: freezed == lat
-          ? _value.lat
-          : lat // ignore: cast_nullable_to_non_nullable
-              as double?,
-      lon: freezed == lon
-          ? _value.lon
-          : lon // ignore: cast_nullable_to_non_nullable
-              as double?,
-      clientDetail: freezed == clientDetail
-          ? _value.clientDetail
-          : clientDetail // ignore: cast_nullable_to_non_nullable
-              as OrdersResponseClientDetail?,
-    ) as $Val);
-  }
-
-  @override
-  @pragma('vm:prefer-inline')
-  $OrdersResponseClientDetailCopyWith<$Res>? get clientDetail {
-    if (_value.clientDetail == null) {
-      return null;
-    }
-
-    return $OrdersResponseClientDetailCopyWith<$Res>(_value.clientDetail!,
-        (value) {
-      return _then(_value.copyWith(clientDetail: value) as $Val);
-    });
+  String toString() {
+    return 'OrdersResponseClient(org: $org, manager: $manager, phone: $phone)';
   }
 }
 
 /// @nodoc
-abstract class _$$OrdersResponseRouteDetailImplCopyWith<$Res>
-    implements $OrdersResponseRouteDetailCopyWith<$Res> {
-  factory _$$OrdersResponseRouteDetailImplCopyWith(
-          _$OrdersResponseRouteDetailImpl value,
-          $Res Function(_$OrdersResponseRouteDetailImpl) then) =
-      __$$OrdersResponseRouteDetailImplCopyWithImpl<$Res>;
+abstract mixin class _$OrdersResponseClientCopyWith<$Res>
+    implements $OrdersResponseClientCopyWith<$Res> {
+  factory _$OrdersResponseClientCopyWith(_OrdersResponseClient value,
+          $Res Function(_OrdersResponseClient) _then) =
+      __$OrdersResponseClientCopyWithImpl;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: 'route_detail_id') int? routeDetailId,
-      @JsonKey(name: 'operation_type') int? operationType,
-      String? city,
-      String? address,
-      String? date,
-      @JsonKey(name: 'time_from') String? timeFrom,
-      @JsonKey(name: 'time_to') String? timeTo,
-      String? comment,
-      @JsonKey(name: 'cargo_type') String? cargoType,
-      @JsonKey(name: 'loading_method') String? loadingMethod,
-      @JsonKey(fromJson: _nullableToString) String? mass,
-      @JsonKey(fromJson: _nullableToString) String? volume,
-      double? lat,
-      double? lon,
-      @JsonKey(name: 'client_detail')
-      OrdersResponseClientDetail? clientDetail});
-
-  @override
-  $OrdersResponseClientDetailCopyWith<$Res>? get clientDetail;
+  $Res call({String? org, String? manager, String? phone});
 }
 
 /// @nodoc
-class __$$OrdersResponseRouteDetailImplCopyWithImpl<$Res>
-    extends _$OrdersResponseRouteDetailCopyWithImpl<$Res,
-        _$OrdersResponseRouteDetailImpl>
-    implements _$$OrdersResponseRouteDetailImplCopyWith<$Res> {
-  __$$OrdersResponseRouteDetailImplCopyWithImpl(
-      _$OrdersResponseRouteDetailImpl _value,
-      $Res Function(_$OrdersResponseRouteDetailImpl) _then)
-      : super(_value, _then);
+class __$OrdersResponseClientCopyWithImpl<$Res>
+    implements _$OrdersResponseClientCopyWith<$Res> {
+  __$OrdersResponseClientCopyWithImpl(this._self, this._then);
 
-  @pragma('vm:prefer-inline')
+  final _OrdersResponseClient _self;
+  final $Res Function(_OrdersResponseClient) _then;
+
+  /// Create a copy of OrdersResponseClient
+  /// with the given fields replaced by the non-null parameter values.
   @override
+  @pragma('vm:prefer-inline')
   $Res call({
-    Object? routeDetailId = freezed,
-    Object? operationType = freezed,
-    Object? city = freezed,
-    Object? address = freezed,
-    Object? date = freezed,
-    Object? timeFrom = freezed,
-    Object? timeTo = freezed,
-    Object? comment = freezed,
-    Object? cargoType = freezed,
-    Object? loadingMethod = freezed,
-    Object? mass = freezed,
-    Object? volume = freezed,
-    Object? lat = freezed,
-    Object? lon = freezed,
-    Object? clientDetail = freezed,
+    Object? org = freezed,
+    Object? manager = freezed,
+    Object? phone = freezed,
   }) {
-    return _then(_$OrdersResponseRouteDetailImpl(
-      routeDetailId: freezed == routeDetailId
-          ? _value.routeDetailId
-          : routeDetailId // ignore: cast_nullable_to_non_nullable
-              as int?,
-      operationType: freezed == operationType
-          ? _value.operationType
-          : operationType // ignore: cast_nullable_to_non_nullable
-              as int?,
-      city: freezed == city
-          ? _value.city
-          : city // ignore: cast_nullable_to_non_nullable
+    return _then(_OrdersResponseClient(
+      org: freezed == org
+          ? _self.org
+          : org // ignore: cast_nullable_to_non_nullable
               as String?,
-      address: freezed == address
-          ? _value.address
-          : address // ignore: cast_nullable_to_non_nullable
+      manager: freezed == manager
+          ? _self.manager
+          : manager // ignore: cast_nullable_to_non_nullable
               as String?,
-      date: freezed == date
-          ? _value.date
-          : date // ignore: cast_nullable_to_non_nullable
+      phone: freezed == phone
+          ? _self.phone
+          : phone // ignore: cast_nullable_to_non_nullable
               as String?,
-      timeFrom: freezed == timeFrom
-          ? _value.timeFrom
-          : timeFrom // ignore: cast_nullable_to_non_nullable
-              as String?,
-      timeTo: freezed == timeTo
-          ? _value.timeTo
-          : timeTo // ignore: cast_nullable_to_non_nullable
-              as String?,
-      comment: freezed == comment
-          ? _value.comment
-          : comment // ignore: cast_nullable_to_non_nullable
-              as String?,
-      cargoType: freezed == cargoType
-          ? _value.cargoType
-          : cargoType // ignore: cast_nullable_to_non_nullable
-              as String?,
-      loadingMethod: freezed == loadingMethod
-          ? _value.loadingMethod
-          : loadingMethod // ignore: cast_nullable_to_non_nullable
-              as String?,
-      mass: freezed == mass
-          ? _value.mass
-          : mass // ignore: cast_nullable_to_non_nullable
-              as String?,
-      volume: freezed == volume
-          ? _value.volume
-          : volume // ignore: cast_nullable_to_non_nullable
-              as String?,
-      lat: freezed == lat
-          ? _value.lat
-          : lat // ignore: cast_nullable_to_non_nullable
-              as double?,
-      lon: freezed == lon
-          ? _value.lon
-          : lon // ignore: cast_nullable_to_non_nullable
-              as double?,
-      clientDetail: freezed == clientDetail
-          ? _value.clientDetail
-          : clientDetail // ignore: cast_nullable_to_non_nullable
-              as OrdersResponseClientDetail?,
     ));
   }
 }
 
 /// @nodoc
+mixin _$OrdersResponseRouteDetail {
+  @JsonKey(name: 'route_detail_id')
+  int? get routeDetailId;
+  @JsonKey(name: 'operation_type')
+  int? get operationType;
+  String? get city;
+  String? get address;
+  String? get date;
+  @JsonKey(name: 'time_from')
+  String? get timeFrom;
+  @JsonKey(name: 'time_to')
+  String? get timeTo;
+  String? get comment;
+  @JsonKey(name: 'cargo_type')
+  String? get cargoType;
+  @JsonKey(name: 'loading_method')
+  String? get loadingMethod;
+  @JsonKey(fromJson: _nullableToString)
+  String? get mass;
+  @JsonKey(fromJson: _nullableToString)
+  String? get volume;
+  double? get lat;
+  double? get lon;
+  @JsonKey(name: 'client_detail')
+  OrdersResponseClientDetail? get clientDetail;
+
+  /// Create a copy of OrdersResponseRouteDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $OrdersResponseRouteDetailCopyWith<OrdersResponseRouteDetail> get copyWith =>
+      _$OrdersResponseRouteDetailCopyWithImpl<OrdersResponseRouteDetail>(
+          this as OrdersResponseRouteDetail, _$identity);
+
+  /// Serializes this OrdersResponseRouteDetail to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is OrdersResponseRouteDetail &&
+            (identical(other.routeDetailId, routeDetailId) ||
+                other.routeDetailId == routeDetailId) &&
+            (identical(other.operationType, operationType) ||
+                other.operationType == operationType) &&
+            (identical(other.city, city) || other.city == city) &&
+            (identical(other.address, address) || other.address == address) &&
+            (identical(other.date, date) || other.date == date) &&
+            (identical(other.timeFrom, timeFrom) ||
+                other.timeFrom == timeFrom) &&
+            (identical(other.timeTo, timeTo) || other.timeTo == timeTo) &&
+            (identical(other.comment, comment) || other.comment == comment) &&
+            (identical(other.cargoType, cargoType) ||
+                other.cargoType == cargoType) &&
+            (identical(other.loadingMethod, loadingMethod) ||
+                other.loadingMethod == loadingMethod) &&
+            (identical(other.mass, mass) || other.mass == mass) &&
+            (identical(other.volume, volume) || other.volume == volume) &&
+            (identical(other.lat, lat) || other.lat == lat) &&
+            (identical(other.lon, lon) || other.lon == lon) &&
+            (identical(other.clientDetail, clientDetail) ||
+                other.clientDetail == clientDetail));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      routeDetailId,
+      operationType,
+      city,
+      address,
+      date,
+      timeFrom,
+      timeTo,
+      comment,
+      cargoType,
+      loadingMethod,
+      mass,
+      volume,
+      lat,
+      lon,
+      clientDetail);
+
+  @override
+  String toString() {
+    return 'OrdersResponseRouteDetail(routeDetailId: $routeDetailId, operationType: $operationType, city: $city, address: $address, date: $date, timeFrom: $timeFrom, timeTo: $timeTo, comment: $comment, cargoType: $cargoType, loadingMethod: $loadingMethod, mass: $mass, volume: $volume, lat: $lat, lon: $lon, clientDetail: $clientDetail)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $OrdersResponseRouteDetailCopyWith<$Res> {
+  factory $OrdersResponseRouteDetailCopyWith(OrdersResponseRouteDetail value,
+          $Res Function(OrdersResponseRouteDetail) _then) =
+      _$OrdersResponseRouteDetailCopyWithImpl;
+  @useResult
+  $Res call(
+      {@JsonKey(name: 'route_detail_id') int? routeDetailId,
+      @JsonKey(name: 'operation_type') int? operationType,
+      String? city,
+      String? address,
+      String? date,
+      @JsonKey(name: 'time_from') String? timeFrom,
+      @JsonKey(name: 'time_to') String? timeTo,
+      String? comment,
+      @JsonKey(name: 'cargo_type') String? cargoType,
+      @JsonKey(name: 'loading_method') String? loadingMethod,
+      @JsonKey(fromJson: _nullableToString) String? mass,
+      @JsonKey(fromJson: _nullableToString) String? volume,
+      double? lat,
+      double? lon,
+      @JsonKey(name: 'client_detail')
+      OrdersResponseClientDetail? clientDetail});
+
+  $OrdersResponseClientDetailCopyWith<$Res>? get clientDetail;
+}
+
+/// @nodoc
+class _$OrdersResponseRouteDetailCopyWithImpl<$Res>
+    implements $OrdersResponseRouteDetailCopyWith<$Res> {
+  _$OrdersResponseRouteDetailCopyWithImpl(this._self, this._then);
+
+  final OrdersResponseRouteDetail _self;
+  final $Res Function(OrdersResponseRouteDetail) _then;
+
+  /// Create a copy of OrdersResponseRouteDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? routeDetailId = freezed,
+    Object? operationType = freezed,
+    Object? city = freezed,
+    Object? address = freezed,
+    Object? date = freezed,
+    Object? timeFrom = freezed,
+    Object? timeTo = freezed,
+    Object? comment = freezed,
+    Object? cargoType = freezed,
+    Object? loadingMethod = freezed,
+    Object? mass = freezed,
+    Object? volume = freezed,
+    Object? lat = freezed,
+    Object? lon = freezed,
+    Object? clientDetail = freezed,
+  }) {
+    return _then(_self.copyWith(
+      routeDetailId: freezed == routeDetailId
+          ? _self.routeDetailId
+          : routeDetailId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      operationType: freezed == operationType
+          ? _self.operationType
+          : operationType // ignore: cast_nullable_to_non_nullable
+              as int?,
+      city: freezed == city
+          ? _self.city
+          : city // ignore: cast_nullable_to_non_nullable
+              as String?,
+      address: freezed == address
+          ? _self.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
+      date: freezed == date
+          ? _self.date
+          : date // ignore: cast_nullable_to_non_nullable
+              as String?,
+      timeFrom: freezed == timeFrom
+          ? _self.timeFrom
+          : timeFrom // ignore: cast_nullable_to_non_nullable
+              as String?,
+      timeTo: freezed == timeTo
+          ? _self.timeTo
+          : timeTo // ignore: cast_nullable_to_non_nullable
+              as String?,
+      comment: freezed == comment
+          ? _self.comment
+          : comment // ignore: cast_nullable_to_non_nullable
+              as String?,
+      cargoType: freezed == cargoType
+          ? _self.cargoType
+          : cargoType // ignore: cast_nullable_to_non_nullable
+              as String?,
+      loadingMethod: freezed == loadingMethod
+          ? _self.loadingMethod
+          : loadingMethod // ignore: cast_nullable_to_non_nullable
+              as String?,
+      mass: freezed == mass
+          ? _self.mass
+          : mass // ignore: cast_nullable_to_non_nullable
+              as String?,
+      volume: freezed == volume
+          ? _self.volume
+          : volume // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lat: freezed == lat
+          ? _self.lat
+          : lat // ignore: cast_nullable_to_non_nullable
+              as double?,
+      lon: freezed == lon
+          ? _self.lon
+          : lon // ignore: cast_nullable_to_non_nullable
+              as double?,
+      clientDetail: freezed == clientDetail
+          ? _self.clientDetail
+          : clientDetail // ignore: cast_nullable_to_non_nullable
+              as OrdersResponseClientDetail?,
+    ));
+  }
+
+  /// Create a copy of OrdersResponseRouteDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $OrdersResponseClientDetailCopyWith<$Res>? get clientDetail {
+    if (_self.clientDetail == null) {
+      return null;
+    }
+
+    return $OrdersResponseClientDetailCopyWith<$Res>(_self.clientDetail!,
+        (value) {
+      return _then(_self.copyWith(clientDetail: value));
+    });
+  }
+}
+
+/// @nodoc
 @JsonSerializable()
-class _$OrdersResponseRouteDetailImpl implements _OrdersResponseRouteDetail {
-  const _$OrdersResponseRouteDetailImpl(
+class _OrdersResponseRouteDetail implements OrdersResponseRouteDetail {
+  const _OrdersResponseRouteDetail(
       {@JsonKey(name: 'route_detail_id') this.routeDetailId,
       @JsonKey(name: 'operation_type') this.operationType,
       this.city,
@@ -1483,9 +1431,8 @@ class _$OrdersResponseRouteDetailImpl implements _OrdersResponseRouteDetail {
       this.lat,
       this.lon,
       @JsonKey(name: 'client_detail') this.clientDetail});
-
-  factory _$OrdersResponseRouteDetailImpl.fromJson(Map<String, dynamic> json) =>
-      _$$OrdersResponseRouteDetailImplFromJson(json);
+  factory _OrdersResponseRouteDetail.fromJson(Map<String, dynamic> json) =>
+      _$OrdersResponseRouteDetailFromJson(json);
 
   @override
   @JsonKey(name: 'route_detail_id')
@@ -1527,16 +1474,28 @@ class _$OrdersResponseRouteDetailImpl implements _OrdersResponseRouteDetail {
   @JsonKey(name: 'client_detail')
   final OrdersResponseClientDetail? clientDetail;
 
+  /// Create a copy of OrdersResponseRouteDetail
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'OrdersResponseRouteDetail(routeDetailId: $routeDetailId, operationType: $operationType, city: $city, address: $address, date: $date, timeFrom: $timeFrom, timeTo: $timeTo, comment: $comment, cargoType: $cargoType, loadingMethod: $loadingMethod, mass: $mass, volume: $volume, lat: $lat, lon: $lon, clientDetail: $clientDetail)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$OrdersResponseRouteDetailCopyWith<_OrdersResponseRouteDetail>
+      get copyWith =>
+          __$OrdersResponseRouteDetailCopyWithImpl<_OrdersResponseRouteDetail>(
+              this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$OrdersResponseRouteDetailToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$OrdersResponseRouteDetailImpl &&
+            other is _OrdersResponseRouteDetail &&
             (identical(other.routeDetailId, routeDetailId) ||
                 other.routeDetailId == routeDetailId) &&
             (identical(other.operationType, operationType) ||
@@ -1560,7 +1519,7 @@ class _$OrdersResponseRouteDetailImpl implements _OrdersResponseRouteDetail {
                 other.clientDetail == clientDetail));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -1580,179 +1539,210 @@ class _$OrdersResponseRouteDetailImpl implements _OrdersResponseRouteDetail {
       lon,
       clientDetail);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$OrdersResponseRouteDetailImplCopyWith<_$OrdersResponseRouteDetailImpl>
-      get copyWith => __$$OrdersResponseRouteDetailImplCopyWithImpl<
-          _$OrdersResponseRouteDetailImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$OrdersResponseRouteDetailImplToJson(
-      this,
-    );
+  String toString() {
+    return 'OrdersResponseRouteDetail(routeDetailId: $routeDetailId, operationType: $operationType, city: $city, address: $address, date: $date, timeFrom: $timeFrom, timeTo: $timeTo, comment: $comment, cargoType: $cargoType, loadingMethod: $loadingMethod, mass: $mass, volume: $volume, lat: $lat, lon: $lon, clientDetail: $clientDetail)';
   }
 }
 
-abstract class _OrdersResponseRouteDetail implements OrdersResponseRouteDetail {
-  const factory _OrdersResponseRouteDetail(
-          {@JsonKey(name: 'route_detail_id') final int? routeDetailId,
-          @JsonKey(name: 'operation_type') final int? operationType,
-          final String? city,
-          final String? address,
-          final String? date,
-          @JsonKey(name: 'time_from') final String? timeFrom,
-          @JsonKey(name: 'time_to') final String? timeTo,
-          final String? comment,
-          @JsonKey(name: 'cargo_type') final String? cargoType,
-          @JsonKey(name: 'loading_method') final String? loadingMethod,
-          @JsonKey(fromJson: _nullableToString) final String? mass,
-          @JsonKey(fromJson: _nullableToString) final String? volume,
-          final double? lat,
-          final double? lon,
-          @JsonKey(name: 'client_detail')
-          final OrdersResponseClientDetail? clientDetail}) =
-      _$OrdersResponseRouteDetailImpl;
+/// @nodoc
+abstract mixin class _$OrdersResponseRouteDetailCopyWith<$Res>
+    implements $OrdersResponseRouteDetailCopyWith<$Res> {
+  factory _$OrdersResponseRouteDetailCopyWith(_OrdersResponseRouteDetail value,
+          $Res Function(_OrdersResponseRouteDetail) _then) =
+      __$OrdersResponseRouteDetailCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {@JsonKey(name: 'route_detail_id') int? routeDetailId,
+      @JsonKey(name: 'operation_type') int? operationType,
+      String? city,
+      String? address,
+      String? date,
+      @JsonKey(name: 'time_from') String? timeFrom,
+      @JsonKey(name: 'time_to') String? timeTo,
+      String? comment,
+      @JsonKey(name: 'cargo_type') String? cargoType,
+      @JsonKey(name: 'loading_method') String? loadingMethod,
+      @JsonKey(fromJson: _nullableToString) String? mass,
+      @JsonKey(fromJson: _nullableToString) String? volume,
+      double? lat,
+      double? lon,
+      @JsonKey(name: 'client_detail')
+      OrdersResponseClientDetail? clientDetail});
 
-  factory _OrdersResponseRouteDetail.fromJson(Map<String, dynamic> json) =
-      _$OrdersResponseRouteDetailImpl.fromJson;
-
   @override
-  @JsonKey(name: 'route_detail_id')
-  int? get routeDetailId;
-  @override
-  @JsonKey(name: 'operation_type')
-  int? get operationType;
-  @override
-  String? get city;
-  @override
-  String? get address;
-  @override
-  String? get date;
-  @override
-  @JsonKey(name: 'time_from')
-  String? get timeFrom;
-  @override
-  @JsonKey(name: 'time_to')
-  String? get timeTo;
-  @override
-  String? get comment;
-  @override
-  @JsonKey(name: 'cargo_type')
-  String? get cargoType;
-  @override
-  @JsonKey(name: 'loading_method')
-  String? get loadingMethod;
-  @override
-  @JsonKey(fromJson: _nullableToString)
-  String? get mass;
-  @override
-  @JsonKey(fromJson: _nullableToString)
-  String? get volume;
-  @override
-  double? get lat;
-  @override
-  double? get lon;
-  @override
-  @JsonKey(name: 'client_detail')
-  OrdersResponseClientDetail? get clientDetail;
-  @override
-  @JsonKey(ignore: true)
-  _$$OrdersResponseRouteDetailImplCopyWith<_$OrdersResponseRouteDetailImpl>
-      get copyWith => throw _privateConstructorUsedError;
+  $OrdersResponseClientDetailCopyWith<$Res>? get clientDetail;
 }
 
-OrdersResponseClientDetail _$OrdersResponseClientDetailFromJson(
-    Map<String, dynamic> json) {
-  return _OrdersResponseClientDetail.fromJson(json);
+/// @nodoc
+class __$OrdersResponseRouteDetailCopyWithImpl<$Res>
+    implements _$OrdersResponseRouteDetailCopyWith<$Res> {
+  __$OrdersResponseRouteDetailCopyWithImpl(this._self, this._then);
+
+  final _OrdersResponseRouteDetail _self;
+  final $Res Function(_OrdersResponseRouteDetail) _then;
+
+  /// Create a copy of OrdersResponseRouteDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? routeDetailId = freezed,
+    Object? operationType = freezed,
+    Object? city = freezed,
+    Object? address = freezed,
+    Object? date = freezed,
+    Object? timeFrom = freezed,
+    Object? timeTo = freezed,
+    Object? comment = freezed,
+    Object? cargoType = freezed,
+    Object? loadingMethod = freezed,
+    Object? mass = freezed,
+    Object? volume = freezed,
+    Object? lat = freezed,
+    Object? lon = freezed,
+    Object? clientDetail = freezed,
+  }) {
+    return _then(_OrdersResponseRouteDetail(
+      routeDetailId: freezed == routeDetailId
+          ? _self.routeDetailId
+          : routeDetailId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      operationType: freezed == operationType
+          ? _self.operationType
+          : operationType // ignore: cast_nullable_to_non_nullable
+              as int?,
+      city: freezed == city
+          ? _self.city
+          : city // ignore: cast_nullable_to_non_nullable
+              as String?,
+      address: freezed == address
+          ? _self.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
+      date: freezed == date
+          ? _self.date
+          : date // ignore: cast_nullable_to_non_nullable
+              as String?,
+      timeFrom: freezed == timeFrom
+          ? _self.timeFrom
+          : timeFrom // ignore: cast_nullable_to_non_nullable
+              as String?,
+      timeTo: freezed == timeTo
+          ? _self.timeTo
+          : timeTo // ignore: cast_nullable_to_non_nullable
+              as String?,
+      comment: freezed == comment
+          ? _self.comment
+          : comment // ignore: cast_nullable_to_non_nullable
+              as String?,
+      cargoType: freezed == cargoType
+          ? _self.cargoType
+          : cargoType // ignore: cast_nullable_to_non_nullable
+              as String?,
+      loadingMethod: freezed == loadingMethod
+          ? _self.loadingMethod
+          : loadingMethod // ignore: cast_nullable_to_non_nullable
+              as String?,
+      mass: freezed == mass
+          ? _self.mass
+          : mass // ignore: cast_nullable_to_non_nullable
+              as String?,
+      volume: freezed == volume
+          ? _self.volume
+          : volume // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lat: freezed == lat
+          ? _self.lat
+          : lat // ignore: cast_nullable_to_non_nullable
+              as double?,
+      lon: freezed == lon
+          ? _self.lon
+          : lon // ignore: cast_nullable_to_non_nullable
+              as double?,
+      clientDetail: freezed == clientDetail
+          ? _self.clientDetail
+          : clientDetail // ignore: cast_nullable_to_non_nullable
+              as OrdersResponseClientDetail?,
+    ));
+  }
+
+  /// Create a copy of OrdersResponseRouteDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $OrdersResponseClientDetailCopyWith<$Res>? get clientDetail {
+    if (_self.clientDetail == null) {
+      return null;
+    }
+
+    return $OrdersResponseClientDetailCopyWith<$Res>(_self.clientDetail!,
+        (value) {
+      return _then(_self.copyWith(clientDetail: value));
+    });
+  }
 }
 
 /// @nodoc
 mixin _$OrdersResponseClientDetail {
-  String? get org => throw _privateConstructorUsedError;
-  String? get manager => throw _privateConstructorUsedError;
-  String? get phone => throw _privateConstructorUsedError;
-  int? get type => throw _privateConstructorUsedError;
+  String? get org;
+  String? get manager;
+  String? get phone;
+  int? get type;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $OrdersResponseClientDetailCopyWith<OrdersResponseClientDetail>
-      get copyWith => throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $OrdersResponseClientDetailCopyWith<$Res> {
-  factory $OrdersResponseClientDetailCopyWith(OrdersResponseClientDetail value,
-          $Res Function(OrdersResponseClientDetail) then) =
-      _$OrdersResponseClientDetailCopyWithImpl<$Res,
-          OrdersResponseClientDetail>;
-  @useResult
-  $Res call({String? org, String? manager, String? phone, int? type});
-}
-
-/// @nodoc
-class _$OrdersResponseClientDetailCopyWithImpl<$Res,
-        $Val extends OrdersResponseClientDetail>
-    implements $OrdersResponseClientDetailCopyWith<$Res> {
-  _$OrdersResponseClientDetailCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
+  /// Create a copy of OrdersResponseClientDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
+  $OrdersResponseClientDetailCopyWith<OrdersResponseClientDetail>
+      get copyWith =>
+          _$OrdersResponseClientDetailCopyWithImpl<OrdersResponseClientDetail>(
+              this as OrdersResponseClientDetail, _$identity);
+
+  /// Serializes this OrdersResponseClientDetail to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? org = freezed,
-    Object? manager = freezed,
-    Object? phone = freezed,
-    Object? type = freezed,
-  }) {
-    return _then(_value.copyWith(
-      org: freezed == org
-          ? _value.org
-          : org // ignore: cast_nullable_to_non_nullable
-              as String?,
-      manager: freezed == manager
-          ? _value.manager
-          : manager // ignore: cast_nullable_to_non_nullable
-              as String?,
-      phone: freezed == phone
-          ? _value.phone
-          : phone // ignore: cast_nullable_to_non_nullable
-              as String?,
-      type: freezed == type
-          ? _value.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as int?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is OrdersResponseClientDetail &&
+            (identical(other.org, org) || other.org == org) &&
+            (identical(other.manager, manager) || other.manager == manager) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.type, type) || other.type == type));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, org, manager, phone, type);
+
+  @override
+  String toString() {
+    return 'OrdersResponseClientDetail(org: $org, manager: $manager, phone: $phone, type: $type)';
   }
 }
 
 /// @nodoc
-abstract class _$$OrdersResponseClientDetailImplCopyWith<$Res>
-    implements $OrdersResponseClientDetailCopyWith<$Res> {
-  factory _$$OrdersResponseClientDetailImplCopyWith(
-          _$OrdersResponseClientDetailImpl value,
-          $Res Function(_$OrdersResponseClientDetailImpl) then) =
-      __$$OrdersResponseClientDetailImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $OrdersResponseClientDetailCopyWith<$Res> {
+  factory $OrdersResponseClientDetailCopyWith(OrdersResponseClientDetail value,
+          $Res Function(OrdersResponseClientDetail) _then) =
+      _$OrdersResponseClientDetailCopyWithImpl;
   @useResult
   $Res call({String? org, String? manager, String? phone, int? type});
 }
 
 /// @nodoc
-class __$$OrdersResponseClientDetailImplCopyWithImpl<$Res>
-    extends _$OrdersResponseClientDetailCopyWithImpl<$Res,
-        _$OrdersResponseClientDetailImpl>
-    implements _$$OrdersResponseClientDetailImplCopyWith<$Res> {
-  __$$OrdersResponseClientDetailImplCopyWithImpl(
-      _$OrdersResponseClientDetailImpl _value,
-      $Res Function(_$OrdersResponseClientDetailImpl) _then)
-      : super(_value, _then);
+class _$OrdersResponseClientDetailCopyWithImpl<$Res>
+    implements $OrdersResponseClientDetailCopyWith<$Res> {
+  _$OrdersResponseClientDetailCopyWithImpl(this._self, this._then);
 
+  final OrdersResponseClientDetail _self;
+  final $Res Function(OrdersResponseClientDetail) _then;
+
+  /// Create a copy of OrdersResponseClientDetail
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1761,21 +1751,21 @@ class __$$OrdersResponseClientDetailImplCopyWithImpl<$Res>
     Object? phone = freezed,
     Object? type = freezed,
   }) {
-    return _then(_$OrdersResponseClientDetailImpl(
+    return _then(_self.copyWith(
       org: freezed == org
-          ? _value.org
+          ? _self.org
           : org // ignore: cast_nullable_to_non_nullable
               as String?,
       manager: freezed == manager
-          ? _value.manager
+          ? _self.manager
           : manager // ignore: cast_nullable_to_non_nullable
               as String?,
       phone: freezed == phone
-          ? _value.phone
+          ? _self.phone
           : phone // ignore: cast_nullable_to_non_nullable
               as String?,
       type: freezed == type
-          ? _value.type
+          ? _self.type
           : type // ignore: cast_nullable_to_non_nullable
               as int?,
     ));
@@ -1784,13 +1774,11 @@ class __$$OrdersResponseClientDetailImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$OrdersResponseClientDetailImpl implements _OrdersResponseClientDetail {
-  const _$OrdersResponseClientDetailImpl(
+class _OrdersResponseClientDetail implements OrdersResponseClientDetail {
+  const _OrdersResponseClientDetail(
       {this.org, this.manager, this.phone, this.type});
-
-  factory _$OrdersResponseClientDetailImpl.fromJson(
-          Map<String, dynamic> json) =>
-      _$$OrdersResponseClientDetailImplFromJson(json);
+  factory _OrdersResponseClientDetail.fromJson(Map<String, dynamic> json) =>
+      _$OrdersResponseClientDetailFromJson(json);
 
   @override
   final String? org;
@@ -1801,141 +1789,139 @@ class _$OrdersResponseClientDetailImpl implements _OrdersResponseClientDetail {
   @override
   final int? type;
 
+  /// Create a copy of OrdersResponseClientDetail
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'OrdersResponseClientDetail(org: $org, manager: $manager, phone: $phone, type: $type)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$OrdersResponseClientDetailCopyWith<_OrdersResponseClientDetail>
+      get copyWith => __$OrdersResponseClientDetailCopyWithImpl<
+          _OrdersResponseClientDetail>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$OrdersResponseClientDetailToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$OrdersResponseClientDetailImpl &&
+            other is _OrdersResponseClientDetail &&
             (identical(other.org, org) || other.org == org) &&
             (identical(other.manager, manager) || other.manager == manager) &&
             (identical(other.phone, phone) || other.phone == phone) &&
             (identical(other.type, type) || other.type == type));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, org, manager, phone, type);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$OrdersResponseClientDetailImplCopyWith<_$OrdersResponseClientDetailImpl>
-      get copyWith => __$$OrdersResponseClientDetailImplCopyWithImpl<
-          _$OrdersResponseClientDetailImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$OrdersResponseClientDetailImplToJson(
-      this,
-    );
+  String toString() {
+    return 'OrdersResponseClientDetail(org: $org, manager: $manager, phone: $phone, type: $type)';
   }
 }
 
-abstract class _OrdersResponseClientDetail
-    implements OrdersResponseClientDetail {
-  const factory _OrdersResponseClientDetail(
-      {final String? org,
-      final String? manager,
-      final String? phone,
-      final int? type}) = _$OrdersResponseClientDetailImpl;
-
-  factory _OrdersResponseClientDetail.fromJson(Map<String, dynamic> json) =
-      _$OrdersResponseClientDetailImpl.fromJson;
-
+/// @nodoc
+abstract mixin class _$OrdersResponseClientDetailCopyWith<$Res>
+    implements $OrdersResponseClientDetailCopyWith<$Res> {
+  factory _$OrdersResponseClientDetailCopyWith(
+          _OrdersResponseClientDetail value,
+          $Res Function(_OrdersResponseClientDetail) _then) =
+      __$OrdersResponseClientDetailCopyWithImpl;
   @override
-  String? get org;
-  @override
-  String? get manager;
-  @override
-  String? get phone;
-  @override
-  int? get type;
-  @override
-  @JsonKey(ignore: true)
-  _$$OrdersResponseClientDetailImplCopyWith<_$OrdersResponseClientDetailImpl>
-      get copyWith => throw _privateConstructorUsedError;
+  @useResult
+  $Res call({String? org, String? manager, String? phone, int? type});
 }
 
-OrdersResponseOrderPhoto _$OrdersResponseOrderPhotoFromJson(
-    Map<String, dynamic> json) {
-  return _OrdersResponseOrderPhoto.fromJson(json);
+/// @nodoc
+class __$OrdersResponseClientDetailCopyWithImpl<$Res>
+    implements _$OrdersResponseClientDetailCopyWith<$Res> {
+  __$OrdersResponseClientDetailCopyWithImpl(this._self, this._then);
+
+  final _OrdersResponseClientDetail _self;
+  final $Res Function(_OrdersResponseClientDetail) _then;
+
+  /// Create a copy of OrdersResponseClientDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? org = freezed,
+    Object? manager = freezed,
+    Object? phone = freezed,
+    Object? type = freezed,
+  }) {
+    return _then(_OrdersResponseClientDetail(
+      org: freezed == org
+          ? _self.org
+          : org // ignore: cast_nullable_to_non_nullable
+              as String?,
+      manager: freezed == manager
+          ? _self.manager
+          : manager // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phone: freezed == phone
+          ? _self.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      type: freezed == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as int?,
+    ));
+  }
 }
 
 /// @nodoc
 mixin _$OrdersResponseOrderPhoto {
-  int? get id => throw _privateConstructorUsedError;
-  String? get type => throw _privateConstructorUsedError;
+  int? get id;
+  String? get type;
   @JsonKey(name: 'route_photo')
-  List<OrdersResponseOrderRoutePhoto>? get routePhoto =>
-      throw _privateConstructorUsedError;
+  List<OrdersResponseOrderRoutePhoto>? get routePhoto;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $OrdersResponseOrderPhotoCopyWith<OrdersResponseOrderPhoto> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $OrdersResponseOrderPhotoCopyWith<$Res> {
-  factory $OrdersResponseOrderPhotoCopyWith(OrdersResponseOrderPhoto value,
-          $Res Function(OrdersResponseOrderPhoto) then) =
-      _$OrdersResponseOrderPhotoCopyWithImpl<$Res, OrdersResponseOrderPhoto>;
-  @useResult
-  $Res call(
-      {int? id,
-      String? type,
-      @JsonKey(name: 'route_photo')
-      List<OrdersResponseOrderRoutePhoto>? routePhoto});
-}
-
-/// @nodoc
-class _$OrdersResponseOrderPhotoCopyWithImpl<$Res,
-        $Val extends OrdersResponseOrderPhoto>
-    implements $OrdersResponseOrderPhotoCopyWith<$Res> {
-  _$OrdersResponseOrderPhotoCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
+  /// Create a copy of OrdersResponseOrderPhoto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
+  $OrdersResponseOrderPhotoCopyWith<OrdersResponseOrderPhoto> get copyWith =>
+      _$OrdersResponseOrderPhotoCopyWithImpl<OrdersResponseOrderPhoto>(
+          this as OrdersResponseOrderPhoto, _$identity);
+
+  /// Serializes this OrdersResponseOrderPhoto to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? id = freezed,
-    Object? type = freezed,
-    Object? routePhoto = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: freezed == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int?,
-      type: freezed == type
-          ? _value.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String?,
-      routePhoto: freezed == routePhoto
-          ? _value.routePhoto
-          : routePhoto // ignore: cast_nullable_to_non_nullable
-              as List<OrdersResponseOrderRoutePhoto>?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is OrdersResponseOrderPhoto &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.type, type) || other.type == type) &&
+            const DeepCollectionEquality()
+                .equals(other.routePhoto, routePhoto));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, id, type, const DeepCollectionEquality().hash(routePhoto));
+
+  @override
+  String toString() {
+    return 'OrdersResponseOrderPhoto(id: $id, type: $type, routePhoto: $routePhoto)';
   }
 }
 
 /// @nodoc
-abstract class _$$OrdersResponseOrderPhotoImplCopyWith<$Res>
-    implements $OrdersResponseOrderPhotoCopyWith<$Res> {
-  factory _$$OrdersResponseOrderPhotoImplCopyWith(
-          _$OrdersResponseOrderPhotoImpl value,
-          $Res Function(_$OrdersResponseOrderPhotoImpl) then) =
-      __$$OrdersResponseOrderPhotoImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $OrdersResponseOrderPhotoCopyWith<$Res> {
+  factory $OrdersResponseOrderPhotoCopyWith(OrdersResponseOrderPhoto value,
+          $Res Function(OrdersResponseOrderPhoto) _then) =
+      _$OrdersResponseOrderPhotoCopyWithImpl;
   @useResult
   $Res call(
       {int? id,
@@ -1945,15 +1931,15 @@ abstract class _$$OrdersResponseOrderPhotoImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$OrdersResponseOrderPhotoImplCopyWithImpl<$Res>
-    extends _$OrdersResponseOrderPhotoCopyWithImpl<$Res,
-        _$OrdersResponseOrderPhotoImpl>
-    implements _$$OrdersResponseOrderPhotoImplCopyWith<$Res> {
-  __$$OrdersResponseOrderPhotoImplCopyWithImpl(
-      _$OrdersResponseOrderPhotoImpl _value,
-      $Res Function(_$OrdersResponseOrderPhotoImpl) _then)
-      : super(_value, _then);
+class _$OrdersResponseOrderPhotoCopyWithImpl<$Res>
+    implements $OrdersResponseOrderPhotoCopyWith<$Res> {
+  _$OrdersResponseOrderPhotoCopyWithImpl(this._self, this._then);
 
+  final OrdersResponseOrderPhoto _self;
+  final $Res Function(OrdersResponseOrderPhoto) _then;
+
+  /// Create a copy of OrdersResponseOrderPhoto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -1961,17 +1947,17 @@ class __$$OrdersResponseOrderPhotoImplCopyWithImpl<$Res>
     Object? type = freezed,
     Object? routePhoto = freezed,
   }) {
-    return _then(_$OrdersResponseOrderPhotoImpl(
+    return _then(_self.copyWith(
       id: freezed == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
       type: freezed == type
-          ? _value.type
+          ? _self.type
           : type // ignore: cast_nullable_to_non_nullable
               as String?,
       routePhoto: freezed == routePhoto
-          ? _value._routePhoto
+          ? _self.routePhoto
           : routePhoto // ignore: cast_nullable_to_non_nullable
               as List<OrdersResponseOrderRoutePhoto>?,
     ));
@@ -1980,16 +1966,15 @@ class __$$OrdersResponseOrderPhotoImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$OrdersResponseOrderPhotoImpl implements _OrdersResponseOrderPhoto {
-  const _$OrdersResponseOrderPhotoImpl(
+class _OrdersResponseOrderPhoto implements OrdersResponseOrderPhoto {
+  const _OrdersResponseOrderPhoto(
       {this.id,
       this.type,
       @JsonKey(name: 'route_photo')
       final List<OrdersResponseOrderRoutePhoto>? routePhoto})
       : _routePhoto = routePhoto;
-
-  factory _$OrdersResponseOrderPhotoImpl.fromJson(Map<String, dynamic> json) =>
-      _$$OrdersResponseOrderPhotoImplFromJson(json);
+  factory _OrdersResponseOrderPhoto.fromJson(Map<String, dynamic> json) =>
+      _$OrdersResponseOrderPhotoFromJson(json);
 
   @override
   final int? id;
@@ -2006,157 +1991,153 @@ class _$OrdersResponseOrderPhotoImpl implements _OrdersResponseOrderPhoto {
     return EqualUnmodifiableListView(value);
   }
 
+  /// Create a copy of OrdersResponseOrderPhoto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'OrdersResponseOrderPhoto(id: $id, type: $type, routePhoto: $routePhoto)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$OrdersResponseOrderPhotoCopyWith<_OrdersResponseOrderPhoto> get copyWith =>
+      __$OrdersResponseOrderPhotoCopyWithImpl<_OrdersResponseOrderPhoto>(
+          this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$OrdersResponseOrderPhotoToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$OrdersResponseOrderPhotoImpl &&
+            other is _OrdersResponseOrderPhoto &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.type, type) || other.type == type) &&
             const DeepCollectionEquality()
                 .equals(other._routePhoto, _routePhoto));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType, id, type, const DeepCollectionEquality().hash(_routePhoto));
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$OrdersResponseOrderPhotoImplCopyWith<_$OrdersResponseOrderPhotoImpl>
-      get copyWith => __$$OrdersResponseOrderPhotoImplCopyWithImpl<
-          _$OrdersResponseOrderPhotoImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$OrdersResponseOrderPhotoImplToJson(
-      this,
-    );
+  String toString() {
+    return 'OrdersResponseOrderPhoto(id: $id, type: $type, routePhoto: $routePhoto)';
   }
 }
 
-abstract class _OrdersResponseOrderPhoto implements OrdersResponseOrderPhoto {
-  const factory _OrdersResponseOrderPhoto(
-          {final int? id,
-          final String? type,
-          @JsonKey(name: 'route_photo')
-          final List<OrdersResponseOrderRoutePhoto>? routePhoto}) =
-      _$OrdersResponseOrderPhotoImpl;
-
-  factory _OrdersResponseOrderPhoto.fromJson(Map<String, dynamic> json) =
-      _$OrdersResponseOrderPhotoImpl.fromJson;
-
+/// @nodoc
+abstract mixin class _$OrdersResponseOrderPhotoCopyWith<$Res>
+    implements $OrdersResponseOrderPhotoCopyWith<$Res> {
+  factory _$OrdersResponseOrderPhotoCopyWith(_OrdersResponseOrderPhoto value,
+          $Res Function(_OrdersResponseOrderPhoto) _then) =
+      __$OrdersResponseOrderPhotoCopyWithImpl;
   @override
-  int? get id;
-  @override
-  String? get type;
-  @override
-  @JsonKey(name: 'route_photo')
-  List<OrdersResponseOrderRoutePhoto>? get routePhoto;
-  @override
-  @JsonKey(ignore: true)
-  _$$OrdersResponseOrderPhotoImplCopyWith<_$OrdersResponseOrderPhotoImpl>
-      get copyWith => throw _privateConstructorUsedError;
+  @useResult
+  $Res call(
+      {int? id,
+      String? type,
+      @JsonKey(name: 'route_photo')
+      List<OrdersResponseOrderRoutePhoto>? routePhoto});
 }
 
-OrdersResponseOrderRoutePhoto _$OrdersResponseOrderRoutePhotoFromJson(
-    Map<String, dynamic> json) {
-  return _OrdersResponseOrderRoutePhoto.fromJson(json);
+/// @nodoc
+class __$OrdersResponseOrderPhotoCopyWithImpl<$Res>
+    implements _$OrdersResponseOrderPhotoCopyWith<$Res> {
+  __$OrdersResponseOrderPhotoCopyWithImpl(this._self, this._then);
+
+  final _OrdersResponseOrderPhoto _self;
+  final $Res Function(_OrdersResponseOrderPhoto) _then;
+
+  /// Create a copy of OrdersResponseOrderPhoto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = freezed,
+    Object? type = freezed,
+    Object? routePhoto = freezed,
+  }) {
+    return _then(_OrdersResponseOrderPhoto(
+      id: freezed == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int?,
+      type: freezed == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String?,
+      routePhoto: freezed == routePhoto
+          ? _self._routePhoto
+          : routePhoto // ignore: cast_nullable_to_non_nullable
+              as List<OrdersResponseOrderRoutePhoto>?,
+    ));
+  }
 }
 
 /// @nodoc
 mixin _$OrdersResponseOrderRoutePhoto {
-  int? get id => throw _privateConstructorUsedError;
-  String? get url => throw _privateConstructorUsedError;
-  int? get status => throw _privateConstructorUsedError;
-  String? get comment => throw _privateConstructorUsedError;
+  int? get id;
+  String? get url;
+  int? get status;
+  String? get comment;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
-  $OrdersResponseOrderRoutePhotoCopyWith<OrdersResponseOrderRoutePhoto>
-      get copyWith => throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $OrdersResponseOrderRoutePhotoCopyWith<$Res> {
-  factory $OrdersResponseOrderRoutePhotoCopyWith(
-          OrdersResponseOrderRoutePhoto value,
-          $Res Function(OrdersResponseOrderRoutePhoto) then) =
-      _$OrdersResponseOrderRoutePhotoCopyWithImpl<$Res,
-          OrdersResponseOrderRoutePhoto>;
-  @useResult
-  $Res call({int? id, String? url, int? status, String? comment});
-}
-
-/// @nodoc
-class _$OrdersResponseOrderRoutePhotoCopyWithImpl<$Res,
-        $Val extends OrdersResponseOrderRoutePhoto>
-    implements $OrdersResponseOrderRoutePhotoCopyWith<$Res> {
-  _$OrdersResponseOrderRoutePhotoCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
+  /// Create a copy of OrdersResponseOrderRoutePhoto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @pragma('vm:prefer-inline')
+  $OrdersResponseOrderRoutePhotoCopyWith<OrdersResponseOrderRoutePhoto>
+      get copyWith => _$OrdersResponseOrderRoutePhotoCopyWithImpl<
+              OrdersResponseOrderRoutePhoto>(
+          this as OrdersResponseOrderRoutePhoto, _$identity);
+
+  /// Serializes this OrdersResponseOrderRoutePhoto to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? id = freezed,
-    Object? url = freezed,
-    Object? status = freezed,
-    Object? comment = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: freezed == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int?,
-      url: freezed == url
-          ? _value.url
-          : url // ignore: cast_nullable_to_non_nullable
-              as String?,
-      status: freezed == status
-          ? _value.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as int?,
-      comment: freezed == comment
-          ? _value.comment
-          : comment // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is OrdersResponseOrderRoutePhoto &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.url, url) || other.url == url) &&
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.comment, comment) || other.comment == comment));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, url, status, comment);
+
+  @override
+  String toString() {
+    return 'OrdersResponseOrderRoutePhoto(id: $id, url: $url, status: $status, comment: $comment)';
   }
 }
 
 /// @nodoc
-abstract class _$$OrdersResponseOrderRoutePhotoImplCopyWith<$Res>
-    implements $OrdersResponseOrderRoutePhotoCopyWith<$Res> {
-  factory _$$OrdersResponseOrderRoutePhotoImplCopyWith(
-          _$OrdersResponseOrderRoutePhotoImpl value,
-          $Res Function(_$OrdersResponseOrderRoutePhotoImpl) then) =
-      __$$OrdersResponseOrderRoutePhotoImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $OrdersResponseOrderRoutePhotoCopyWith<$Res> {
+  factory $OrdersResponseOrderRoutePhotoCopyWith(
+          OrdersResponseOrderRoutePhoto value,
+          $Res Function(OrdersResponseOrderRoutePhoto) _then) =
+      _$OrdersResponseOrderRoutePhotoCopyWithImpl;
   @useResult
   $Res call({int? id, String? url, int? status, String? comment});
 }
 
 /// @nodoc
-class __$$OrdersResponseOrderRoutePhotoImplCopyWithImpl<$Res>
-    extends _$OrdersResponseOrderRoutePhotoCopyWithImpl<$Res,
-        _$OrdersResponseOrderRoutePhotoImpl>
-    implements _$$OrdersResponseOrderRoutePhotoImplCopyWith<$Res> {
-  __$$OrdersResponseOrderRoutePhotoImplCopyWithImpl(
-      _$OrdersResponseOrderRoutePhotoImpl _value,
-      $Res Function(_$OrdersResponseOrderRoutePhotoImpl) _then)
-      : super(_value, _then);
+class _$OrdersResponseOrderRoutePhotoCopyWithImpl<$Res>
+    implements $OrdersResponseOrderRoutePhotoCopyWith<$Res> {
+  _$OrdersResponseOrderRoutePhotoCopyWithImpl(this._self, this._then);
 
+  final OrdersResponseOrderRoutePhoto _self;
+  final $Res Function(OrdersResponseOrderRoutePhoto) _then;
+
+  /// Create a copy of OrdersResponseOrderRoutePhoto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -2165,21 +2146,21 @@ class __$$OrdersResponseOrderRoutePhotoImplCopyWithImpl<$Res>
     Object? status = freezed,
     Object? comment = freezed,
   }) {
-    return _then(_$OrdersResponseOrderRoutePhotoImpl(
+    return _then(_self.copyWith(
       id: freezed == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int?,
       url: freezed == url
-          ? _value.url
+          ? _self.url
           : url // ignore: cast_nullable_to_non_nullable
               as String?,
       status: freezed == status
-          ? _value.status
+          ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as int?,
       comment: freezed == comment
-          ? _value.comment
+          ? _self.comment
           : comment // ignore: cast_nullable_to_non_nullable
               as String?,
     ));
@@ -2188,14 +2169,11 @@ class __$$OrdersResponseOrderRoutePhotoImplCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$OrdersResponseOrderRoutePhotoImpl
-    implements _OrdersResponseOrderRoutePhoto {
-  const _$OrdersResponseOrderRoutePhotoImpl(
+class _OrdersResponseOrderRoutePhoto implements OrdersResponseOrderRoutePhoto {
+  const _OrdersResponseOrderRoutePhoto(
       {this.id, this.url, this.status, this.comment});
-
-  factory _$OrdersResponseOrderRoutePhotoImpl.fromJson(
-          Map<String, dynamic> json) =>
-      _$$OrdersResponseOrderRoutePhotoImplFromJson(json);
+  factory _OrdersResponseOrderRoutePhoto.fromJson(Map<String, dynamic> json) =>
+      _$OrdersResponseOrderRoutePhotoFromJson(json);
 
   @override
   final int? id;
@@ -2206,64 +2184,92 @@ class _$OrdersResponseOrderRoutePhotoImpl
   @override
   final String? comment;
 
+  /// Create a copy of OrdersResponseOrderRoutePhoto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'OrdersResponseOrderRoutePhoto(id: $id, url: $url, status: $status, comment: $comment)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$OrdersResponseOrderRoutePhotoCopyWith<_OrdersResponseOrderRoutePhoto>
+      get copyWith => __$OrdersResponseOrderRoutePhotoCopyWithImpl<
+          _OrdersResponseOrderRoutePhoto>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$OrdersResponseOrderRoutePhotoToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$OrdersResponseOrderRoutePhotoImpl &&
+            other is _OrdersResponseOrderRoutePhoto &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.url, url) || other.url == url) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.comment, comment) || other.comment == comment));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, url, status, comment);
 
-  @JsonKey(ignore: true)
   @override
-  @pragma('vm:prefer-inline')
-  _$$OrdersResponseOrderRoutePhotoImplCopyWith<
-          _$OrdersResponseOrderRoutePhotoImpl>
-      get copyWith => __$$OrdersResponseOrderRoutePhotoImplCopyWithImpl<
-          _$OrdersResponseOrderRoutePhotoImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$OrdersResponseOrderRoutePhotoImplToJson(
-      this,
-    );
+  String toString() {
+    return 'OrdersResponseOrderRoutePhoto(id: $id, url: $url, status: $status, comment: $comment)';
   }
 }
 
-abstract class _OrdersResponseOrderRoutePhoto
-    implements OrdersResponseOrderRoutePhoto {
-  const factory _OrdersResponseOrderRoutePhoto(
-      {final int? id,
-      final String? url,
-      final int? status,
-      final String? comment}) = _$OrdersResponseOrderRoutePhotoImpl;
-
-  factory _OrdersResponseOrderRoutePhoto.fromJson(Map<String, dynamic> json) =
-      _$OrdersResponseOrderRoutePhotoImpl.fromJson;
-
+/// @nodoc
+abstract mixin class _$OrdersResponseOrderRoutePhotoCopyWith<$Res>
+    implements $OrdersResponseOrderRoutePhotoCopyWith<$Res> {
+  factory _$OrdersResponseOrderRoutePhotoCopyWith(
+          _OrdersResponseOrderRoutePhoto value,
+          $Res Function(_OrdersResponseOrderRoutePhoto) _then) =
+      __$OrdersResponseOrderRoutePhotoCopyWithImpl;
   @override
-  int? get id;
-  @override
-  String? get url;
-  @override
-  int? get status;
-  @override
-  String? get comment;
-  @override
-  @JsonKey(ignore: true)
-  _$$OrdersResponseOrderRoutePhotoImplCopyWith<
-          _$OrdersResponseOrderRoutePhotoImpl>
-      get copyWith => throw _privateConstructorUsedError;
+  @useResult
+  $Res call({int? id, String? url, int? status, String? comment});
 }
+
+/// @nodoc
+class __$OrdersResponseOrderRoutePhotoCopyWithImpl<$Res>
+    implements _$OrdersResponseOrderRoutePhotoCopyWith<$Res> {
+  __$OrdersResponseOrderRoutePhotoCopyWithImpl(this._self, this._then);
+
+  final _OrdersResponseOrderRoutePhoto _self;
+  final $Res Function(_OrdersResponseOrderRoutePhoto) _then;
+
+  /// Create a copy of OrdersResponseOrderRoutePhoto
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = freezed,
+    Object? url = freezed,
+    Object? status = freezed,
+    Object? comment = freezed,
+  }) {
+    return _then(_OrdersResponseOrderRoutePhoto(
+      id: freezed == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int?,
+      url: freezed == url
+          ? _self.url
+          : url // ignore: cast_nullable_to_non_nullable
+              as String?,
+      status: freezed == status
+          ? _self.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as int?,
+      comment: freezed == comment
+          ? _self.comment
+          : comment // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+// dart format on

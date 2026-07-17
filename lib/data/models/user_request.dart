@@ -5,7 +5,7 @@ part 'user_request.g.dart';
 
 /// Тело запроса обновления профиля (`POST /user`).
 @freezed
-class UserRequest with _$UserRequest {
+abstract class UserRequest with _$UserRequest {
   const factory UserRequest({
     int? id,
     String? login,
@@ -23,7 +23,7 @@ class UserRequest with _$UserRequest {
 
 /// Тело запроса смены пароля (`POST /user/password`).
 @freezed
-class UserPasswordRequest with _$UserPasswordRequest {
+abstract class UserPasswordRequest with _$UserPasswordRequest {
   const factory UserPasswordRequest({
     @JsonKey(name: 'old_password') required String oldPassword,
     required String password,
@@ -35,7 +35,7 @@ class UserPasswordRequest with _$UserPasswordRequest {
 
 /// Тело запроса отправки FCM-токена (`PUT /user/notification`).
 @freezed
-class UserNotificationRequest with _$UserNotificationRequest {
+abstract class UserNotificationRequest with _$UserNotificationRequest {
   const factory UserNotificationRequest({
     required String token,
   }) = _UserNotificationRequest;

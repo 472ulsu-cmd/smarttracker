@@ -8,7 +8,7 @@ part 'login_response.g.dart';
 /// При успехе `code == 200` и поля `token`/`account` заполнены.
 /// При ошибке `code < 0` (например -4, -10) — учётные данные неверны.
 @freezed
-class LoginResponse with _$LoginResponse {
+abstract class LoginResponse with _$LoginResponse {
   const factory LoginResponse({
     @JsonKey(name: 'code') int? code,
     String? token,
@@ -21,7 +21,7 @@ class LoginResponse with _$LoginResponse {
 
 /// Вложенная модель аккаунта из ответа `/login`.
 @freezed
-class AccountApiModel with _$AccountApiModel {
+abstract class AccountApiModel with _$AccountApiModel {
   const factory AccountApiModel({
     int? id,
     String? login,

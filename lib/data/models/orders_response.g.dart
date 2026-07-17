@@ -6,9 +6,8 @@ part of 'orders_response.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$OrdersResponseItemImpl _$$OrdersResponseItemImplFromJson(
-        Map<String, dynamic> json) =>
-    _$OrdersResponseItemImpl(
+_OrdersResponseItem _$OrdersResponseItemFromJson(Map<String, dynamic> json) =>
+    _OrdersResponseItem(
       id: (json['id'] as num?)?.toInt(),
       num: json['num'] as String?,
       status: (json['status'] as num?)?.toInt(),
@@ -24,8 +23,7 @@ _$OrdersResponseItemImpl _$$OrdersResponseItemImplFromJson(
               json['client'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$OrdersResponseItemImplToJson(
-        _$OrdersResponseItemImpl instance) =>
+Map<String, dynamic> _$OrdersResponseItemToJson(_OrdersResponseItem instance) =>
     <String, dynamic>{
       'id': instance.id,
       'num': instance.num,
@@ -39,8 +37,8 @@ Map<String, dynamic> _$$OrdersResponseItemImplToJson(
       'client': instance.client,
     };
 
-_$OrdersResponseImpl _$$OrdersResponseImplFromJson(Map<String, dynamic> json) =>
-    _$OrdersResponseImpl(
+_OrdersResponse _$OrdersResponseFromJson(Map<String, dynamic> json) =>
+    _OrdersResponse(
       id: (json['id'] as num?)?.toInt(),
       num: json['num'] as String?,
       status: (json['status'] as num?)?.toInt(),
@@ -72,8 +70,7 @@ _$OrdersResponseImpl _$$OrdersResponseImplFromJson(Map<String, dynamic> json) =>
           .toList(),
     );
 
-Map<String, dynamic> _$$OrdersResponseImplToJson(
-        _$OrdersResponseImpl instance) =>
+Map<String, dynamic> _$OrdersResponseToJson(_OrdersResponse instance) =>
     <String, dynamic>{
       'id': instance.id,
       'num': instance.num,
@@ -97,25 +94,25 @@ Map<String, dynamic> _$$OrdersResponseImplToJson(
       'photo': instance.photo,
     };
 
-_$OrdersResponseClientImpl _$$OrdersResponseClientImplFromJson(
+_OrdersResponseClient _$OrdersResponseClientFromJson(
         Map<String, dynamic> json) =>
-    _$OrdersResponseClientImpl(
+    _OrdersResponseClient(
       org: json['org'] as String?,
       manager: json['manager'] as String?,
       phone: json['phone'] as String?,
     );
 
-Map<String, dynamic> _$$OrdersResponseClientImplToJson(
-        _$OrdersResponseClientImpl instance) =>
+Map<String, dynamic> _$OrdersResponseClientToJson(
+        _OrdersResponseClient instance) =>
     <String, dynamic>{
       'org': instance.org,
       'manager': instance.manager,
       'phone': instance.phone,
     };
 
-_$OrdersResponseRouteDetailImpl _$$OrdersResponseRouteDetailImplFromJson(
+_OrdersResponseRouteDetail _$OrdersResponseRouteDetailFromJson(
         Map<String, dynamic> json) =>
-    _$OrdersResponseRouteDetailImpl(
+    _OrdersResponseRouteDetail(
       routeDetailId: (json['route_detail_id'] as num?)?.toInt(),
       operationType: (json['operation_type'] as num?)?.toInt(),
       city: json['city'] as String?,
@@ -136,8 +133,8 @@ _$OrdersResponseRouteDetailImpl _$$OrdersResponseRouteDetailImplFromJson(
               json['client_detail'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$OrdersResponseRouteDetailImplToJson(
-        _$OrdersResponseRouteDetailImpl instance) =>
+Map<String, dynamic> _$OrdersResponseRouteDetailToJson(
+        _OrdersResponseRouteDetail instance) =>
     <String, dynamic>{
       'route_detail_id': instance.routeDetailId,
       'operation_type': instance.operationType,
@@ -156,17 +153,17 @@ Map<String, dynamic> _$$OrdersResponseRouteDetailImplToJson(
       'client_detail': instance.clientDetail,
     };
 
-_$OrdersResponseClientDetailImpl _$$OrdersResponseClientDetailImplFromJson(
+_OrdersResponseClientDetail _$OrdersResponseClientDetailFromJson(
         Map<String, dynamic> json) =>
-    _$OrdersResponseClientDetailImpl(
+    _OrdersResponseClientDetail(
       org: json['org'] as String?,
       manager: json['manager'] as String?,
       phone: json['phone'] as String?,
       type: (json['type'] as num?)?.toInt(),
     );
 
-Map<String, dynamic> _$$OrdersResponseClientDetailImplToJson(
-        _$OrdersResponseClientDetailImpl instance) =>
+Map<String, dynamic> _$OrdersResponseClientDetailToJson(
+        _OrdersResponseClientDetail instance) =>
     <String, dynamic>{
       'org': instance.org,
       'manager': instance.manager,
@@ -174,9 +171,9 @@ Map<String, dynamic> _$$OrdersResponseClientDetailImplToJson(
       'type': instance.type,
     };
 
-_$OrdersResponseOrderPhotoImpl _$$OrdersResponseOrderPhotoImplFromJson(
+_OrdersResponseOrderPhoto _$OrdersResponseOrderPhotoFromJson(
         Map<String, dynamic> json) =>
-    _$OrdersResponseOrderPhotoImpl(
+    _OrdersResponseOrderPhoto(
       id: (json['id'] as num?)?.toInt(),
       type: json['type'] as String?,
       routePhoto: (json['route_photo'] as List<dynamic>?)
@@ -185,25 +182,25 @@ _$OrdersResponseOrderPhotoImpl _$$OrdersResponseOrderPhotoImplFromJson(
           .toList(),
     );
 
-Map<String, dynamic> _$$OrdersResponseOrderPhotoImplToJson(
-        _$OrdersResponseOrderPhotoImpl instance) =>
+Map<String, dynamic> _$OrdersResponseOrderPhotoToJson(
+        _OrdersResponseOrderPhoto instance) =>
     <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
       'route_photo': instance.routePhoto,
     };
 
-_$OrdersResponseOrderRoutePhotoImpl
-    _$$OrdersResponseOrderRoutePhotoImplFromJson(Map<String, dynamic> json) =>
-        _$OrdersResponseOrderRoutePhotoImpl(
-          id: (json['id'] as num?)?.toInt(),
-          url: json['url'] as String?,
-          status: (json['status'] as num?)?.toInt(),
-          comment: json['comment'] as String?,
-        );
+_OrdersResponseOrderRoutePhoto _$OrdersResponseOrderRoutePhotoFromJson(
+        Map<String, dynamic> json) =>
+    _OrdersResponseOrderRoutePhoto(
+      id: (json['id'] as num?)?.toInt(),
+      url: json['url'] as String?,
+      status: (json['status'] as num?)?.toInt(),
+      comment: json['comment'] as String?,
+    );
 
-Map<String, dynamic> _$$OrdersResponseOrderRoutePhotoImplToJson(
-        _$OrdersResponseOrderRoutePhotoImpl instance) =>
+Map<String, dynamic> _$OrdersResponseOrderRoutePhotoToJson(
+        _OrdersResponseOrderRoutePhoto instance) =>
     <String, dynamic>{
       'id': instance.id,
       'url': instance.url,

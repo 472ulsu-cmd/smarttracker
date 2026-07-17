@@ -6,27 +6,27 @@ part of 'photo_responses.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$OrdersRoutePhotoResponseImpl _$$OrdersRoutePhotoResponseImplFromJson(
+_OrdersRoutePhotoResponse _$OrdersRoutePhotoResponseFromJson(
         Map<String, dynamic> json) =>
-    _$OrdersRoutePhotoResponseImpl(
+    _OrdersRoutePhotoResponse(
       url: json['url'] as String?,
     );
 
-Map<String, dynamic> _$$OrdersRoutePhotoResponseImplToJson(
-        _$OrdersRoutePhotoResponseImpl instance) =>
+Map<String, dynamic> _$OrdersRoutePhotoResponseToJson(
+        _OrdersRoutePhotoResponse instance) =>
     <String, dynamic>{
       'url': instance.url,
     };
 
-_$OrdersRoutePhotoTypeResponseImpl _$$OrdersRoutePhotoTypeResponseImplFromJson(
+_OrdersRoutePhotoTypeResponse _$OrdersRoutePhotoTypeResponseFromJson(
         Map<String, dynamic> json) =>
-    _$OrdersRoutePhotoTypeResponseImpl(
+    _OrdersRoutePhotoTypeResponse(
       photoId: (json['photo_id'] as num?)?.toInt(),
       url: json['url'] as String?,
     );
 
-Map<String, dynamic> _$$OrdersRoutePhotoTypeResponseImplToJson(
-        _$OrdersRoutePhotoTypeResponseImpl instance) =>
+Map<String, dynamic> _$OrdersRoutePhotoTypeResponseToJson(
+        _OrdersRoutePhotoTypeResponse instance) =>
     <String, dynamic>{
       'photo_id': instance.photoId,
       'url': instance.url,

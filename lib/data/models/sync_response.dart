@@ -5,7 +5,7 @@ part 'sync_response.g.dart';
 
 /// Конфигурация периодов (`GET /sync`).
 @freezed
-class SyncResponse with _$SyncResponse {
+abstract class SyncResponse with _$SyncResponse {
   const factory SyncResponse({
     @JsonKey(name: 'coordinates_period') int? coordinatesPeriod,
     @JsonKey(name: 'sync_period') int? syncPeriod,

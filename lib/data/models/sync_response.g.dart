@@ -6,13 +6,13 @@ part of 'sync_response.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SyncResponseImpl _$$SyncResponseImplFromJson(Map<String, dynamic> json) =>
-    _$SyncResponseImpl(
+_SyncResponse _$SyncResponseFromJson(Map<String, dynamic> json) =>
+    _SyncResponse(
       coordinatesPeriod: (json['coordinates_period'] as num?)?.toInt(),
       syncPeriod: (json['sync_period'] as num?)?.toInt(),
     );
 
-Map<String, dynamic> _$$SyncResponseImplToJson(_$SyncResponseImpl instance) =>
+Map<String, dynamic> _$SyncResponseToJson(_SyncResponse instance) =>
     <String, dynamic>{
       'coordinates_period': instance.coordinatesPeriod,
       'sync_period': instance.syncPeriod,
