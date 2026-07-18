@@ -55,7 +55,7 @@ lib/
 
 - `pubspec.yaml` — зависимости, версия, assets, конфигурация иконок.
 - `analysis_options.yaml` — `flutter_lints`, исключение сгенерированных файлов, `invalid_annotation_target: ignore`.
-- `android/app/build.gradle` — `applicationId`, `minSdk = 23`, Java/Kotlin JVM target 17, плагин `google-services`.
+- `android/app/build.gradle` — `applicationId`, `compileSdk 36`, `minSdk 23`, Java/Kotlin JVM target 17, dev/prod flavors, `coreLibraryDesugaringEnabled`, плагин `google-services`.
 - `android/settings.gradle` — AGP 8.2.0, Kotlin 1.9.24, Flutter Gradle Plugin 1.0.0.
 - `android/gradle/wrapper/gradle-wrapper.properties` — Gradle 8.5.
 - `android/app/src/main/AndroidManifest.xml` — разрешения (INTERNET, геолокация, foreground service, уведомления, RECEIVE_BOOT_COMPLETED).
@@ -76,12 +76,23 @@ flutter pub get
 flutter pub run build_runner build --delete-conflicting-outputs
 
 # Запуск в debug-режиме
-flutter run
+flutter run --flavor dev
 
-# Сборка release APK
-flutter build apk --release
-# Артефакт: build/app/outputs/flutter-apk/app-release.apk
+# Сборка release APK (dev)
+flutter build apk --release --flavor dev
+# Артефакт: build/app/outputs/flutter-apk/app-dev-release.apk
+
+# Сборка release APK (prod)
+flutter build apk --release --flavor prod --dart-define=APP_ENV=prod
+# Артефакт: build/app/outputs/flutter-apk/app-prod-release.apk
 ```
+
+**Почему именно такие SDK и флаги:**
+
+- `minSdk = 23` — требование `firebase_messaging` 16.
+- `compileSdk = 36` — требование `flutter_secure_storage` 10.
+- `coreLibraryDesugaringEnabled` — требование `flutter_local_notifications`.
+- В `gradle.properties` добавлен `android.jetifier.ignorelist=byte-buddy,bcprov-jdk18on`, потому что часть транзитивных зависимостей поставляет байт-код Java 21+, который AGP 8.2 / Jetifier не может обработать под JDK 17.
 
 **Mock-режим:** в `lib/main.dart` замените `const config = AppConfig.production;` на `const config = AppConfig.mock;` — приложение будет работать без backend через `Mock*Repository`.
 
@@ -165,7 +176,7 @@ flutter analyze
 
 ## 10. Безопасность
 
-- Токен сессии хранится в `flutter_secure_storage` (v10): на Android используется шифрование по умолчанию (`EncryptedSharedPreferences`/`Keystore` в зависимости от версии плагина), на iOS — Keychain.
+- Токен сессии хранится в `flutter_secure_storage` (v10): на Android используется шифрование по умолчанию (`EncryptedSharedPreferences`/`Keystore`), на iOS — Keychain.
 - Bearer-токен не добавляется к публичным auth-эндпоинтам (`/login`, `/registration`, `/restore`, `/user/send_phone_code`, `/user/send_restoring_phone_code`, `/user/verify_phone_code`).
 - При ответе 401/403 `AuthInterceptor` очищает токен; роутер перенаправляет на экран входа.
 - Разрешение на геолокацию должно быть «Всегда» для работы foreground-сервиса.
