@@ -57,5 +57,11 @@
 	<string>Приложению нужно отслеживать местоположение в фоне для работы диспетчера.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Приложению нужно отслеживать местоположение в фоне для работы диспетчера.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>
