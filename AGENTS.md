@@ -15,7 +15,7 @@
 
 ## 2. Технологический стек
 
-- **Flutter / Dart:** SDK `>=3.4.4 <4.0.0`, канал `stable` (см. `.metadata`).
+- **Flutter / Dart:** Flutter 3.27, Dart 3.6, SDK `>=3.6.0 <4.0.0`, канал `stable` (см. `.metadata`).
 - **Архитектура:** MVVM: `ViewModel` (ChangeNotifier) + `Repository` + доменные модели.
 - **DI:** `get_it` — глобальный контейнер `getIt` в `lib/config/service_locator.dart`.
 - **Навигация:** `go_router` + `StatefulShellRoute.indexedStack` для нижней навигации.
@@ -55,7 +55,9 @@ lib/
 
 - `pubspec.yaml` — зависимости, версия, assets, конфигурация иконок.
 - `analysis_options.yaml` — `flutter_lints`, исключение сгенерированных файлов, `invalid_annotation_target: ignore`.
-- `android/app/build.gradle` — `applicationId`, `minSdk = 21`, Java/Kotlin 17, плагин `google-services`.
+- `android/app/build.gradle` — `applicationId`, `minSdk = 21`, Java/Kotlin JVM target 17, плагин `google-services`.
+- `android/settings.gradle` — AGP 8.2.0, Kotlin 1.9.24, Flutter Gradle Plugin 1.0.0.
+- `android/gradle/wrapper/gradle-wrapper.properties` — Gradle 8.5.
 - `android/app/src/main/AndroidManifest.xml` — разрешения (INTERNET, геолокация, foreground service, уведомления, RECEIVE_BOOT_COMPLETED).
 - `android/build.gradle` — репозитории google/mavenCentral.
 - `openapi.yaml` — OpenAPI-спецификация backend API.
@@ -163,7 +165,7 @@ flutter analyze
 
 ## 10. Безопасность
 
-- Токен сессии хранится только в `flutter_secure_storage` с `encryptedSharedPreferences: true`.
+- Токен сессии хранится в `flutter_secure_storage` (v10): на Android используется шифрование по умолчанию (`EncryptedSharedPreferences`/`Keystore` в зависимости от версии плагина), на iOS — Keychain.
 - Bearer-токен не добавляется к публичным auth-эндпоинтам (`/login`, `/registration`, `/restore`, `/user/send_phone_code`, `/user/send_restoring_phone_code`, `/user/verify_phone_code`).
 - При ответе 401/403 `AuthInterceptor` очищает токен; роутер перенаправляет на экран входа.
 - Разрешение на геолокацию должно быть «Всегда» для работы foreground-сервиса.
@@ -176,7 +178,7 @@ flutter analyze
 - Иконки приложения генерируются `flutter_launcher_icons`: исходники в `icons/`, адаптивная иконка Android на оранжевом фоне `#FE4500`.
 - Для iOS требуется добавить `GoogleService-Info.plist` и разрешения на геолокацию/уведомления в `ios/Runner/Info.plist`.
 - Минимальная Android-версия: `minSdk 21` (требование `flutter_secure_storage`).
-- Используется Java 17 / Kotlin JVM target 17.
+- Сборочный стек: Flutter 3.27, Dart 3.6, AGP 8.2.0, Gradle 8.5, Kotlin 1.9.24, Java / Kotlin JVM target 17.
 
 ## 12. Что стоит помнить при изменениях
 
