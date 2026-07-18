@@ -70,19 +70,6 @@ class PendingActionStore {
     return rows.map(_fromRow).toList(growable: false);
   }
 
-  /// Прочитать все действия со статусом failed (старые первыми).
-  Future<List<PendingAction>> readFailed({int limit = 50}) async {
-    final db = await _database();
-    final rows = await db.query(
-      _table,
-      where: '$_colStatus = ?',
-      whereArgs: [PendingActionStatus.failed.name],
-      orderBy: '$_colCreatedAt ASC',
-      limit: limit,
-    );
-    return rows.map(_fromRow).toList(growable: false);
-  }
-
   /// Увеличить счётчик попыток; при превышении — пометить failed.
   Future<void> markFailedAttempt(int id) async {
     final db = await _database();

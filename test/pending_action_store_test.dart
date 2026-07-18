@@ -64,10 +64,6 @@ void main() {
 
       pending = await PendingActionStore.instance.readPending();
       expect(pending, isEmpty);
-      final failed = await PendingActionStore.instance.readFailed();
-      expect(failed.length, 1);
-      expect(failed.first.id, id);
-      expect(failed.first.status, PendingActionStatus.failed);
     });
   });
 

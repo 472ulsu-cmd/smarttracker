@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 
 import '../../../../data/services/sync_config_service.dart';
 import '../../../../domain/models/app_exception.dart';
-import '../../../../domain/models/app_session.dart';
 import '../../../../domain/models/user.dart';
 import '../../../../domain/repositories/auth_repository.dart';
 import '../../../../domain/repositories/sync_repository.dart';
@@ -128,10 +127,5 @@ class AuthViewModel extends ChangeNotifier {
   void updateUser(User user) {
     _user = user;
     notifyListeners();
-  }
-
-  AppSession? get session {
-    if (_status != AuthStatus.authenticated || _user == null) return null;
-    return null; // токен хранится в SecureStorage, не дублируем в памяти
   }
 }

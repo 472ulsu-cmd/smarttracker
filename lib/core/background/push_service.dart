@@ -6,7 +6,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../config/refresh_bus.dart';
 import '../../config/service_locator.dart';
 import '../../data/services/local_photo_store.dart';
-import '../../data/services/pending_refresh_store.dart';
 import '../../data/services/settings_service.dart';
 import '../../domain/models/order_photo.dart';
 import '../../domain/repositories/notifications_repository.dart';
@@ -72,8 +71,6 @@ class PhotoDecisionParser {
 }
 
 /// Сервис push-уведомлений: FCM + локальные уведомления.
-///
-/// Тап по уведомлению открывает заявку по order_id.
 class PushService {
   PushService(this._notificationsRepo, this._settings);
 
@@ -87,10 +84,6 @@ class PushService {
   static const _channelName = 'Уведомления';
 
   StreamSubscription<RemoteMessage>? _onMessageSub;
-  StreamSubscription<RemoteMessage>? _onMessageOpenedSub;
-
-  /// Колбэк, вызываемый при тапе по уведомлению с order_id.
-  void Function(int orderId)? onTapOrder;
 
   /// Инициализация. Возвращает FCM-токен (если получен) или null.
   Future<String?> init() async {
@@ -99,7 +92,6 @@ class PushService {
     const iosInit = DarwinInitializationSettings();
     await _local.initialize(
       settings: const InitializationSettings(android: androidInit, iOS: iosInit),
-      onDidReceiveNotificationResponse: _onTap,
     );
 
     // Канал для Android (для foreground-уведомлений).
@@ -123,20 +115,11 @@ class PushService {
     // Foreground-сообщения → локальное уведомление (если push включён).
     _onMessageSub = FirebaseMessaging.onMessage.listen(_handleForeground);
 
-    // Тап по уведомлению (background/terminated) → навигация.
-    _onMessageOpenedSub =
-        FirebaseMessaging.onMessageOpenedApp.listen(_handleTap);
-
-    // Если приложение было запущено из terminated-состояния тапом по пушу.
-    final initial = await FirebaseMessaging.instance.getInitialMessage();
-    if (initial != null) _handleTap(initial);
-
     return token;
   }
 
   void dispose() {
     _onMessageSub?.cancel();
-    _onMessageOpenedSub?.cancel();
   }
 
   Future<void> _sendToken(String token) async {
@@ -166,18 +149,6 @@ class PushService {
     _showLocal(parsed);
   }
 
-  void _handleTap(RemoteMessage message) {
-    final parsed = NotificationMessageParser.parse(message);
-    if (parsed?.orderId != null) {
-      onTapOrder?.call(parsed!.orderId!);
-    }
-  }
-
-  void _onTap(NotificationResponse response) {
-    final orderId = int.tryParse(response.payload ?? '');
-    if (orderId != null) onTapOrder?.call(orderId);
-  }
-
   /// Триггер обновления списков уведомлений, заявок и бейджа.
   void _refresh() {
     try {
@@ -204,54 +175,6 @@ class PushService {
         ),
         iOS: DarwinNotificationDetails(),
       ),
-      payload: n.orderId?.toString(),
     );
   }
-}
-
-/// Top-level обработчик фоновых FCM-сообщений (обязательно для Android).
-@pragma('vm:entry-point')
-Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  final parsed = NotificationMessageParser.parse(message);
-  if (parsed == null) return;
-
-  // Показываем системное уведомление даже для data-only сообщений.
-  const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const iosInit = DarwinInitializationSettings();
-  final local = FlutterLocalNotificationsPlugin();
-  await local.initialize(
-    settings: const InitializationSettings(android: androidInit, iOS: iosInit),
-  );
-  await local.show(
-    id: parsed.orderId ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
-    title: parsed.title,
-    body: parsed.body,
-    notificationDetails: const NotificationDetails(
-      android: AndroidNotificationDetails(
-        'smarttracker_notifications',
-        'Уведомления',
-        importance: Importance.high,
-        priority: Priority.high,
-        icon: '@mipmap/ic_launcher',
-      ),
-      iOS: DarwinNotificationDetails(),
-    ),
-    payload: parsed.orderId?.toString(),
-  );
-
-  // Сохраняем причину отклонения фото, если есть.
-  if (parsed.routePhotoId != null) {
-    final decision = PhotoDecisionParser.parse(parsed.body);
-    if (decision == OrderPhotoStatus.rejected) {
-      await LocalPhotoStore.instance.init();
-      await LocalPhotoStore.instance.saveRejectionReason(
-        parsed.routePhotoId!,
-        PhotoDecisionParser.extractReason(parsed.body),
-      );
-    }
-  }
-
-  // Ставим флаги для обновления списков при возврате в foreground.
-  await PendingRefreshStore.instance.setOrdersNeedRefresh();
-  await PendingRefreshStore.instance.setNotificationsNeedRefresh();
 }

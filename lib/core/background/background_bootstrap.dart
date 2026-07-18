@@ -90,7 +90,4 @@ class BackgroundBootstrap {
       await LocationService.instance.stop();
     } catch (_) {}
   }
-
-  /// Колбэк для перехода к заявке по тапу из пуша.
-  void Function(int orderId)? get onPushTap => _pushService?.onTapOrder;
 }

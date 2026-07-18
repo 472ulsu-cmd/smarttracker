@@ -1,24 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smarttracker/data/services/local_photo_store.dart';
-import 'package:smarttracker/data/services/pending_refresh_store.dart';
 import 'package:smarttracker/data/services/sync_config_service.dart';
 import 'package:smarttracker/domain/models/sync_config.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-
-  group('PendingRefreshStore', () {
-    setUp(() async {
-      SharedPreferences.setMockInitialValues({});
-      await PendingRefreshStore.instance.setOrdersNeedRefresh();
-    });
-
-    test('consumeOrdersNeedRefresh returns true once', () async {
-      expect(await PendingRefreshStore.instance.consumeOrdersNeedRefresh(), isTrue);
-      expect(await PendingRefreshStore.instance.consumeOrdersNeedRefresh(), isFalse);
-    });
-  });
 
   group('SyncConfigService', () {
     test('save and load config', () async {

@@ -29,15 +29,6 @@ class LocationService {
   /// Интервал сбора координат по умолчанию (60 секунд, из SyncConfig).
   int intervalMs = 60000;
 
-  /// Запросить разрешение геолокации «Всегда».
-  Future<bool> requestPermission() async {
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    return permission == LocationPermission.always;
-  }
-
   /// Инициализация конфигурации foreground-задачи.
   void init() {
     FlutterForegroundTask.init(

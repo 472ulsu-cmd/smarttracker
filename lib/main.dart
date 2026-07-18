@@ -30,7 +30,6 @@ void main() async {
   // нужен для редиректа. Сам запрос с системным диалогом происходит
   // на экране /location-permission при первом входе пользователя.
   await getIt<LocationPermissionViewModel>().check();
-  await getIt<LocationPermissionViewModel>().check();
 
   runApp(const SmartTrackerApp());
 }

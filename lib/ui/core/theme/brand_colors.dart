@@ -10,9 +10,8 @@ class BrandColors {
   /// Основной фирменный цвет — оранжевый (Pantone 1655 C).
   static const Color primary = Color(0xFFFE4500);
 
-  /// Градиенты оранжевого для инфографики/акцентов.
+  /// Светлый оранжевый для инфографики/акцентов.
   static const Color primaryLight1 = Color(0xFFFE6A33);
-  static const Color primaryLight2 = Color(0xFFFE8F66);
 
   /// Тёмно-оранжевый для текста ссылок на светлом фоне (WCAG AA).
   static const Color primaryText = Color(0xFFD63A00);
@@ -29,7 +28,6 @@ class BrandColors {
   // Серая шкала — образована от основных цветов.
   static const Color grayDark = Color(0xFF57575C);
   static const Color grayMid = Color(0xFF888B8F);
-  static const Color gray = Color(0xFFB2B7BC); // Cool Gray 5 C
   static const Color grayLight = Color(0xFFCBD0D6);
   static const Color grayLighter = Color(0xFFDAE0E5);
 
@@ -39,14 +37,8 @@ class BrandColors {
   /// Тёплый «бумажный» фон макетов.
   static const Color paperWarm = Color(0xFFFFFCF7);
 
-  /// Цвет-заполнитель/placeholder текста.
-  static const Color placeholder = grayMid;
-
   /// Цвет ошибок/деструктивных действий.
   static const Color error = Color(0xFFD32F2F);
-
-  /// Цвет текста ошибок (на светлом фоне баннера).
-  static const Color errorText = error;
 
   // --- Оттенки для чипов статусов заявок ---
 
