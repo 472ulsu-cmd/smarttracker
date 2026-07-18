@@ -73,7 +73,7 @@ lib/
 flutter pub get
 
 # Генерация freezed/json_serializable файлов (после изменений в data/models/)
-flutter pub run build_runner build --delete-conflicting-outputs
+dart run build_runner build --delete-conflicting-outputs
 
 # Запуск в debug-режиме
 flutter run --flavor dev
@@ -83,7 +83,7 @@ flutter build apk --release --flavor dev
 # Артефакт: build/app/outputs/flutter-apk/app-dev-release.apk
 
 # Сборка release APK (prod)
-flutter build apk --release --flavor prod --dart-define=APP_ENV=prod
+flutter build apk --release --flavor prod
 # Артефакт: build/app/outputs/flutter-apk/app-prod-release.apk
 ```
 
