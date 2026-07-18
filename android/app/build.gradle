@@ -42,7 +42,7 @@ android {
     defaultConfig {
         applicationId = "com.b2blogist.smarttracker"
         // minSdk 23 требуется для firebase_messaging
-        minSdk = 23
+        minSdkVersion = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
