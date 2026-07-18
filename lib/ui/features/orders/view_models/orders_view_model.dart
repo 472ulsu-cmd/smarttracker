@@ -79,65 +79,48 @@ class OrdersViewModel extends ChangeNotifier {
   }
 
   /// Загружает активные заявки один раз и распределяет по вкладкам Новые/В работе.
-  Future<void> _loadActiveTabs() async {
-    if (_loading[OrdersTab.newOrders] == true ||
-        _loading[OrdersTab.inProgress] == true) {
-      return;
+  Future<void> _loadActiveTabs() =>
+      _loadTabs(const [OrdersTab.newOrders, OrdersTab.inProgress]);
+
+  Future<void> loadTab(OrdersTab tab) => _loadTabs([tab]);
+
+  /// Общая загрузка вкладок: выставляет loading/ошибки и обновляет списки.
+  ///
+  /// Для любой не-архивной вкладки активные заявки запрашиваются один раз
+  /// и раскладываются по «Новым» и «В работе».
+  Future<void> _loadTabs(List<OrdersTab> tabs) async {
+    if (tabs.any((tab) => _loading[tab] == true)) return;
+    for (final tab in tabs) {
+      _loading[tab] = true;
+      _errors[tab] = null;
     }
-    _loading[OrdersTab.newOrders] = true;
-    _loading[OrdersTab.inProgress] = true;
-    _errors[OrdersTab.newOrders] = null;
-    _errors[OrdersTab.inProgress] = null;
     notifyListeners();
 
     try {
-      final all = await _repository.fetchActiveOrders();
-      _orders[OrdersTab.newOrders] =
-          all.where((o) => o.status == OrderStatus.newRequest.id).toList();
-      _orders[OrdersTab.inProgress] = all
-          .where((o) =>
-              OrderStatus.fromId(o.status)?.isInProgressActive ?? false)
-          .toList();
-    } on AppException catch (e) {
-      _errors[OrdersTab.newOrders] = e.message;
-      _errors[OrdersTab.inProgress] = e.message;
-    } catch (_) {
-      _errors[OrdersTab.newOrders] =
-          'Не удалось загрузить заявки. Проверьте соединение и попробуйте снова.';
-      _errors[OrdersTab.inProgress] =
-          'Не удалось загрузить заявки. Проверьте соединение и попробуйте снова.';
-    } finally {
-      _loading[OrdersTab.newOrders] = false;
-      _loading[OrdersTab.inProgress] = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> loadTab(OrdersTab tab) async {
-    if (_loading[tab] == true) return;
-    _loading[tab] = true;
-    _errors[tab] = null;
-    notifyListeners();
-
-    try {
-      if (tab == OrdersTab.archive) {
-        _orders[tab] = await _repository.fetchHistoryOrders();
+      if (tabs.length == 1 && tabs.first == OrdersTab.archive) {
+        _orders[OrdersTab.archive] = await _repository.fetchHistoryOrders();
       } else {
         final all = await _repository.fetchActiveOrders();
         _orders[OrdersTab.newOrders] =
             all.where((o) => o.status == OrderStatus.newRequest.id).toList();
         _orders[OrdersTab.inProgress] = all
-            .where((o) => OrderStatus.fromId(o.status)?.isInProgressActive ??
-                false)
+            .where((o) =>
+                OrderStatus.fromId(o.status)?.isInProgressActive ?? false)
             .toList();
       }
     } on AppException catch (e) {
-      _errors[tab] = e.message;
+      for (final tab in tabs) {
+        _errors[tab] = e.message;
+      }
     } catch (_) {
-      _errors[tab] =
-          'Не удалось загрузить заявки. Проверьте соединение и попробуйте снова.';
+      for (final tab in tabs) {
+        _errors[tab] =
+            'Не удалось загрузить заявки. Проверьте соединение и попробуйте снова.';
+      }
     } finally {
-      _loading[tab] = false;
+      for (final tab in tabs) {
+        _loading[tab] = false;
+      }
       notifyListeners();
     }
   }

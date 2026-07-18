@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 
-import '../../domain/models/app_exception.dart';
 import '../../domain/repositories/feedback_repository.dart';
+import '../services/dio_error.dart';
 
 class FeedbackRepositoryImpl implements FeedbackRepository {
   FeedbackRepositoryImpl({required Dio dio}) : _dio = dio;
@@ -13,13 +13,7 @@ class FeedbackRepositoryImpl implements FeedbackRepository {
     try {
       await _dio.put<dynamic>('/feedback', data: {'message': message});
     } on DioException catch (e) {
-      throw _rethrowDio(e);
+      throw rethrowDio(e);
     }
-  }
-
-  Never _rethrowDio(DioException e) {
-    final cause = e.error;
-    if (cause is AppException) throw cause;
-    throw const NetworkException();
   }
 }

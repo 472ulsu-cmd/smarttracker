@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../config/service_locator.dart';
 import '../../../../domain/models/order.dart';
@@ -10,8 +9,9 @@ import '../../../../domain/repositories/orders_repository.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
-import '../../../core/utils/phone_utils.dart';
 import '../../../core/widgets/brand_card.dart';
+import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/phone_call_row.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../view_models/order_detail_view_model.dart';
 
@@ -120,14 +120,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (_viewModel.order == null) {
-            return _CenterMessage(
+            return EmptyState(
               icon: Icons.error_outline_rounded,
               text: _viewModel.loadErrorMessage ??
                   'Не удалось загрузить заявку. Проверьте соединение и повторите.',
-              action: _CenterMessageAction(
-                label: 'Повторить',
-                onPressed: _viewModel.load,
-              ),
+              actionLabel: 'Повторить',
+              onAction: _viewModel.load,
             );
           }
           final order = _viewModel.order!;
@@ -328,7 +326,7 @@ class _ClientCard extends StatelessWidget {
           if (c.phone.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: _TappablePhoneRow(phone: c.phone),
+              child: PhoneCallRow(phone: c.phone),
             ),
         ],
       ),
@@ -358,80 +356,6 @@ class _Row extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _TappablePhoneRow extends StatefulWidget {
-  const _TappablePhoneRow({required this.phone});
-  final String phone;
-
-  @override
-  State<_TappablePhoneRow> createState() => _TappablePhoneRowState();
-}
-
-class _TappablePhoneRowState extends State<_TappablePhoneRow> {
-  bool _isCalling = false;
-
-  Future<void> _call(BuildContext context) async {
-    if (_isCalling) return;
-    HapticFeedback.lightImpact();
-    final normalized = normalizePhone(widget.phone);
-    if (normalized.isEmpty) return;
-    final uri = Uri.parse('tel:$normalized');
-
-    setState(() => _isCalling = true);
-    try {
-      if (await canLaunchUrl(uri)) {
-        try {
-          await launchUrl(uri);
-          return;
-        } catch (_) {
-          // Падение целевого приложения — показываем fallback ниже.
-        }
-      }
-    } finally {
-      if (mounted) setState(() => _isCalling = false);
-    }
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Не удалось позвонить. Попробуйте позже.')),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MergeSemantics(
-      child: InkWell(
-        onTap: _isCalling ? null : () => _call(context),
-        borderRadius: BorderRadius.circular(BrandRadius.sm),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48),
-          child: Row(
-            children: [
-              const Icon(Icons.phone_outlined,
-                  size: 18,
-                  color: BrandColors.primary,
-                  semanticLabel: 'Позвонить'),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  widget.phone,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: BrandColors.graphite,
-                    decoration: TextDecoration.underline,
-                    decorationColor: BrandColors.graphite,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -662,12 +586,6 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
-class _CenterMessageAction {
-  const _CenterMessageAction({required this.label, required this.onPressed});
-  final String label;
-  final VoidCallback onPressed;
-}
-
 /// Баннер ошибки с кнопкой повтора. Контрастный — читаем на ярком солнце.
 class _ErrorBanner extends StatelessWidget {
   const _ErrorBanner({required this.message, this.onRetry});
@@ -771,49 +689,6 @@ class _SuccessBanner extends StatelessWidget {
               child: const Text('Отменить'),
             ),
         ],
-      ),
-    );
-  }
-}
-
-class _CenterMessage extends StatelessWidget {
-  const _CenterMessage({
-    required this.icon,
-    required this.text,
-    this.action,
-  });
-
-  final IconData icon;
-  final String text;
-  final _CenterMessageAction? action;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 56, color: BrandColors.grayMid),
-            const SizedBox(height: 12),
-            Text(
-              text,
-              textAlign: TextAlign.center,
-              maxLines: 5,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.bodyMedium
-                  .copyWith(color: BrandColors.grayDark),
-            ),
-            if (action != null) ...[
-              const SizedBox(height: 16),
-              OutlinedButton(
-                onPressed: action!.onPressed,
-                child: Text(action!.label),
-              ),
-            ],
-          ],
-        ),
       ),
     );
   }

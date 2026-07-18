@@ -6,6 +6,8 @@ import '../../../../config/service_locator.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
+import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/error_state.dart';
 import '../view_models/orders_view_model.dart';
 import 'order_list_tile.dart';
 
@@ -190,15 +192,17 @@ class _OrdersTabBody extends StatelessWidget {
         }
         final error = viewModel.errorOf(tab);
         if (error != null && viewModel.ordersOf(tab).isEmpty) {
-          return _ErrorState(
+          return ErrorState(
               message: error, onRetry: () => viewModel.loadTab(tab));
         }
         final orders = viewModel.ordersOf(tab);
         if (orders.isEmpty) {
-          return _EmptyState(
+          return EmptyState(
+            icon: Icons.local_shipping_outlined,
             text: emptyText,
             hint: emptyHint,
-            onRefresh: () => viewModel.loadTab(tab),
+            actionLabel: 'Обновить',
+            onAction: () => viewModel.loadTab(tab),
           );
         }
         return Column(
@@ -259,81 +263,6 @@ class _SearchScopeChip extends StatelessWidget {
       selectedColor: BrandColors.primary,
       labelStyle: AppTextStyles.bodyMedium.copyWith(
         color: selected ? BrandColors.white : BrandColors.graphite,
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.text, this.hint, this.onRefresh});
-  final String text;
-  final String? hint;
-  final VoidCallback? onRefresh;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.local_shipping_outlined,
-                size: 56, color: BrandColors.grayMid),
-            const SizedBox(height: 12),
-            Text(text,
-                textAlign: TextAlign.center,
-                style: AppTextStyles.bodyMedium
-                    .copyWith(color: BrandColors.grayDark)),
-            if (hint != null) ...[
-              const SizedBox(height: 8),
-              Text(hint!,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: BrandColors.grayDark)),
-            ],
-            if (onRefresh != null) ...[
-              const SizedBox(height: 16),
-              OutlinedButton(
-                onPressed: onRefresh,
-                child: const Text('Обновить'),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.message, required this.onRetry});
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.cloud_off_rounded,
-                size: 56, color: BrandColors.error),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              maxLines: 5,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.bodyMedium
-                  .copyWith(color: BrandColors.grayDark),
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton(onPressed: onRetry, child: const Text('Повторить')),
-          ],
-        ),
       ),
     );
   }

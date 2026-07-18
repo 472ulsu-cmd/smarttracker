@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 
-import '../../domain/models/app_exception.dart';
 import '../../domain/models/notification_item.dart';
 import '../../domain/repositories/notifications_repository.dart';
 import '../models/notifications_response.dart' as api;
 import '../models/user_request.dart' as api;
+import '../services/dio_error.dart';
 
 class NotificationsRepositoryImpl implements NotificationsRepository {
   NotificationsRepositoryImpl({required Dio dio}) : _dio = dio;
@@ -21,7 +21,7 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
           .map((e) => _toDomain(api.NotificationsResponseItem.fromJson(e)))
           .toList(growable: false);
     } on DioException catch (e) {
-      throw _rethrowDio(e);
+      throw rethrowDio(e);
     }
   }
 
@@ -33,7 +33,7 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
         data: {'status_id': 2},
       );
     } on DioException catch (e) {
-      throw _rethrowDio(e);
+      throw rethrowDio(e);
     }
   }
 
@@ -51,7 +51,7 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
         data: api.UserNotificationRequest(token: token),
       );
     } on DioException catch (e) {
-      throw _rethrowDio(e);
+      throw rethrowDio(e);
     }
   }
 
@@ -65,11 +65,5 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
       routePhotoId: n.routePhotoId,
       routePhotoTypeId: n.routePhotoTypeId,
     );
-  }
-
-  Never _rethrowDio(DioException e) {
-    final cause = e.error;
-    if (cause is AppException) throw cause;
-    throw const NetworkException();
   }
 }

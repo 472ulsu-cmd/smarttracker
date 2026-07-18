@@ -8,6 +8,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/utils/date_format.dart';
 import '../../../core/widgets/brand_card.dart';
+import '../../../core/widgets/empty_state.dart';
 import '../view_models/notifications_view_model.dart';
 
 /// Экран уведомлений с переключателем push.
@@ -104,35 +105,43 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           }
           if (_viewModel.items.isEmpty) {
             final errorMessage = _viewModel.errorMessage;
+            // Ошибка с ElevatedButton.icon и блокировкой на время загрузки —
+            // специфика этого экрана, в общий ErrorState не выносится.
             return SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: ConstrainedBox(
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          errorMessage ?? 'Пока нет уведомлений. Здесь появятся сообщения по заявкам.',
-                          style: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayDark),
-                          textAlign: TextAlign.center,
-                          maxLines: 5,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (errorMessage != null) ...[
-                          const SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: _viewModel.isBusy ? null : _viewModel.load,
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('Повторить'),
+                child: errorMessage == null
+                    ? const EmptyState(
+                        icon: null,
+                        text:
+                            'Пока нет уведомлений. Здесь появятся сообщения по заявкам.',
+                      )
+                    : Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                errorMessage,
+                                style: AppTextStyles.bodyMedium
+                                    .copyWith(color: BrandColors.grayDark),
+                                textAlign: TextAlign.center,
+                                maxLines: 5,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed:
+                                    _viewModel.isBusy ? null : _viewModel.load,
+                                icon: const Icon(Icons.refresh),
+                                label: const Text('Повторить'),
+                              ),
+                            ],
                           ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
+                        ),
+                      ),
               ),
             );
           }

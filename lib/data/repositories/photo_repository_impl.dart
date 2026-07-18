@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../domain/models/app_exception.dart';
 import '../../domain/repositories/photo_repository.dart';
 import '../models/photo_responses.dart' as api;
+import '../services/dio_error.dart';
 
 class PhotoRepositoryImpl implements PhotoRepository {
   PhotoRepositoryImpl({required Dio dio, ImagePicker? picker})
@@ -34,7 +35,7 @@ class PhotoRepositoryImpl implements PhotoRepository {
       final parsed = api.OrdersRoutePhotoTypeResponse.fromJson(data);
       return parsed.photoId ?? 0;
     } on DioException catch (e) {
-      throw _rethrowDio(e);
+      throw rethrowDio(e);
     }
   }
 
@@ -55,7 +56,7 @@ class PhotoRepositoryImpl implements PhotoRepository {
       final parsed = api.OrdersRoutePhotoResponse.fromJson(data);
       return parsed.url ?? '';
     } on DioException catch (e) {
-      throw _rethrowDio(e);
+      throw rethrowDio(e);
     }
   }
 
@@ -86,11 +87,5 @@ class PhotoRepositoryImpl implements PhotoRepository {
     } catch (_) {
       throw const UnknownException('Не удалось получить изображение.');
     }
-  }
-
-  Never _rethrowDio(DioException e) {
-    final cause = e.error;
-    if (cause is AppException) throw cause;
-    throw const NetworkException();
   }
 }

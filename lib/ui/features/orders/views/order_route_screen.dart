@@ -9,7 +9,7 @@ import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
 import '../../../core/utils/date_format.dart';
 import '../../../core/widgets/brand_card.dart';
-import '../../../core/utils/phone_utils.dart';
+import '../../../core/widgets/phone_call_row.dart';
 import '../view_models/order_detail_view_model.dart';
 
 /// Экран детального маршрута по точкам заявки.
@@ -402,7 +402,12 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                       ],
                       if (point.client.phone.isNotEmpty) ...[
                         const SizedBox(height: 4),
-                        _PhoneFieldLine(phone: point.client.phone),
+                        PhoneCallRow(
+                          phone: point.client.phone,
+                          iconSize: 16,
+                          textStyle: AppTextStyles.bodySmall,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                        ),
                       ],
                     ],
                   ],
@@ -479,85 +484,6 @@ class _FieldLine extends StatelessWidget {
           ),
           trailing ?? const SizedBox.shrink(),
         ],
-      ),
-    );
-  }
-}
-
-/// Кликабельная строка с телефоном.
-class _PhoneFieldLine extends StatefulWidget {
-  const _PhoneFieldLine({required this.phone});
-  final String phone;
-
-  @override
-  State<_PhoneFieldLine> createState() => _PhoneFieldLineState();
-}
-
-class _PhoneFieldLineState extends State<_PhoneFieldLine> {
-  bool _isCalling = false;
-
-  Future<void> _call(BuildContext context) async {
-    if (_isCalling) return;
-    HapticFeedback.lightImpact();
-    final normalized = normalizePhone(widget.phone);
-    if (normalized.isEmpty) return;
-    final uri = Uri.parse('tel:$normalized');
-
-    setState(() => _isCalling = true);
-    try {
-      if (await canLaunchUrl(uri)) {
-        try {
-          await launchUrl(uri);
-          return;
-        } catch (_) {
-          // Падение dialer'а — пробуем fallback ниже.
-        }
-      }
-    } finally {
-      if (mounted) setState(() => _isCalling = false);
-    }
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Не удалось позвонить. Попробуйте позже.')),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MergeSemantics(
-      child: InkWell(
-        onTap: _isCalling ? null : () => _call(context),
-        borderRadius: BorderRadius.circular(BrandRadius.sm),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 48),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(
-                Icons.phone_outlined,
-                size: 16,
-                color: BrandColors.primary,
-                semanticLabel: 'Позвонить',
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  widget.phone,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: BrandColors.graphite,
-                    decoration: TextDecoration.underline,
-                    decorationColor: BrandColors.graphite,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

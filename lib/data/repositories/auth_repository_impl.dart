@@ -4,10 +4,12 @@ import '../../domain/models/app_exception.dart';
 import '../../domain/models/app_session.dart';
 import '../../domain/models/user.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../mappers/user_mapper.dart';
 import '../models/login_request.dart';
 import '../models/login_response.dart';
 import '../models/registration_requests.dart';
 import '../models/user_response.dart';
+import '../services/dio_error.dart';
 import '../services/secure_storage_service.dart';
 
 /// Реализация [AuthRepository] поверх реального API.
@@ -37,17 +39,18 @@ class AuthRepositoryImpl implements AuthRepository {
 
       // API возвращает code < 0 при неверных учётных данных.
       if (code == null || code < 0 || parsed.token == null) {
-        throw ValidationException(message: _validationMessage(code));
+        throw ValidationException(
+            message: 'Неверный паспорт или пароль. Проверьте введённые данные.');
       }
 
       await _storage.saveToken(parsed.token!);
       final account = parsed.account;
       final user = account != null
-          ? _accountToUser(account)
+          ? UserMapper.fromAccount(account)
           : await fetchCurrentUser();
       return AppSession(token: parsed.token!, user: user);
     } on DioException catch (e) {
-      throw _rethrowDio(e);
+      throw rethrowDio(e);
     }
   }
 
@@ -59,9 +62,9 @@ class AuthRepositoryImpl implements AuthRepository {
           ? response.data as Map<String, dynamic>
           : <String, dynamic>{};
       final parsed = UserResponse.fromJson(data);
-      return _userResponseToUser(parsed);
+      return UserMapper.fromResponse(parsed);
     } on DioException catch (e) {
-      throw _rethrowDio(e);
+      throw rethrowDio(e);
     }
   }
 
@@ -90,29 +93,26 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> sendPhoneCode(String login, String phone,
-      {int phoneCodeId = 1}) async {
-    try {
-      await _dio.post<dynamic>(
-        '/user/send_phone_code',
-        data: SendPhoneCodeRequest(
-            login: login, phone: phone, phoneCodeId: phoneCodeId),
-      );
-    } on DioException catch (e) {
-      throw _rethrowDio(e);
-    }
-  }
+          {int phoneCodeId = 1}) =>
+      _sendPhoneCode('/user/send_phone_code', login, phone, phoneCodeId);
 
   @override
   Future<void> sendRestoringPhoneCode(String login, String phone,
-      {int phoneCodeId = 1}) async {
+          {int phoneCodeId = 1}) =>
+      _sendPhoneCode(
+          '/user/send_restoring_phone_code', login, phone, phoneCodeId);
+
+  /// Отправляет SMS-код на указанный endpoint.
+  Future<void> _sendPhoneCode(
+      String path, String login, String phone, int phoneCodeId) async {
     try {
       await _dio.post<dynamic>(
-        '/user/send_restoring_phone_code',
+        path,
         data: SendPhoneCodeRequest(
             login: login, phone: phone, phoneCodeId: phoneCodeId),
       );
     } on DioException catch (e) {
-      throw _rethrowDio(e);
+      throw rethrowDio(e);
     }
   }
 
@@ -134,7 +134,7 @@ class AuthRepositoryImpl implements AuthRepository {
         ),
       );
     } on DioException catch (e) {
-      throw _rethrowDio(e);
+      throw rethrowDio(e);
     }
   }
 
@@ -144,22 +144,14 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
     required String phone,
     int phoneCodeId = 1,
-  }) async {
-    try {
-      await _dio.post<dynamic>(
+  }) =>
+      _registerThenLogin(
         '/registration',
-        data: RegistrationRequest(
-          login: login,
-          password: password,
-          phone: phone,
-          phoneCodeId: phoneCodeId,
-        ),
+        login: login,
+        password: password,
+        phone: phone,
+        phoneCodeId: phoneCodeId,
       );
-      return await _doLogin(login, password);
-    } on DioException catch (e) {
-      throw _rethrowDio(e);
-    }
-  }
 
   @override
   Future<AppSession> recoverAndLogin({
@@ -167,10 +159,26 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
     required String phone,
     int phoneCodeId = 1,
+  }) =>
+      _registerThenLogin(
+        '/restore',
+        login: login,
+        password: password,
+        phone: phone,
+        phoneCodeId: phoneCodeId,
+      );
+
+  /// Вызывает endpoint регистрации/восстановления и сразу выполняет вход.
+  Future<AppSession> _registerThenLogin(
+    String path, {
+    required String login,
+    required String password,
+    required String phone,
+    required int phoneCodeId,
   }) async {
     try {
       await _dio.post<dynamic>(
-        '/restore',
+        path,
         data: RegistrationRequest(
           login: login,
           password: password,
@@ -178,61 +186,9 @@ class AuthRepositoryImpl implements AuthRepository {
           phoneCodeId: phoneCodeId,
         ),
       );
-      return await _doLogin(login, password);
+      return await this.login(login, password);
     } on DioException catch (e) {
-      throw _rethrowDio(e);
+      throw rethrowDio(e);
     }
-  }
-
-  /// Внутренний helper входа после регистрации/восстановления.
-  Future<AppSession> _doLogin(String login, String password) async {
-    return this.login(login, password);
-  }
-
-  // --- Маппинг API → домен ---
-
-  User _accountToUser(AccountApiModel a) {
-    return User(
-      id: a.id ?? 0,
-      login: a.login ?? '',
-      name: a.name ?? '',
-      secondName: a.secondName ?? '',
-      surname: a.surname ?? '',
-      phone: a.phone ?? '',
-      phoneCode: a.phoneCode ?? 1,
-      avatar: a.avatar ?? '',
-    );
-  }
-
-  User _userResponseToUser(UserResponse u) {
-    return User(
-      id: u.id ?? 0,
-      login: u.login ?? '',
-      name: u.name ?? '',
-      secondName: u.secondName ?? '',
-      surname: u.surname ?? '',
-      phone: u.phone ?? '',
-      phoneCode: u.phoneCode ?? 1,
-      avatar: u.avatar ?? '',
-    );
-  }
-
-  String _validationMessage(int? code) {
-    switch (code) {
-      case -4:
-      case -10:
-        return 'Неверный паспорт или пароль. Проверьте введённые данные.';
-      default:
-        return 'Неверный паспорт или пароль. Проверьте введённые данные.';
-    }
-  }
-
-  /// Достаёт доменное исключение из DioException (ErrorInterceptor кладёт его в `error`).
-  Never _rethrowDio(DioException e) {
-    final cause = e.error;
-    if (cause is AppException) {
-      throw cause;
-    }
-    throw const NetworkException();
   }
 }

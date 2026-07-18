@@ -50,13 +50,16 @@ class MockAuthRepository implements AuthRepository {
 
   @override
   Future<void> sendPhoneCode(String login, String phone,
-      {int phoneCodeId = 1}) async {
-    await Future.delayed(const Duration(milliseconds: 400));
-  }
+          {int phoneCodeId = 1}) =>
+      _sendCode();
 
   @override
   Future<void> sendRestoringPhoneCode(String login, String phone,
-      {int phoneCodeId = 1}) async {
+          {int phoneCodeId = 1}) =>
+      _sendCode();
+
+  /// Имитация задержки отправки SMS-кода.
+  Future<void> _sendCode() async {
     await Future.delayed(const Duration(milliseconds: 400));
   }
 
@@ -80,9 +83,8 @@ class MockAuthRepository implements AuthRepository {
     required String password,
     required String phone,
     int phoneCodeId = 1,
-  }) async {
-    return this.login(login, password);
-  }
+  }) =>
+      this.login(login, password);
 
   @override
   Future<AppSession> recoverAndLogin({
@@ -90,9 +92,8 @@ class MockAuthRepository implements AuthRepository {
     required String password,
     required String phone,
     int phoneCodeId = 1,
-  }) async {
-    return this.login(login, password);
-  }
+  }) =>
+      this.login(login, password);
 
   User _demoUser() => const User(
         id: 1,

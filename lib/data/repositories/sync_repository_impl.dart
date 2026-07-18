@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 
-import '../../domain/models/app_exception.dart';
 import '../../domain/models/geo_point.dart';
 import '../../domain/models/sync_config.dart';
 import '../../domain/repositories/sync_repository.dart';
 import '../models/sync_response.dart' as api;
+import '../services/dio_error.dart';
 
 class SyncRepositoryImpl implements SyncRepository {
   SyncRepositoryImpl({required Dio dio}) : _dio = dio;
@@ -20,7 +20,7 @@ class SyncRepositoryImpl implements SyncRepository {
         data: points.map((p) => p.toJson()).toList(),
       );
     } on DioException catch (e) {
-      throw _rethrowDio(e);
+      throw rethrowDio(e);
     }
   }
 
@@ -37,13 +37,7 @@ class SyncRepositoryImpl implements SyncRepository {
         syncPeriodSec: parsed.syncPeriod ?? 900,
       );
     } on DioException catch (e) {
-      throw _rethrowDio(e);
+      throw rethrowDio(e);
     }
-  }
-
-  Never _rethrowDio(DioException e) {
-    final cause = e.error;
-    if (cause is AppException) throw cause;
-    throw const NetworkException();
   }
 }
