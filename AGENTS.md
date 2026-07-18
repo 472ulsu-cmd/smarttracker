@@ -55,7 +55,7 @@ lib/
 
 - `pubspec.yaml` — зависимости, версия, assets, конфигурация иконок.
 - `analysis_options.yaml` — `flutter_lints`, исключение сгенерированных файлов, `invalid_annotation_target: ignore`.
-- `android/app/build.gradle` — `applicationId`, `minSdk = 21`, Java/Kotlin JVM target 17, плагин `google-services`.
+- `android/app/build.gradle` — `applicationId`, `minSdk = 23`, Java/Kotlin JVM target 17, плагин `google-services`.
 - `android/settings.gradle` — AGP 8.2.0, Kotlin 1.9.24, Flutter Gradle Plugin 1.0.0.
 - `android/gradle/wrapper/gradle-wrapper.properties` — Gradle 8.5.
 - `android/app/src/main/AndroidManifest.xml` — разрешения (INTERNET, геолокация, foreground service, уведомления, RECEIVE_BOOT_COMPLETED).
@@ -177,7 +177,7 @@ flutter analyze
 - Release-сборка Android подписывается debug-ключом (см. `android/app/build.gradle` `signingConfig = signingConfigs.debug`) — **перед публикацией нужно настроить собственный signing config**.
 - Иконки приложения генерируются `flutter_launcher_icons`: исходники в `icons/`, адаптивная иконка Android на оранжевом фоне `#FE4500`.
 - Для iOS требуется добавить `GoogleService-Info.plist` и разрешения на геолокацию/уведомления в `ios/Runner/Info.plist`.
-- Минимальная Android-версия: `minSdk 21` (требование `flutter_secure_storage`).
+- Минимальная Android-версия: `minSdk 23` (требование `firebase_messaging`).
 - Сборочный стек: Flutter 3.27, Dart 3.6, AGP 8.2.0, Gradle 8.5, Kotlin 1.9.24, Java / Kotlin JVM target 17.
 
 ## 12. Что стоит помнить при изменениях

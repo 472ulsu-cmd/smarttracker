@@ -41,8 +41,8 @@ android {
 
     defaultConfig {
         applicationId = "com.b2blogist.smarttracker"
-        // minSdk 21 требуется для flutter_secure_storage (encryptedSharedPreferences)
-        minSdk = 21
+        // minSdk 23 требуется для flutter_messaging
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
