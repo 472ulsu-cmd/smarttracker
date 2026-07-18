@@ -57,9 +57,6 @@ dependencies:
   firebase_messaging: ^16.4.3
   flutter_local_notifications: ^19.5.0
 
-  # Счётчик непрочитанных уведомлений на иконке приложения
-  app_badge_plus: ^1.2.10
-
   # Звонок по номеру из приложения
   url_launcher: ^6.3.2
 
