@@ -14,6 +14,9 @@ class BrandColors {
   static const Color primaryLight1 = Color(0xFFFE6A33);
   static const Color primaryLight2 = Color(0xFFFE8F66);
 
+  /// Тёмно-оранжевый для текста ссылок на светлом фоне (WCAG AA).
+  static const Color primaryText = Color(0xFFD63A00);
+
   /// Тёмный графит — текст, фон (Pantone 426 C).
   static const Color graphite = Color(0xFF25252A);
 
@@ -41,6 +44,9 @@ class BrandColors {
 
   /// Цвет ошибок/деструктивных действий.
   static const Color error = Color(0xFFD32F2F);
+
+  /// Цвет текста ошибок (на светлом фоне баннера).
+  static const Color errorText = error;
 
   // --- Оттенки для чипов статусов заявок ---
 

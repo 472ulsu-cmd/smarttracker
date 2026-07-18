@@ -292,9 +292,9 @@ class _MockHint extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: BrandColors.primary.withOpacity(0.08),
+        color: BrandColors.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(BrandRadius.md),
-        border: Border.all(color: BrandColors.primary.withOpacity(0.2)),
+        border: Border.all(color: BrandColors.primary.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -102,7 +102,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                         width: 96,
                         height: 96,
                         decoration: BoxDecoration(
-                          color: BrandColors.primary.withOpacity(0.12),
+                          color: BrandColors.primary.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.location_on_rounded,
@@ -138,7 +138,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: BrandColors.error.withOpacity(0.08),
+                            color: BrandColors.error.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(BrandRadius.sm),
                           ),
                           child: Row(

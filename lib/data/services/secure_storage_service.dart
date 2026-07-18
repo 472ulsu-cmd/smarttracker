@@ -2,14 +2,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Безопасное хранилище сессии (токена).
 ///
-/// Использует `flutter_secure_storage` с `encryptedSharedPreferences: true`
-/// (Keystore на Android, Keychain на iOS).
+/// Использует `flutter_secure_storage` (Keystore на Android, Keychain на iOS).
 class SecureStorageService {
   SecureStorageService({FlutterSecureStorage? storage})
-      : _storage = storage ??
-            const FlutterSecureStorage(
-              aOptions: AndroidOptions(encryptedSharedPreferences: true),
-            );
+      : _storage = storage ?? const FlutterSecureStorage();
 
   final FlutterSecureStorage _storage;
 

@@ -113,7 +113,7 @@ class LocationTaskHandler extends TaskHandler {
   }
 
   @override
-  Future<void> onDestroy(DateTime timestamp) async {
+  Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {
     // Нечего освобождать.
   }
 
@@ -136,8 +136,10 @@ class LocationTaskHandler extends TaskHandler {
   Future<void> _collect() async {
     try {
       final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.low,
-        timeLimit: const Duration(seconds: 15),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.low,
+          timeLimit: Duration(seconds: 15),
+        ),
       );
       // Ближайший город определяется офлайн по встроенной БД.
       final city = await CityLookup.instance

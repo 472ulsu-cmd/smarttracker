@@ -354,7 +354,7 @@ class _UpdateErrorBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: BrandColors.errorBackground,
         border: Border(
-          bottom: BorderSide(color: BrandColors.error.withOpacity(0.35)),
+          bottom: BorderSide(color: BrandColors.error.withValues(alpha: 0.35)),
         ),
       ),
       child: Row(

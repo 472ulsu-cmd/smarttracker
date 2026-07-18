@@ -34,7 +34,7 @@ class AppRoutes {
 
 String? _authRedirect(BuildContext context, GoRouterState state) {
   final auth = getIt<AuthViewModel>();
-  final path = state.matchedLocation;
+  final path = state.uri.toString();
   final isAuthRoute = path.startsWith('/auth');
   final isLocationScreen = path == AppRoutes.locationPermission;
 

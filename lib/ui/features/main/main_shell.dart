@@ -35,7 +35,7 @@ class MainShell extends StatelessWidget {
         },
         backgroundColor: theme.bottomNavigationBarTheme.backgroundColor ??
             colorScheme.surface,
-        indicatorColor: colorScheme.primary.withOpacity(0.12),
+        indicatorColor: colorScheme.primary.withValues(alpha: 0.12),
         elevation: theme.bottomNavigationBarTheme.elevation ?? 8,
         destinations: [
           NavigationDestination(

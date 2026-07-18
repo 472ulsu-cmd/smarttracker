@@ -682,7 +682,7 @@ class _ErrorBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: BrandColors.errorBackground,
         borderRadius: BorderRadius.circular(BrandRadius.sm),
-        border: Border.all(color: BrandColors.error.withOpacity(0.35)),
+        border: Border.all(color: BrandColors.error.withValues(alpha: 0.35)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -729,7 +729,7 @@ class _SuccessBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: BrandColors.successBackground,
         borderRadius: BorderRadius.circular(BrandRadius.sm),
-        border: Border.all(color: BrandColors.greenWeb.withOpacity(0.4)),
+        border: Border.all(color: BrandColors.greenWeb.withValues(alpha: 0.4)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
