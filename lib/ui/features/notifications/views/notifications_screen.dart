@@ -190,7 +190,7 @@ class _PushToggle extends StatelessWidget {
               builder: (context, _) {
                 return Switch(
                   value: viewModel.settings.pushEnabled,
-                  activeColor: BrandColors.primary,
+                  activeThumbColor: BrandColors.primary,
                   onChanged: viewModel.isBusy ? null : viewModel.togglePush,
                 );
               },

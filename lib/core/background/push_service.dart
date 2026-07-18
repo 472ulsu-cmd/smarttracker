@@ -98,7 +98,7 @@ class PushService {
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosInit = DarwinInitializationSettings();
     await _local.initialize(
-      const InitializationSettings(android: androidInit, iOS: iosInit),
+      settings: const InitializationSettings(android: androidInit, iOS: iosInit),
       onDidReceiveNotificationResponse: _onTap,
     );
 
@@ -191,10 +191,10 @@ class PushService {
 
   Future<void> _showLocal(ParsedNotification n) async {
     await _local.show(
-      n.orderId ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      n.title,
-      n.body,
-      const NotificationDetails(
+      id: n.orderId ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title: n.title,
+      body: n.body,
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
           _channelName,
@@ -220,13 +220,13 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   const iosInit = DarwinInitializationSettings();
   final local = FlutterLocalNotificationsPlugin();
   await local.initialize(
-    const InitializationSettings(android: androidInit, iOS: iosInit),
+    settings: const InitializationSettings(android: androidInit, iOS: iosInit),
   );
   await local.show(
-    parsed.orderId ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
-    parsed.title,
-    parsed.body,
-    const NotificationDetails(
+    id: parsed.orderId ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    title: parsed.title,
+    body: parsed.body,
+    notificationDetails: const NotificationDetails(
       android: AndroidNotificationDetails(
         'smarttracker_notifications',
         'Уведомления',

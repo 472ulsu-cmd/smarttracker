@@ -105,7 +105,7 @@ ThemeData appTheme() {
         borderSide: const BorderSide(color: BrandColors.error, width: 1.5),
       ),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: BrandColors.white,
       elevation: 0,
       shape: RoundedRectangleBorder(

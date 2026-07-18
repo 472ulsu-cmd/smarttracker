@@ -15,7 +15,7 @@
 
 ## 2. Технологический стек
 
-- **Flutter / Dart:** Flutter 3.27, Dart 3.6, SDK `>=3.6.0 <4.0.0`, канал `stable` (см. `.metadata`).
+- **Flutter / Dart:** Flutter 3.44.6, Dart 3.12.2, SDK `>=3.8.0 <4.0.0`, канал `stable` (см. `.metadata`).
 - **Архитектура:** MVVM: `ViewModel` (ChangeNotifier) + `Repository` + доменные модели.
 - **DI:** `get_it` — глобальный контейнер `getIt` в `lib/config/service_locator.dart`.
 - **Навигация:** `go_router` + `StatefulShellRoute.indexedStack` для нижней навигации.
@@ -73,7 +73,7 @@ lib/
 flutter pub get
 
 # Генерация freezed/json_serializable файлов (после изменений в data/models/)
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build
 
 # Запуск в debug-режиме
 flutter run --flavor dev
@@ -171,6 +171,7 @@ flutter analyze
 - `prefer_single_quotes` не включён.
 - Сгенерированные `**/*.g.dart` и `**/*.freezed.dart` исключены из анализа.
 - `invalid_annotation_target: ignore` — ложное срабатывание на `@JsonKey` от freezed.
+- `unnecessary_underscores: false` — отключено, потому что Dart не позволяет дублировать имя `_` для нескольких неиспользуемых параметров в одном колбэке.
 - Комментарии и пользовательские сообщения — на русском языке.
 - Именование в `camelCase` для Dart-кода; константы брендовой палитры в `BrandColors`.
 
@@ -181,19 +182,21 @@ flutter analyze
 - При ответе 401/403 `AuthInterceptor` очищает токен; роутер перенаправляет на экран входа.
 - Разрешение на геолокацию должно быть «Всегда» для работы foreground-сервиса.
 - `google-services.json` содержит Firebase-ключи; файлы есть в корне проекта и в `android/app/`. Они не должны коммититься в публичный репозиторий — проверьте `.gitignore` перед публикацией.
+- `ios/Runner/GoogleService-Info.plist` также содержит Firebase-ключи и исключён из git. Для сборки iOS файл нужно добавить локально или на CI.
 - FCM-токен отправляется на backend через `PUT /user/notification`.
 
 ## 11. Деплой
 
 - Release-сборка Android подписывается debug-ключом (см. `android/app/build.gradle` `signingConfig = signingConfigs.debug`) — **перед публикацией нужно настроить собственный signing config**.
 - Иконки приложения генерируются `flutter_launcher_icons`: исходники в `icons/`, адаптивная иконка Android на оранжевом фоне `#FE4500`.
-- Для iOS требуется добавить `GoogleService-Info.plist` и разрешения на геолокацию/уведомления в `ios/Runner/Info.plist`.
+- Для iOS требуется добавить `GoogleService-Info.plist` (не коммитится, см. `.gitignore`) и разрешения на геолокацию/уведомления в `ios/Runner/Info.plist`.
 - Минимальная Android-версия: `minSdk 23` (требование `firebase_messaging`).
-- Сборочный стек: Flutter 3.27, Dart 3.6, AGP 8.2.0, Gradle 8.5, Kotlin 1.9.24, Java / Kotlin JVM target 17.
+- Сборочный стек: Flutter 3.44.6, Dart 3.12.2, AGP 8.2.0, Gradle 8.5, Kotlin 1.9.24, Java / Kotlin JVM target 17.
 
 ## 12. Что стоит помнить при изменениях
 
 - После правок в `data/models/*.dart` запускайте `build_runner`.
+- Сгенерированные `*.g.dart` / `*.freezed.dart` не коммитятся (добавлены в `.gitignore`) и генерируются локально или на CI.
 - Если меняете интерфейс репозитория, обновите и mock-реализацию в `lib/data/repositories/mock_repositories.dart`.
 - `AuthViewModel` и `LocationPermissionViewModel` — синглтоны; изменения состояния влияют на роутер и `MainShell`.
 - Фоновые сервисы зависят от обоих синглтонов выше; тестируйте их совместное состояние.

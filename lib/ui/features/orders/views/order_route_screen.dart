@@ -477,7 +477,7 @@ class _FieldLine extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          if (trailing != null) trailing!,
+          trailing ?? const SizedBox.shrink(),
         ],
       ),
     );

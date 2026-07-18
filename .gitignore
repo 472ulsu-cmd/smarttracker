@@ -30,6 +30,8 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+*.g.dart
+*.freezed.dart
 
 # Symbolication related
 app.*.symbols
@@ -45,6 +47,7 @@ app.*.map.json
 # Firebase configuration — contains API keys; do not commit.
 google-services.json
 /android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
 
 # AI agent generated state and system skills.
 .impeccable/
@@ -52,3 +55,7 @@ google-services.json
 docs/superpowers/
 .agents/skills/impeccable/
 .agents/skills/ponytail/
+
+# Local SDK installs
+.flutter_sdk/
+.jdk/
