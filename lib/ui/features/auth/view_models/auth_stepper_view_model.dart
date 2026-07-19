@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../../../domain/models/app_exception.dart';
@@ -12,6 +14,9 @@ class AuthStepperViewModel extends ChangeNotifier {
 
   final AuthRepository _repository;
   final AuthFlowMode mode;
+
+  /// Кулдаун повторной отправки SMS-кода, секунд.
+  static const int resendCooldownSeconds = 30;
 
   AuthStep _step = AuthStep.passport;
   AuthStep get step => _step;
@@ -30,6 +35,17 @@ class AuthStepperViewModel extends ChangeNotifier {
   String password = '';
   String passwordConfirm = '';
 
+  // --- Повторная отправка SMS с кулдауном ---
+
+  Timer? _cooldownTimer;
+  int _resendRemaining = 0;
+
+  /// Секунд до разблокировки повторной отправки (0 — можно отправлять).
+  int get resendRemaining => _resendRemaining;
+
+  /// Можно ли запросить код повторно прямо сейчас.
+  bool get canResend => _resendRemaining == 0 && !_isLoading;
+
   void clearError() {
     if (_errorMessage != null) {
       _errorMessage = null;
@@ -47,32 +63,70 @@ class AuthStepperViewModel extends ChangeNotifier {
     return true;
   }
 
-  /// Шаг 2 → 3: запрос SMS-кода.
-  Future<bool> requestSmsCode() async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+  /// Отправка SMS-кода (общее ядро для [requestSmsCode] и [resendCode]).
+  Future<bool> _sendCode() async {
     try {
       if (mode == AuthFlowMode.registration) {
         await _repository.sendPhoneCode(passport, phone);
       } else {
         await _repository.sendRestoringPhoneCode(passport, phone);
       }
-      _step = AuthStep.sms;
-      notifyListeners();
       return true;
     } on AppException catch (e) {
       _errorMessage = e.message;
-      notifyListeners();
       return false;
     } catch (_) {
       _errorMessage = 'Не удалось отправить код. Проверьте номер телефона и попробуйте ещё раз.';
-      notifyListeners();
       return false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
+  }
+
+  /// Шаг 2 → 3: запрос SMS-кода.
+  Future<bool> requestSmsCode() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    final ok = await _sendCode();
+    _isLoading = false;
+    if (ok) {
+      _step = AuthStep.sms;
+      _startCooldown();
+    }
+    notifyListeners();
+    return ok;
+  }
+
+  /// Повторная отправка кода с SMS-шага. Гейтится кулдауном —
+  /// возвращает false, если кулдаун ещё не истёк.
+  Future<bool> resendCode() async {
+    if (!canResend) return false;
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    final ok = await _sendCode();
+    _isLoading = false;
+    if (ok) {
+      _startCooldown();
+    }
+    notifyListeners();
+    return ok;
+  }
+
+  /// Запуск/перезапуск отсчёта кулдауна после успешной отправки кода.
+  /// Отсчёт по тикам таймера: в худшем случае (пауза приложения в фоне)
+  /// кулдаун длится чуть дольше — это безопасная сторона ошибки.
+  void _startCooldown() {
+    _resendRemaining = resendCooldownSeconds;
+    _cooldownTimer?.cancel();
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_resendRemaining <= 1) {
+        _resendRemaining = 0;
+        timer.cancel();
+      } else {
+        _resendRemaining -= 1;
+      }
+      notifyListeners();
+    });
   }
 
   /// Шаг 3 → 4: проверка SMS-кода.
@@ -155,6 +209,8 @@ class AuthStepperViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Шаг назад по флоу с сохранением введённых данных.
+  /// На первом шаге — no-op (выход из флоу обрабатывает экран).
   void back() {
     switch (_step) {
       case AuthStep.passport:
@@ -171,5 +227,11 @@ class AuthStepperViewModel extends ChangeNotifier {
     }
     _errorMessage = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _cooldownTimer?.cancel();
+    super.dispose();
   }
 }

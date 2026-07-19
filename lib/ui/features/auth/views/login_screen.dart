@@ -7,6 +7,7 @@ import '../../../../config/service_locator.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
+import '../../../core/widgets/error_banner.dart';
 import '../view_models/auth_view_model.dart';
 
 /// Экран входа по паспорту и паролю.
@@ -43,6 +44,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _onChanged() {
+    // Сбрасываем inline-ошибку при редактировании полей.
+    getIt<AuthViewModel>().clearError();
     if (mounted) setState(() {});
   }
 
@@ -51,15 +54,12 @@ class _LoginScreenState extends State<LoginScreen> {
       _passwordController.text.isNotEmpty;
 
   Future<void> _handleLogin(AuthViewModel auth) async {
-    final ok = await auth.login(
+    // Ошибка показывается inline под полями (auth.errorMessage) —
+    // без дублирующего SnackBar.
+    await auth.login(
       _loginController.text.trim(),
       _passwordController.text,
     );
-    if (!ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.errorMessage ?? 'Не удалось войти. Проверьте паспорт и пароль.')),
-      );
-    }
   }
 
   @override
@@ -67,7 +67,6 @@ class _LoginScreenState extends State<LoginScreen> {
     final auth = getIt<AuthViewModel>();
     final useMock = getIt<AppConfig>().useMock;
     return Scaffold(
-      backgroundColor: BrandColors.white,
       body: SafeArea(
         child: ListenableBuilder(
           listenable: auth,
@@ -99,25 +98,28 @@ class _LoginScreenState extends State<LoginScreen> {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 24),
-                        _PassportField(controller: _loginController),
-                        const SizedBox(height: 16),
-                        _PasswordField(
-                          controller: _passwordController,
-                          obscure: _obscurePassword,
-                          onToggleVisibility: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
+                        AutofillGroup(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _PassportField(controller: _loginController),
+                              const SizedBox(height: 16),
+                              _PasswordField(
+                                controller: _passwordController,
+                                obscure: _obscurePassword,
+                                onToggleVisibility: () => setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                ),
+                                onSubmitted: _isFormValid && !auth.isLoading
+                                    ? () => _handleLogin(auth)
+                                    : null,
+                              ),
+                            ],
                           ),
                         ),
                         if (auth.errorMessage != null) ...[
                           const SizedBox(height: 12),
-                          Text(
-                            auth.errorMessage!,
-                            style: AppTextStyles.caption
-                                .copyWith(color: BrandColors.error),
-                            textAlign: TextAlign.center,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          ErrorBanner(message: auth.errorMessage!),
                         ],
                         const SizedBox(height: 24),
                         _LoginButton(
@@ -172,6 +174,7 @@ class _Logo extends StatelessWidget {
       width: 200,
       height: 200,
       fit: BoxFit.contain,
+      semanticLabel: 'Логотип «Умная логистика»',
     );
   }
 }
@@ -186,6 +189,8 @@ class _PassportField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       keyboardType: TextInputType.number,
+      textInputAction: TextInputAction.next,
+      autofillHints: const [AutofillHints.username],
       // Отключаем вставку/копирование из буфера обмена (ТЗ).
       enableInteractiveSelection: false,
       contextMenuBuilder: (_, __) => const SizedBox.shrink(),
@@ -216,17 +221,24 @@ class _PasswordField extends StatelessWidget {
     required this.controller,
     required this.obscure,
     required this.onToggleVisibility,
+    this.onSubmitted,
   });
 
   final TextEditingController controller;
   final bool obscure;
   final VoidCallback onToggleVisibility;
 
+  /// Сабмит по клавише «Готово» на клавиатуре (когда форма валидна).
+  final VoidCallback? onSubmitted;
+
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
       obscureText: obscure,
+      textInputAction: TextInputAction.done,
+      autofillHints: const [AutofillHints.password],
+      onFieldSubmitted: onSubmitted != null ? (_) => onSubmitted!() : null,
       // Отключаем вставку/копирование из буфера обмена (ТЗ).
       enableInteractiveSelection: false,
       contextMenuBuilder: (_, __) => const SizedBox.shrink(),

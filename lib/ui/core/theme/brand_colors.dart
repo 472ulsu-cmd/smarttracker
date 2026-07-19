@@ -40,6 +40,10 @@ class BrandColors {
   /// Цвет ошибок/деструктивных действий.
   static const Color error = Color(0xFFD32F2F);
 
+  /// Тёмный красный для текста ошибок на [errorBackground]:
+  /// пара #D32F2F/#FCE8E8 даёт 4.23:1 (FAIL AA), #B3261E — ≈6:1.
+  static const Color errorText = Color(0xFFB3261E);
+
   // --- Оттенки для чипов статусов заявок ---
 
   static const Color statusNewBackground = Color(0xFFE8F0FF);

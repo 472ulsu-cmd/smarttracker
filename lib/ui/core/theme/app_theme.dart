@@ -86,7 +86,7 @@ ThemeData appTheme() {
           const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       labelStyle: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayMid),
       hintStyle: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayMid),
-      errorStyle: AppTextStyles.caption.copyWith(color: BrandColors.error),
+      errorStyle: AppTextStyles.bodySmall.copyWith(color: BrandColors.error),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(BrandRadius.md),
         borderSide: const BorderSide(color: BrandColors.grayLight),
