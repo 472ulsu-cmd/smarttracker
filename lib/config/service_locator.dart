@@ -186,6 +186,9 @@ Future<void> setupDependencies(AppConfig config) async {
     () => ProfileViewModel(getIt<ProfileRepository>()),
   );
   getIt.registerFactory<NotificationsViewModel>(
-    () => NotificationsViewModel(getIt<NotificationsRepository>()),
+    () => NotificationsViewModel(
+      getIt<NotificationsRepository>(),
+      ordersRepository: getIt<OrdersRepository>(),
+    ),
   );
 }

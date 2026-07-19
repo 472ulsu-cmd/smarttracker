@@ -4,16 +4,20 @@ import '../../../../config/service_locator.dart';
 import '../../../../data/services/settings_service.dart';
 import '../../../../domain/models/app_exception.dart';
 import '../../../../domain/models/notification_item.dart';
+import '../../../../domain/models/order.dart';
 import '../../../../domain/repositories/notifications_repository.dart';
+import '../../../../domain/repositories/orders_repository.dart';
 
 /// ViewModel экрана уведомлений.
 ///
 /// Поддерживает оптимистичное обновление при mark-as-read и undo.
 class NotificationsViewModel extends ChangeNotifier {
-  NotificationsViewModel(this._repository)
-      : settings = getIt<SettingsService>();
+  NotificationsViewModel(this._repository, {OrdersRepository? ordersRepository})
+      : _ordersRepository = ordersRepository,
+        settings = getIt<SettingsService>();
 
   final NotificationsRepository _repository;
+  final OrdersRepository? _ordersRepository;
   final SettingsService settings;
 
   bool _disposed = false;
@@ -68,6 +72,11 @@ class NotificationsViewModel extends ChangeNotifier {
 
   int get unreadCount => items.where((n) => !n.isRead).length;
 
+  /// Маппинг orderId → номер заявки (num), подгружается из списка заявок.
+  /// Если номер неизвестен — `null`, на UI показываем fallback по id.
+  final Map<int, String> _orderNumbers = {};
+  Map<int, String> get orderNumbers => _orderNumbers;
+
   Future<void> load() async {
     if (_isLoading || _isSaving) return;
     _isLoading = true;
@@ -79,6 +88,8 @@ class NotificationsViewModel extends ChangeNotifier {
       final loaded = await _repository.fetchNotifications();
       // Сортировка от новейших к старейшим (по datetime по убыванию).
       _items = loaded..sort(_compareNewestFirst);
+      // Подгружаем номера заявок для отображения вместо id.
+      await _ensureOrderNumbers();
     } on AppException catch (e) {
       _errorMessage = e.message;
     } catch (_) {
@@ -88,6 +99,35 @@ class NotificationsViewModel extends ChangeNotifier {
       _safeNotify();
     }
   }
+
+  /// Подгружает номера заявок (num) для всех orderId из уведомлений.
+  /// Молча падает — номера опциональны, на UI есть fallback по id.
+  Future<void> _ensureOrderNumbers() async {
+    final ordersRepo = _ordersRepository;
+    if (ordersRepo == null) return;
+    final neededIds = _items
+        .where((n) => n.hasOrder)
+        .map((n) => n.orderId!)
+        .where((id) => !_orderNumbers.containsKey(id))
+        .toSet();
+    if (neededIds.isEmpty) return;
+    try {
+      // Загружаем и активные, и историю — заявка может быть уже завершена.
+      final all = <OrderListItem>[
+        ...await ordersRepo.fetchActiveOrders(),
+        ...await ordersRepo.fetchHistoryOrders(),
+      ];
+      for (final o in all) {
+        _orderNumbers[o.id] = o.num;
+      }
+      _safeNotify();
+    } catch (_) {
+      // Номера недоступны — UI покажет id как раньше.
+    }
+  }
+
+  /// Возвращает номер заявки по orderId, если известен — иначе null.
+  String? orderNumberFor(int orderId) => _orderNumbers[orderId];
 
   /// Отметить одно прочитанным (оптимистично + undo).
   Future<void> markAsRead(int id) async {

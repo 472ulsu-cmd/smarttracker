@@ -55,9 +55,9 @@ String _statusActionLabel(OrderStatus s) {
 String _statusActionConsequence(OrderStatus s) {
   switch (s) {
     case OrderStatus.inProgress:
-      return 'Заявка будет перемещена в «В работе».';
+      return 'Статус заявки будет изменен на "В работе".';
     case OrderStatus.loaded:
-      return 'Подтвердите, что груз погружён. Далее потребуется загрузить фото.';
+      return 'Подтвердите, что груз погружен.';
     case OrderStatus.completed:
       return 'Заявка будет переведена в статус «Завершена». Убедитесь, что груз доставлен.';
     case OrderStatus.rejected:
@@ -163,7 +163,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.photo_camera_outlined,
                         color: BrandColors.primary),
-                    title: const Text('Фотографии'),
+                    title: const Text('Фото по заявке'),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () =>
                         context.push('/main/orders/${order.id}/photos'),
@@ -429,7 +429,7 @@ class _RoutePoint extends StatelessWidget {
             children: [
               Text(
                 '${point.isLoading ? "Погрузка" : "Разгрузка"} — ${point.city}',
-                style: AppTextStyles.bodyMedium,
+                style: AppTextStyles.bodyMedium.copyWith(fontSize: 15, height: 1.2),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -439,7 +439,7 @@ class _RoutePoint extends StatelessWidget {
                   '${DateFormatUtil.time(point.timeFrom)}–'
                   '${DateFormatUtil.time(point.timeTo)}',
                   style: AppTextStyles.bodySmall
-                      .copyWith(color: BrandColors.grayDark),
+                      .copyWith(color: BrandColors.grayDark, height: 1.2),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

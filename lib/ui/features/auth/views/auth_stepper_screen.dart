@@ -61,6 +61,15 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
   }
 
   void _onChanged() {
+    // VM может очистить smsCode (после неверного ввода или при запросе
+    // нового кода) — синхронизируем контроллер поля, чтобы визуально
+    // поле тоже очистилось.
+    if (_smsCtrl.text != _vm.smsCode) {
+      _smsCtrl.value = TextEditingValue(
+        text: _vm.smsCode,
+        selection: TextSelection.collapsed(offset: _vm.smsCode.length),
+      );
+    }
     if (mounted) setState(() {});
   }
 
@@ -145,13 +154,15 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
             length: 10,
             onChanged: (v) => _vm.passport = v,
           ),
-          const SizedBox(height: 12),
-          _DigitsField(
-            controller: _passportConfirmCtrl,
-            label: 'Подтвердите паспорт',
-            length: 10,
-            onChanged: (v) => _vm.passportConfirm = v,
-          ),
+          if (widget.mode == AuthFlowMode.registration) ...[
+            const SizedBox(height: 12),
+            _DigitsField(
+              controller: _passportConfirmCtrl,
+              label: 'Подтвердите паспорт',
+              length: 10,
+              onChanged: (v) => _vm.passportConfirm = v,
+            ),
+          ],
         ];
       case AuthStep.phone:
         return [
@@ -169,18 +180,13 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 16),
-          TextFormField(
+          _DigitsField(
             controller: _phoneCtrl,
+            label: 'Телефон',
+            hintText: '9001234567',
+            length: 10,
+            prefixIcon: Icons.phone_outlined,
             keyboardType: TextInputType.phone,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(10),
-            ],
-            decoration: const InputDecoration(
-              labelText: 'Телефон',
-              hintText: '9001234567',
-              prefixIcon: Icon(Icons.phone_outlined),
-            ),
             onChanged: (v) => _vm.phone = v.trim(),
           ),
         ];
@@ -212,6 +218,7 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
           _ResendSection(
             vm: _vm,
             onChangePhone: _vm.back,
+            onResend: _clearSmsField,
           ),
         ];
       case AuthStep.password:
@@ -297,6 +304,14 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
     }
   }
 
+  /// Очищает поле SMS-кода: после неудачной проверки и перед повторным
+  /// запросом кода, чтобы водитель не отправлял устаревший код.
+  void _clearSmsField() {
+    _smsCtrl.clear();
+    _vm.smsCode = '';
+    if (mounted) setState(() {});
+  }
+
   Future<void> _next() async {
     bool ok;
     switch (_vm.step) {
@@ -315,6 +330,7 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
         break;
       case AuthStep.sms:
         ok = await _vm.verifyCode();
+        if (!ok) _clearSmsField();
         break;
       case AuthStep.password:
         if (!_vm.validatePassword()) return;
@@ -376,7 +392,7 @@ class _StepIndicator extends StatelessWidget {
   }
 }
 
-class _DigitsField extends StatelessWidget {
+class _DigitsField extends StatefulWidget {
   const _DigitsField({
     required this.label,
     required this.length,
@@ -384,6 +400,9 @@ class _DigitsField extends StatelessWidget {
     this.controller,
     this.center = false,
     this.autofillHints,
+    this.prefixIcon,
+    this.hintText,
+    this.keyboardType = TextInputType.number,
   });
 
   final String label;
@@ -392,25 +411,96 @@ class _DigitsField extends StatelessWidget {
   final TextEditingController? controller;
   final bool center;
   final List<String>? autofillHints;
+  final IconData? prefixIcon;
+  final String? hintText;
+  final TextInputType keyboardType;
+
+  @override
+  State<_DigitsField> createState() => _DigitsFieldState();
+}
+
+class _DigitsFieldState extends State<_DigitsField> {
+  TextEditingController? _createdController;
+
+  /// Актуальный контроллер: внешний (из виджета) или внутренний (если внешний
+  /// не передан). Важно брать его динамически — при смене шага stepper'а
+  /// `_DigitsField` на той же позиции дерева получает новый `widget.controller`,
+  /// и этот геттер переключается на него без пересоздания State.
+  TextEditingController get _effectiveController {
+    if (widget.controller != null) return widget.controller!;
+    return _createdController ??= TextEditingController();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _effectiveController.addListener(_onControllerChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _DigitsField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      final oldController = oldWidget.controller ?? _createdController;
+      final newController = _effectiveController;
+      if (oldController != newController) {
+        oldController?.removeListener(_onControllerChanged);
+        newController.addListener(_onControllerChanged);
+        // Перерисовываемся, чтобы актуализировать видимость кнопки очистки
+        // под текст нового контроллера.
+        setState(() {});
+      }
+    }
+  }
+
+  void _onControllerChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _clear() {
+    _effectiveController.clear();
+    widget.onChanged('');
+  }
+
+  @override
+  void dispose() {
+    _effectiveController.removeListener(_onControllerChanged);
+    _createdController?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final hasText = _effectiveController.text.isNotEmpty;
+    final showPrefix = widget.prefixIcon ?? (widget.center ? null : Icons.numbers_outlined);
     return TextFormField(
-      controller: controller,
-      keyboardType: TextInputType.number,
-      textAlign: center ? TextAlign.center : TextAlign.start,
-      autofillHints: autofillHints,
+      controller: _effectiveController,
+      keyboardType: widget.keyboardType,
+      textAlign: widget.center ? TextAlign.center : TextAlign.start,
+      autofillHints: widget.autofillHints,
       inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(length),
+        LengthLimitingTextInputFormatter(widget.length),
       ],
       decoration: InputDecoration(
-        labelText: label,
+        labelText: widget.label,
+        hintText: widget.hintText,
         counterText: '',
-        prefixIcon: center ? null : const Icon(Icons.numbers_outlined),
+        prefixIcon: showPrefix == null ? null : Icon(showPrefix),
+        suffixIcon: hasText
+            ? IconButton(
+                tooltip: 'Очистить',
+                icon: const Icon(Icons.close_rounded),
+                style: IconButton.styleFrom(
+                  minimumSize: const Size(48, 48),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: _clear,
+              )
+            : null,
       ),
-      maxLength: length,
-      onChanged: onChanged,
+      maxLength: widget.length,
+      onChanged: widget.onChanged,
     );
   }
 }
@@ -435,8 +525,14 @@ class _PasswordField extends StatefulWidget {
 class _PasswordFieldState extends State<_PasswordField> {
   bool _obscure = true;
 
+  void _clear() {
+    widget.controller?.clear();
+    widget.onChanged('');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final hasText = (widget.controller?.text ?? '').isNotEmpty;
     return TextFormField(
       controller: widget.controller,
       obscureText: _obscure,
@@ -447,16 +543,31 @@ class _PasswordFieldState extends State<_PasswordField> {
         labelText: widget.label,
         errorText: widget.errorText,
         prefixIcon: const Icon(Icons.lock_outline),
-        suffixIcon: IconButton(
-          icon: Icon(_obscure
-              ? Icons.visibility_off_outlined
-              : Icons.visibility_outlined),
-          tooltip: _obscure ? 'Показать пароль' : 'Скрыть пароль',
-          style: IconButton.styleFrom(
-            minimumSize: const Size(48, 48),
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          onPressed: () => setState(() => _obscure = !_obscure),
+        suffixIcon: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (hasText)
+              IconButton(
+                tooltip: 'Очистить',
+                icon: const Icon(Icons.close_rounded),
+                style: IconButton.styleFrom(
+                  minimumSize: const Size(48, 48),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: _clear,
+              ),
+            IconButton(
+              icon: Icon(_obscure
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined),
+              tooltip: _obscure ? 'Показать пароль' : 'Скрыть пароль',
+              style: IconButton.styleFrom(
+                minimumSize: const Size(48, 48),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              onPressed: () => setState(() => _obscure = !_obscure),
+            ),
+          ],
         ),
       ),
       onChanged: widget.onChanged,
@@ -466,10 +577,17 @@ class _PasswordFieldState extends State<_PasswordField> {
 
 /// Повторная отправка кода с кулдауном и возврат к смене номера.
 class _ResendSection extends StatelessWidget {
-  const _ResendSection({required this.vm, required this.onChangePhone});
+  const _ResendSection({
+    required this.vm,
+    required this.onChangePhone,
+    required this.onResend,
+  });
 
   final AuthStepperViewModel vm;
   final VoidCallback onChangePhone;
+
+  /// Вызывается перед повторной отправкой кода (например, для очистки поля).
+  final VoidCallback onResend;
 
   @override
   Widget build(BuildContext context) {
@@ -479,6 +597,7 @@ class _ResendSection extends StatelessWidget {
         TextButton(
           onPressed: vm.canResend
               ? () {
+                  onResend();
                   vm.resendCode();
                 }
               : null,

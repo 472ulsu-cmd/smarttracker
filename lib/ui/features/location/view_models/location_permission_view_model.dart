@@ -12,6 +12,9 @@ enum LocationPermissionStatus {
 
   /// Разрешение не выдано (denied / deniedForever / не «always»).
   denied,
+
+  /// Сервис геолокации отключён на уровне ОС.
+  serviceDisabled,
 }
 
 /// ViewModel разрешения геолокации.
@@ -33,9 +36,33 @@ class LocationPermissionViewModel extends ChangeNotifier {
 
   bool get isGranted => _status == LocationPermissionStatus.granted;
 
-  /// Проверить текущее разрешение без показа диалога.
+  /// Сервис геолокации отключён на уровне ОС (свич в настройках телефона).
+  bool get isServiceDisabled =>
+      _status == LocationPermissionStatus.serviceDisabled;
+
+  /// Проверяет, включён ли сервис геолокации на уровне ОС. Не выбрасывает,
+  /// при ошибке считаем выключенным.
+  Future<bool> isLocationServiceEnabled() async {
+    try {
+      return await Geolocator.isLocationServiceEnabled();
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Проверить текущее состояние: сервис геолокации + разрешение.
+  /// Сервис имеет приоритет: если геолокация выключена в ОС, разрешение
+  /// бессмысленно — показываем запрос на включение сервиса.
   Future<void> check() async {
     try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _status = LocationPermissionStatus.serviceDisabled;
+        _errorMessage =
+            'Геолокация отключена в настройках телефона. Включите её, чтобы продолжить.';
+        notifyListeners();
+        return;
+      }
       final permission = await Geolocator.checkPermission();
       _applyPermission(permission);
     } catch (_) {
@@ -54,6 +81,17 @@ class LocationPermissionViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // 0. Сервис геолокации должен быть включён — иначе диалоги не покажутся.
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _status = LocationPermissionStatus.serviceDisabled;
+        _errorMessage =
+            'Геолокация отключена в настройках телефона. Включите её, чтобы продолжить.';
+        _isRequesting = false;
+        notifyListeners();
+        return false;
+      }
+
       // 1. Foreground-диалог.
       var permission = await Geolocator.requestPermission();
 
@@ -76,7 +114,7 @@ class LocationPermissionViewModel extends ChangeNotifier {
 
       if (!isGranted) {
         _errorMessage =
-            'В настройках приложения выберите «Разрешать всегда» для геолокации.';
+            'В настройках приложения выберите «Разрешавать всегда» для геолокации.';
       }
       _isRequesting = false;
       notifyListeners();
@@ -88,6 +126,28 @@ class LocationPermissionViewModel extends ChangeNotifier {
       _isRequesting = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  /// Открыть системные настройки геолокации (свич на уровне ОС).
+  Future<bool> openLocationSettings() async {
+    _isOpeningSettings = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final opened = await Geolocator.openLocationSettings();
+      if (!opened) {
+        _errorMessage =
+            'Не удалось открыть настройки геолокации. Включите её вручную в настройках телефона.';
+      }
+      return opened;
+    } catch (_) {
+      _errorMessage =
+          'Не удалось открыть настройки геолокации. Включите её вручную в настройках телефона.';
+      return false;
+    } finally {
+      _isOpeningSettings = false;
+      notifyListeners();
     }
   }
 

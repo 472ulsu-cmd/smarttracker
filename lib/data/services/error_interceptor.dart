@@ -51,20 +51,28 @@ class ErrorInterceptor extends Interceptor {
 
     final statusCode = response.statusCode ?? 0;
     final data = response.data;
+    final path = response.requestOptions.path;
 
-    // 401/403 — неавторизован.
-    if (statusCode == 401 || statusCode == 403) {
-      return const UnauthorizedException();
-    }
-
-    // Попытка прочитать бизнес-код API (поле "code").
+    // Сначала пытаемся прочитать бизнес-код API (поле "code") — он точнее
+    // HTTP-статуса и одинаков для 200 с code<0 и для 401 с code<0.
     if (data is Map<String, dynamic>) {
       final apiCode = data['code'];
       if (apiCode is num && apiCode < 0) {
         return ValidationException(
-          message: _apiCodeMessage(apiCode.toInt()),
+          message: _apiCodeMessage(apiCode.toInt(), path),
         );
       }
+    }
+
+    // 401/403 — неавторизован.
+    if (statusCode == 401 || statusCode == 403) {
+      // Для публичных auth-эндпоинтов (например /login) 401 означает
+      // неверные учётные данные, а не истёкшую сессию.
+      if (_isPublicAuthPath(path)) {
+        return const ValidationException(
+            message: 'Неверный паспорт или пароль. Проверьте введённые данные.');
+      }
+      return const UnauthorizedException();
     }
 
     if (statusCode >= 500) {
@@ -104,27 +112,55 @@ class ErrorInterceptor extends Interceptor {
   ///
   /// Коды получены из тестов реальных эндпоинтов:
   /// - `-4` / `-10` — неверный паспорт или пароль (`/login`);
+  /// - `-6` — пользователь с таким паспортом уже зарегистрирован
+  ///   (`/registration`). На эндпоинтах восстановления (`/restore`,
+  ///   `/user/send_restoring_phone_code`) этот же код сервер может
+  ///   возвращать и для несуществующего пользователя — инвертируем смысл.
   /// - `-7` — пользователь с указанным паспортом и телефоном не найден
   ///   (`/user/send_restoring_phone_code`, `/restore`);
   /// - `-12` — неверный SMS-код (`/user/verify_phone_code`);
-  /// - `-6` — пользователь с таким паспортом уже зарегистрирован.
-  /// - `-14` — некорректные данные: пользователь уже существует или пароль
-  ///   слишком короткий (зависит от эндпоинта).
-  String _apiCodeMessage(int code) {
+  /// - `-14` — некорректные данные (зависит от эндпоинта).
+  String _apiCodeMessage(int code, String path) {
+    // На эндпоинтах восстановления пароля код -6 фактически означает,
+    // что пользователь не найден (семантика инвертирована относительно
+    // регистрации).
+    final isRestore = path.startsWith('/restore') ||
+        path.startsWith('/user/send_restoring_phone_code');
     switch (code) {
       case -4:
       case -10:
         return 'Неверный паспорт или пароль. Проверьте введённые данные.';
       case -6:
+        if (isRestore) {
+          return 'Пользователь с таким паспортом или телефоном не найден. Проверьте данные или зарегистрируйтесь.';
+        }
         return 'Пользователь с таким паспортом уже зарегистрирован. Попробуйте войти или восстановить пароль.';
       case -7:
-        return 'Пользователь с таким паспортом и телефоном не найден.';
+        return 'Пользователь с таким паспортом или телефоном не найден.';
       case -12:
         return 'Неверный код подтверждения.';
       case -14:
-        return 'Проверьте введённые данные. Возможно, пользователь уже существует или пароль слишком короткий.';
+        if (isRestore) {
+          return 'Пользователь с таким паспортом или телефоном не найден. Проверьте данные или зарегистрируйтесь.';
+        }
+        return 'Проверьте введённые данные. Возможно, пользователь уже существует.';
       default:
         return 'Проверьте введённые данные.';
     }
+  }
+
+  /// Публичные auth-эндпоинты — для них 401 это неверные данные, а не
+  /// истёкшая сессия. Список должен совпадать с `_publicAuthPaths` в
+  /// `auth_interceptor.dart`.
+  bool _isPublicAuthPath(String path) {
+    const publicAuthPaths = <String>{
+      '/login',
+      '/registration',
+      '/restore',
+      '/user/send_phone_code',
+      '/user/send_restoring_phone_code',
+      '/user/verify_phone_code',
+    };
+    return publicAuthPaths.any(path.startsWith);
   }
 }

@@ -253,7 +253,7 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
           const SizedBox(width: 12),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.only(bottom: 8),
               child: BrandCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,7 +281,7 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     // Дата и время — над городом.
                     if (point.date.isNotEmpty)
                       _FieldLine(
@@ -292,7 +292,7 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                         semanticLabel: 'Дата и время',
                       ),
                     if (point.city.isNotEmpty) ...[
-                      if (point.date.isNotEmpty) const SizedBox(height: 8),
+                      if (point.date.isNotEmpty) const SizedBox(height: 6),
                       Text(
                         point.city,
                         style: AppTextStyles.titleMedium,
@@ -302,12 +302,12 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                     ],
                     if (point.address.isNotEmpty) ...[
                       if (point.city.isNotEmpty || point.date.isNotEmpty)
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                       _FieldLine(
                         icon: Icons.place_outlined,
                         text: point.address,
                         semanticLabel: 'Адрес',
-                        minHeight: 48,
+                        minHeight: 32,
                         trailing: canOpenMap
                             ? TextButton.icon(
                                 onPressed: _isLaunchingMap
@@ -336,7 +336,7 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                     ],
                     // Груз.
                     if (hasCargo) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       const _SectionHeader('Груз'),
                       if (point.cargoType.isNotEmpty)
                         _FieldLine(
@@ -345,15 +345,15 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                           semanticLabel: 'Тип груза',
                         ),
                       if (point.loadingMethod.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         _FieldLine(
                           icon: Icons.local_shipping_outlined,
-                          text: 'Погрузка: ${point.loadingMethod}',
+                          text: 'Способ: ${point.loadingMethod}',
                           semanticLabel: 'Способ погрузки',
                         ),
                       ],
                       if (point.mass.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         _FieldLine(
                           icon: Icons.scale_outlined,
                           text: 'Масса: ${point.mass} т',
@@ -361,7 +361,7 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                         ),
                       ],
                       if (point.volume.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         _FieldLine(
                           icon: Icons.view_in_ar_outlined,
                           text: 'Объём: ${point.volume} м³',
@@ -371,7 +371,7 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                     ],
                     // Контакты.
                     if (hasContacts) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       const _SectionHeader('Контакты'),
                       if (point.client.org.isNotEmpty)
                         _FieldLine(
@@ -380,7 +380,7 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                           semanticLabel: 'Организация',
                         ),
                       if (point.client.manager.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         _FieldLine(
                           icon: Icons.person_outline,
                           text: point.client.manager,
@@ -388,18 +388,18 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                         ),
                       ],
                       if (point.client.phone.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         PhoneCallRow(
                           phone: point.client.phone,
                           iconSize: 16,
-                          textStyle: AppTextStyles.bodySmall,
+                          textStyle: AppTextStyles.bodySmall.copyWith(height: 1.25),
                           crossAxisAlignment: CrossAxisAlignment.start,
                         ),
                       ],
                     ],
                     // Примечание к точке — в конце плитки.
                     if (point.comment.isNotEmpty) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
@@ -412,7 +412,7 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                         child: Text(
                           point.comment,
                           style: AppTextStyles.bodySmall
-                              .copyWith(color: BrandColors.grayDark),
+                              .copyWith(color: BrandColors.grayDark, height: 1.25),
                         ),
                       ),
                     ],
@@ -436,7 +436,7 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 4),
       child: Text(
         title,
         style: AppTextStyles.labelMedium.copyWith(
@@ -455,7 +455,7 @@ class _FieldLine extends StatelessWidget {
     required this.text,
     this.trailing,
     this.semanticLabel,
-    this.minHeight = 48,
+    this.minHeight = 24,
   });
 
   final IconData icon;
@@ -485,6 +485,7 @@ class _FieldLine extends StatelessWidget {
               text,
               style: AppTextStyles.bodySmall.copyWith(
                 color: BrandColors.grayDark,
+                height: 1.25,
               ),
             ),
           ),

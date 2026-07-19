@@ -51,7 +51,8 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // При возврате из системных настроек — перепроверяем разрешение.
+    // При возврате из системных настроек — перепроверяем и сервис, и разрешение:
+    // пользователь мог включить геолокацию или выдать «Всегда».
     if (state == AppLifecycleState.resumed) {
       _viewModel.check().then((_) {
         if (_viewModel.isGranted && mounted) {
@@ -66,6 +67,13 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
   }
 
   Future<void> _request() async {
+    // Если сервис геолокации выключен на уровне ОС — отправляем в настройки
+    // локации, иначе нативный диалог разрешения не покажется.
+    final serviceEnabled = await _viewModel.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      await _viewModel.openLocationSettings();
+      return;
+    }
     final granted = await _viewModel.request();
     if (granted && mounted) {
       // Разрешение получено — пускаем в приложение.
@@ -82,9 +90,23 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
     }
   }
 
+  /// Открывает системные настройки геолокации (включение сервиса).
+  /// После возврата — перепроверяет сервис и разрешение.
+  Future<void> _enableLocationService() async {
+    await _viewModel.openLocationSettings();
+    // После возврата из настроек — перепроверим (пользователь мог включить
+    // геолокацию и/или выдать разрешение).
+    await _viewModel.check();
+    if (_viewModel.isGranted && mounted) {
+      context.go('/main/orders');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isBusy = _viewModel.isRequesting || _viewModel.isOpeningSettings;
+    final serviceDisabled =
+        _viewModel.status == LocationPermissionStatus.serviceDisabled;
 
     return Scaffold(
       body: SafeArea(
@@ -106,31 +128,49 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                           color: BrandColors.primary.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.location_on_rounded,
-                            size: 48, color: BrandColors.primary),
+                        child: Icon(
+                          serviceDisabled
+                              ? Icons.location_disabled_rounded
+                              : Icons.location_on_rounded,
+                          size: 48,
+                          color: BrandColors.primary,
+                        ),
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        'Доступ к геолокации',
+                        serviceDisabled
+                            ? 'Геолокация отключена'
+                            : 'Доступ к геолокации',
                         style: AppTextStyles.headlineLarge,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 12),
-                      // Наглядное уведомление о фоновой геолокации
-                      // (prominent disclosure, Приложение А соглашения).
-                      // Текст единый с документом — из LegalTexts.
-                      const _DisclosureText(),
-                      const SizedBox(height: 8),
-                      Text(
-                        'В системном диалоге выберите «Разрешать всегда».',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.bodyMedium
-                            .copyWith(color: BrandColors.grayDark),
-                      ),
+                      if (serviceDisabled) ...[
+                        Text(
+                          'Геолокация выключена в настройках телефона. '
+                          'Включите её, чтобы приложение могло отслеживать '
+                          'маршрут и координаты.',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyMedium
+                              .copyWith(color: BrandColors.grayDark),
+                        ),
+                      ] else ...[
+                        // Наглядное уведомление о фоновой геолокации
+                        // (prominent disclosure, Приложение А соглашения).
+                        // Текст единый с документом — из LegalTexts.
+                        const _DisclosureText(),
+                        const SizedBox(height: 8),
+                        Text(
+                          'В системном диалоге выберите «Разрешать всегда».',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyMedium
+                              .copyWith(color: BrandColors.grayDark),
+                        ),
+                      ],
                       const SizedBox(height: 12),
                       Text(
-                        'Без разрешения геолокации работа в приложении невозможна.',
+                        'Без геолокации работа в приложении невозможна.',
                         textAlign: TextAlign.center,
                         style: AppTextStyles.bodySmall
                             .copyWith(color: BrandColors.error),
@@ -168,8 +208,13 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: isBusy ? null : _request,
-                          child: _viewModel.isRequesting
+                          onPressed: isBusy
+                              ? null
+                              : (serviceDisabled
+                                  ? _enableLocationService
+                                  : _request),
+                          child: _viewModel.isRequesting ||
+                                  _viewModel.isOpeningSettings
                               ? const SizedBox(
                                   height: 22,
                                   width: 22,
@@ -178,25 +223,33 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                                     color: BrandColors.white,
                                   ),
                                 )
-                              : const Text('Разрешить доступ'),
+                              : Text(serviceDisabled
+                                  ? 'Включить геолокацию'
+                                  : 'Разрешить доступ'),
                         ),
                       ),
                       if (_viewModel.status ==
-                          LocationPermissionStatus.denied) ...[
+                              LocationPermissionStatus.denied ||
+                          serviceDisabled) ...[
                         const SizedBox(height: 12),
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
-                            onPressed: isBusy ? null : _openSettings,
+                            onPressed: isBusy
+                                ? null
+                                : (serviceDisabled
+                                    ? _enableLocationService
+                                    : _openSettings),
                             icon: const Icon(Icons.settings_outlined),
-                            label: const Text('Открыть настройки'),
+                            label: Text(serviceDisabled
+                                ? 'Открыть настройки геолокации'
+                                : 'Открыть настройки'),
                           ),
                         ),
                       ],
                       const SizedBox(height: 24),
                       Text(
-                        'Чтобы закрыть приложение без разрешения, '
-                        'нажмите кнопку «Назад».',
+                        'Чтобы закрыть приложение, нажмите кнопку «Назад».',
                         textAlign: TextAlign.center,
                         style: AppTextStyles.caption
                             .copyWith(color: BrandColors.grayDark),

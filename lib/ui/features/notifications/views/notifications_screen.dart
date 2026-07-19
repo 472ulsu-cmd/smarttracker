@@ -155,6 +155,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               return _NotificationTile(
                 item: item,
                 enabled: !_viewModel.isBusy,
+                orderNumber: item.hasOrder
+                    ? _viewModel.orderNumberFor(item.orderId!)
+                    : null,
                 onTap: () async {
                   if (_viewModel.isBusy) return;
                   if (!item.isRead) await _viewModel.markAsRead(item.id);
@@ -238,11 +241,19 @@ class _MarkAllBar extends StatelessWidget {
 }
 
 class _NotificationTile extends StatelessWidget {
-  const _NotificationTile({required this.item, required this.onTap, this.enabled = true});
+  const _NotificationTile({
+    required this.item,
+    required this.onTap,
+    this.enabled = true,
+    this.orderNumber,
+  });
 
   final NotificationItem item;
   final VoidCallback onTap;
   final bool enabled;
+
+  /// Номер заявки (num), если он известен; иначе показываем id.
+  final String? orderNumber;
 
   @override
   Widget build(BuildContext context) {
@@ -295,7 +306,9 @@ class _NotificationTile extends StatelessWidget {
                   if (item.hasOrder) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'Заявка № ${item.orderId}',
+                      orderNumber != null
+                          ? 'Заявка № $orderNumber'
+                          : 'Заявка № ${item.orderId}',
                       style: AppTextStyles.caption
                           .copyWith(color: BrandColors.primary),
                       maxLines: 1,

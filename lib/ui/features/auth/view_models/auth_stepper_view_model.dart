@@ -55,8 +55,13 @@ class AuthStepperViewModel extends ChangeNotifier {
 
   /// Шаг 1 → 2: проверка паспорта.
   bool validatePassport() {
-    if (passport.length != 10 || passport != passportConfirm) {
-      _errorMessage = 'Введите 10 цифр серии и номера паспорта. Оба поля должны совпадать.';
+    if (passport.length != 10) {
+      _errorMessage = 'Введите 10 цифр серии и номера паспорта.';
+      notifyListeners();
+      return false;
+    }
+    if (mode == AuthFlowMode.registration && passport != passportConfirm) {
+      _errorMessage = 'Паспортные данные не совпадают. Проверьте ввод.';
       notifyListeners();
       return false;
     }
@@ -100,6 +105,9 @@ class AuthStepperViewModel extends ChangeNotifier {
   /// возвращает false, если кулдаун ещё не истёк.
   Future<bool> resendCode() async {
     if (!canResend) return false;
+    // Старый код более недействителен после запроса нового — очищаем,
+    // чтобы пользователь не отправил его по ошибке.
+    smsCode = '';
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -141,10 +149,14 @@ class AuthStepperViewModel extends ChangeNotifier {
       return true;
     } on AppException catch (e) {
       _errorMessage = e.message;
+      // Неверный код больше не пригодится — очищаем, чтобы поле ввода
+      // сбросилось и пользователь не отправил его повторно.
+      smsCode = '';
       notifyListeners();
       return false;
     } catch (_) {
       _errorMessage = 'Не удалось проверить код. Попробуйте ещё раз.';
+      smsCode = '';
       notifyListeners();
       return false;
     } finally {
