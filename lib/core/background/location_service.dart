@@ -15,8 +15,9 @@ import 'coordinate_batching.dart';
 
 /// Запуск/остановка foreground-сервиса геолокации.
 ///
-/// Каждый цикл получает текущую позицию, кладёт её в очередь
-/// `pending_actions` и сразу отправляет накопленные координаты пакетом.
+/// Каждый цикл получает текущую позицию и отправляет её на сервер
+/// вместе с накопленными в очереди точками. В очередь `pending_actions`
+/// точка попадает только при ошибке отправки.
 ///
 /// Требуется разрешение `LocationPermission.always`.
 class LocationService {
@@ -70,9 +71,9 @@ class LocationService {
 
 /// Обработчик фоновой задачи геолокации.
 ///
-/// Периодически (onRepeatEvent) получает позицию, сохраняет её
-/// в локальную очередь [PendingActionStore] и тут же пытается отправить
-/// накопленные координаты через [SyncRepository].
+/// Периодически (onRepeatEvent) получает позицию и отправляет её через
+/// [SyncRepository] вместе с накопленной очередью. В [PendingActionStore]
+/// точка сохраняется только при ошибке отправки.
 @pragma('vm:entry-point')
 class LocationTaskHandler extends TaskHandler {
   /// Защита от наложения flush при быстрых повторных событиях.
@@ -141,24 +142,29 @@ class LocationTaskHandler extends TaskHandler {
         datetime: DateTime.now(),
         nearestCity: city,
       );
-      await PendingActionStore.instance.enqueue(PendingAction(
-        type: PendingActionType.coordinates,
-        payload: point.toJson(),
-        createdAt: DateTime.now(),
-      ));
-      await _flushCoordinates();
+      await _flushCoordinates(point);
     } catch (e, st) {
       debugPrint('Ошибка сбора координат: $e\n$st');
     }
   }
 
-  Future<void> _flushCoordinates() async {
-    if (_flushing) return;
+  Future<void> _flushCoordinates(GeoPoint point) async {
+    // Пока идёт другая отправка — кладём точку в очередь,
+    // её заберёт следующий цикл.
+    if (_flushing) {
+      await PendingActionStore.instance.enqueue(PendingAction(
+        type: PendingActionType.coordinates,
+        payload: point.toJson(),
+        createdAt: point.datetime,
+      ));
+      return;
+    }
     _flushing = true;
     try {
       await flushCoordinateActions(
         store: PendingActionStore.instance,
         syncRepository: getIt<SyncRepository>(),
+        extra: point,
       );
     } finally {
       _flushing = false;
@@ -170,25 +176,38 @@ class LocationTaskHandler extends TaskHandler {
 ///
 /// Вынесено в отдельную функцию для тестирования без запуска foreground-сервиса.
 ///
+/// [extra] — свежая точка, которой ещё нет в очереди: уходит тем же пакетом,
+/// а при ошибке отправки сохраняется в очередь для повтора.
+///
 /// Повреждённые payload пропускаются при парсинге, но после успешной отправки
 /// все coordinate-действия удаляются из очереди (включая нераспарсенные),
 /// чтобы не засорять хранилище.
 Future<void> flushCoordinateActions({
   required PendingActionStore store,
   required SyncRepository syncRepository,
+  GeoPoint? extra,
 }) async {
   final actions = await store.readPending();
   final coordinateActions = actions
       .where((a) => a.type == PendingActionType.coordinates)
       .toList();
-  if (coordinateActions.isEmpty) return;
+  if (coordinateActions.isEmpty && extra == null) return;
 
   final points = geoPointsFromActions(coordinateActions);
+  if (extra != null) points.add(extra);
   try {
     await syncRepository.sendCoordinates(points);
   } catch (e) {
     debugPrint('Ошибка отправки координат: $e');
-    // Оставляем в очереди; следующий цикл или WorkManager повторят.
+    // Новую точку сохраняем в очередь; старые записи и так в ней.
+    // Следующий цикл или WorkManager повторят.
+    if (extra != null) {
+      await store.enqueue(PendingAction(
+        type: PendingActionType.coordinates,
+        payload: extra.toJson(),
+        createdAt: extra.datetime,
+      ));
+    }
     return;
   }
   final ids = coordinateActions.map((a) => a.id).whereType<int>();

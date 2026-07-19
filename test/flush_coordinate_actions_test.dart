@@ -110,6 +110,36 @@ void main() {
       expect(syncRepository.sent, isEmpty);
     });
 
+    test('extra-точка уходит с пакетом, при ошибке попадает в очередь',
+        () async {
+      final store = PendingActionStore.instance;
+      final point = GeoPoint(
+        lat: 59.9,
+        lng: 30.3,
+        datetime: DateTime.parse('2026-07-15T11:00:00Z'),
+        nearestCity: 'Санкт-Петербург',
+      );
+
+      // Успех: точка уходит напрямую, очередь не трогается.
+      await flushCoordinateActions(
+        store: store,
+        syncRepository: syncRepository,
+        extra: point,
+      );
+      expect(syncRepository.sent.single.single.lat, 59.9);
+      expect(await store.readPending(), isEmpty);
+
+      // Ошибка: точка сохраняется в очередь для повтора.
+      syncRepository.error = Exception('network');
+      await flushCoordinateActions(
+        store: store,
+        syncRepository: syncRepository,
+        extra: point,
+      );
+      final pending = await store.readPending();
+      expect(pending.single.payload['lat'], 59.9);
+    });
+
     test('пропускает повреждённые payload и отправляет остальные',
         () async {
       final store = PendingActionStore.instance;

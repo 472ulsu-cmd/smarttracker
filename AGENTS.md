@@ -148,7 +148,7 @@ flutter analyze
 
 - `NotificationsViewModel` — список уведомлений, оптимистичное `markAsRead` с undo.
 - `UnreadBadgeViewModel` — счётчик непрочитанных для нижней навигации.
-- FCM data-only сообщения парсятся в `PushService`; при тапе открывается заявка по `order_id`.
+- FCM data-only сообщения парсятся в `PushService`; foreground-сообщения показываются как локальные уведомления и триггят обновление списков. Навигация по тапу не реализована (каркас удалён как мёртвый код).
 - Локальный переключатель push: `SettingsService` + `shared_preferences`.
 
 ### Профиль (`lib/ui/features/profile/`)
@@ -158,10 +158,10 @@ flutter analyze
 
 ### Геолокация и фон (`lib/core/background/`)
 
-- `LocationService` — foreground-сервис, собирает координаты и кладёт в `PendingActionStore`.
+- `LocationService` — foreground-сервис, отправляет координаты напрямую; в `PendingActionStore` точка попадает только при ошибке отправки.
 - `CityLookup` — офлайн-поиск ближайшего города по `assets/cities/cities.csv`.
 - `SyncService` — `workmanager`, периодически отправляет накопленные действия (`statusChange`, `photoUpload`, `coordinates`).
-- `PendingActionStore` — SQLite; после 5 неудачных попыток действие помечается `failed`.
+- `PendingActionStore` — SQLite; после 5 неудачных попыток действие помечается `failed` (для координат не применяется — повторяются бесконечно).
 - Фоновые сервисы стартуют только при одновременном условии: пользователь аутентифицирован И разрешение геолокации = «Всегда».
 
 ## 9. Стиль кода и линты

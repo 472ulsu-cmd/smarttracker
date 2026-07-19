@@ -8,7 +8,7 @@ import '../../domain/models/pending_action.dart';
 import '../../domain/repositories/orders_repository.dart';
 import '../../domain/repositories/photo_repository.dart';
 import '../../domain/repositories/sync_repository.dart';
-import 'coordinate_batching.dart';
+import 'location_service.dart';
 
 /// Уникальное имя фоновой задачи синхронизации.
 const syncTaskName = 'smarttracker-sync';
@@ -40,13 +40,9 @@ void syncCallbackDispatcher() {
     final store = PendingActionStore.instance;
     final actions = await store.readPending();
 
-    final coordinateActions = <PendingAction>[];
-
     for (final action in actions) {
-      if (action.type == PendingActionType.coordinates) {
-        coordinateActions.add(action);
-        continue;
-      }
+      // Координаты отправляются одним пакетом после цикла.
+      if (action.type == PendingActionType.coordinates) continue;
 
       try {
         await _process(action);
@@ -57,22 +53,12 @@ void syncCallbackDispatcher() {
       }
     }
 
-    if (coordinateActions.isNotEmpty) {
-      // Повреждённые payload пропускаются при парсинге; после успешной отправки
-      // все coordinate-действия удаляются из очереди (включая нераспарсенные),
-      // чтобы не засорять хранилище.
-      try {
-        final points = geoPointsFromActions(coordinateActions);
-        await getIt<SyncRepository>().sendCoordinates(points);
-        final ids = coordinateActions.map((a) => a.id).whereType<int>();
-        await store.removeAll(ids);
-      } catch (e, st) {
-        debugPrint('Ошибка пакетной отправки координат: $e\n$st');
-        for (final action in coordinateActions) {
-          if (action.id != null) await store.markFailedAttempt(action.id!);
-        }
-      }
-    }
+    // ponytail: координаты не помечаются failed (читателя failed-статуса
+    // нет) — при перманентном сбое копятся в очереди, ~150 байт/запись.
+    await flushCoordinateActions(
+      store: store,
+      syncRepository: getIt<SyncRepository>(),
+    );
 
     return true;
   });
