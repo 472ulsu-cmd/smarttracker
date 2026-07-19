@@ -6,6 +6,7 @@ import 'domain/repositories/auth_repository.dart';
 import 'ui/features/auth/view_models/auth_view_model.dart';
 import 'ui/features/auth/views/auth_stepper_screen.dart';
 import 'ui/features/auth/views/login_screen.dart';
+import 'ui/features/legal/views/agreement_screen.dart';
 import 'ui/features/location/view_models/location_permission_view_model.dart';
 import 'ui/features/location/views/location_permission_screen.dart';
 import 'ui/features/main/main_shell.dart';
@@ -26,6 +27,9 @@ class AppRoutes {
   static const login = '/auth/login';
   static const register = '/auth/register';
   static const recovery = '/auth/recovery';
+  // Соглашение доступно до входа (из регистрации) — отдельный маршрут
+  // в /auth-зоне, чтобы редирект неавторизованных его не перехватывал.
+  static const authAgreement = '/auth/agreement';
   static const locationPermission = '/location-permission';
   static const orders = '/main/orders';
   static const notifications = '/main/notifications';
@@ -93,6 +97,11 @@ GoRouter createRouter() {
         path: AppRoutes.recovery,
         builder: (context, state) => const AuthStepperScreen(
             mode: AuthFlowMode.recovery),
+      ),
+      // Соглашение из флоу регистрации (пользователь ещё не вошёл).
+      GoRoute(
+        path: AppRoutes.authAgreement,
+        builder: (context, state) => const AgreementScreen(),
       ),
 
       // --- Разрешение геолокации ---
@@ -166,6 +175,12 @@ GoRouter createRouter() {
                 GoRoute(
                   path: 'feedback',
                   builder: (context, state) => const FeedbackScreen(),
+                ),
+                // Соглашение из профиля (пользователь авторизован:
+                // /auth/agreement для него перехватит редирект).
+                GoRoute(
+                  path: 'agreement',
+                  builder: (context, state) => const AgreementScreen(),
                 ),
               ],
             ),

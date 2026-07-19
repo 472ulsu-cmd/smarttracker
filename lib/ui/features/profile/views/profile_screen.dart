@@ -104,6 +104,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: const Icon(Icons.feedback_outlined),
                 label: const Text('Обратная связь'),
               ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/main/profile/agreement'),
+                icon: const Icon(Icons.description_outlined),
+                label: const Text('Пользовательское соглашение'),
+              ),
               const SizedBox(height: 24),
               _LogoutButton(),
             ],

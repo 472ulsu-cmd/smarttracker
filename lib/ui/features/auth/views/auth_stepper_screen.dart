@@ -1,6 +1,8 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../config/service_locator.dart';
 import '../../../../domain/repositories/auth_repository.dart';
@@ -9,6 +11,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
 import '../../../core/widgets/error_banner.dart';
+import '../../legal/agreement_content.dart';
 import '../view_models/auth_stepper_view_model.dart';
 
 /// Единый 4-шаговый экран регистрации и восстановления пароля.
@@ -254,6 +257,12 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
               ],
             ),
           ),
+          // Акцепт оферты привязан к моменту регистрации (п. 1.4 соглашения),
+          // поэтому уведомление — на последнем шаге, у кнопки подтверждения.
+          if (widget.mode == AuthFlowMode.registration) ...[
+            const SizedBox(height: 16),
+            const _AgreementConsent(),
+          ],
         ];
     }
   }
@@ -513,6 +522,85 @@ class _PrimaryButton extends StatelessWidget {
                   strokeWidth: 2.5, color: BrandColors.white),
             )
           : Text(label),
+    );
+  }
+}
+
+/// Уведомление о принятии соглашения на последнем шаге регистрации.
+///
+/// «Пользовательское соглашение» открывается внутри приложения,
+/// «Политика конфиденциальности» — внешним PDF в браузере.
+class _AgreementConsent extends StatefulWidget {
+  const _AgreementConsent();
+
+  @override
+  State<_AgreementConsent> createState() => _AgreementConsentState();
+}
+
+class _AgreementConsentState extends State<_AgreementConsent> {
+  late final TapGestureRecognizer _agreementRecognizer;
+  late final TapGestureRecognizer _policyRecognizer;
+
+  @override
+  void initState() {
+    super.initState();
+    _agreementRecognizer = TapGestureRecognizer()
+      ..onTap = () => context.push('/auth/agreement');
+    _policyRecognizer = TapGestureRecognizer()..onTap = _openPolicy;
+  }
+
+  @override
+  void dispose() {
+    _agreementRecognizer.dispose();
+    _policyRecognizer.dispose();
+    super.dispose();
+  }
+
+  Future<void> _openPolicy() async {
+    var opened = false;
+    try {
+      opened = await launchUrl(
+        Uri.parse(LegalLinks.privacyPolicy),
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (_) {
+      opened = false;
+    }
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Не удалось открыть ссылку')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Юридически значимый текст — не мельче основного (bodyMedium, graphite).
+    final base = AppTextStyles.bodyMedium;
+    final link = base.copyWith(
+      color: BrandColors.primaryText,
+      decoration: TextDecoration.underline,
+      decorationColor: BrandColors.primaryText,
+    );
+    return Text.rich(
+      TextSpan(
+        style: base,
+        children: [
+          const TextSpan(text: 'Нажимая «Зарегистрироваться», вы принимаете '),
+          TextSpan(
+            text: 'Пользовательское соглашение',
+            style: link,
+            recognizer: _agreementRecognizer,
+          ),
+          const TextSpan(text: ' и '),
+          TextSpan(
+            text: 'Политику конфиденциальности',
+            style: link,
+            recognizer: _policyRecognizer,
+          ),
+          const TextSpan(text: '.'),
+        ],
+      ),
     );
   }
 }

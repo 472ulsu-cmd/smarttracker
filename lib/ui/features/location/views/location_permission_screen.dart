@@ -5,6 +5,7 @@ import '../../../../config/service_locator.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
+import '../../legal/agreement_content.dart';
 import '../view_models/location_permission_view_model.dart';
 
 /// Экран запроса разрешения на геолокацию «Всегда».
@@ -116,10 +117,13 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 12),
+                      // Наглядное уведомление о фоновой геолокации
+                      // (prominent disclosure, Приложение А соглашения).
+                      // Текст единый с документом — из LegalTexts.
+                      const _DisclosureText(),
+                      const SizedBox(height: 8),
                       Text(
-                        'Приложение передаёт ваше местоположение в фоновом '
-                        'режиме, чтобы диспетчер видел вас на карте. '
-                        'Для этого выберите «Разрешать всегда».',
+                        'В системном диалоге выберите «Разрешать всегда».',
                         textAlign: TextAlign.center,
                         style: AppTextStyles.bodyMedium
                             .copyWith(color: BrandColors.grayDark),
@@ -204,6 +208,36 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+/// Наглядное уведомление о фоновой геолокации (Приложение А соглашения).
+///
+/// Текст единый с документом: берётся из [LegalTexts.locationDisclosure],
+/// ключевая фраза [LegalTexts.locationDisclosureEmphasis] выделяется жирным —
+/// как `**...**` в md. Длинный юридический абзац выравнивается влево:
+/// центрированный многострочный текст читается хуже.
+class _DisclosureText extends StatelessWidget {
+  const _DisclosureText();
+
+  @override
+  Widget build(BuildContext context) {
+    final base = AppTextStyles.bodyMedium;
+    final parts = LegalTexts.locationDisclosure
+        .split(LegalTexts.locationDisclosureEmphasis);
+    return Text.rich(
+      TextSpan(
+        style: base,
+        children: [
+          TextSpan(text: parts.first),
+          TextSpan(
+            text: LegalTexts.locationDisclosureEmphasis,
+            style: base.copyWith(fontWeight: FontWeight.w600),
+          ),
+          TextSpan(text: parts.last),
+        ],
       ),
     );
   }

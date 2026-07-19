@@ -101,6 +101,7 @@ flutter:
   assets:
     - assets/images/
     - assets/cities/
+    - assets/legal/
 
   # Брендовые шрифты (bundled, OFL — лицензии рядом в assets/fonts).
   fonts:
