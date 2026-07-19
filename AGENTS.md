@@ -56,8 +56,8 @@ lib/
 - `pubspec.yaml` — зависимости, версия, assets, конфигурация иконок.
 - `analysis_options.yaml` — `flutter_lints`, исключение сгенерированных файлов, `invalid_annotation_target: ignore`.
 - `android/app/build.gradle` — `applicationId`, `compileSdk 36`, `minSdk 23`, Java/Kotlin JVM target 17, dev/prod flavors, `coreLibraryDesugaringEnabled`, плагин `google-services`.
-- `android/settings.gradle` — AGP 8.2.0, Kotlin 1.9.24, Flutter Gradle Plugin 1.0.0.
-- `android/gradle/wrapper/gradle-wrapper.properties` — Gradle 8.5.
+- `android/settings.gradle` — AGP 8.11.1, Kotlin 2.2.20, Flutter Gradle Plugin 1.0.0.
+- `android/gradle/wrapper/gradle-wrapper.properties` — Gradle 8.14 (зеркало Tencent).
 - `android/app/src/main/AndroidManifest.xml` — разрешения (INTERNET, геолокация, foreground service, уведомления, RECEIVE_BOOT_COMPLETED).
 - `android/build.gradle` — репозитории google/mavenCentral.
 - `openapi.yaml` — OpenAPI-спецификация backend API.
@@ -95,6 +95,35 @@ flutter build apk --release --flavor prod
 - В `gradle.properties` добавлен `android.jetifier.ignorelist=byte-buddy,bcprov-jdk18on`, потому что часть транзитивных зависимостей поставляет байт-код Java 21+, который AGP 8.2 / Jetifier не может обработать под JDK 17.
 
 **Mock-режим:** в `lib/main.dart` замените `const config = AppConfig.production;` на `const config = AppConfig.mock;` — приложение будет работать без backend через `Mock*Repository`.
+
+### Сборка в данном окружении (Windows, без Flutter в PATH)
+
+Все toolchain'ы лежат в workspace и закоммичены в `.gitignore`:
+
+- Flutter SDK: `.flutter_sdk/flutter` (3.44.6)
+- JDK 17: `.jdk/jdk-17.0.19+10`
+- Android SDK: `.android_sdk` (platform-36, build-tools 36.0.0; `sdk.dir` в `android/local.properties` указывает сюда)
+
+Особенности:
+
+1. **`flutter.bat` требует PowerShell в PATH** — добавляйте `/c/Windows/System32/WindowsPowerShell/v1.0` в PATH на время команды.
+2. **`flutter` shell-скрипт не работает в Git Bash** — вызывайте снапшот напрямую: `dart.exe .flutter_sdk/flutter/bin/cache/flutter_tools.snapshot <команда>`.
+3. Первый прогон Gradle длинный (скачивает Gradle и зависимости) — при таймауте просто повторите, кэши продолжат с места.
+
+Рабочая команда сборки (Git Bash):
+
+```bash
+env "PROGRAMFILES(X86)=C:\Program Files (x86)" \
+    "PATH=$PATH:/c/Windows/System32/WindowsPowerShell/v1.0" \
+    "FLUTTER_ROOT=$(pwd -W)\\.flutter_sdk\\flutter" \
+    "JAVA_HOME=$(pwd -W)\\.jdk\\jdk-17.0.19+10" \
+    "ANDROID_HOME=$(pwd -W)\\.android_sdk" \
+    .flutter_sdk/flutter/bin/cache/dart-sdk/bin/dart.exe \
+    .flutter_sdk/flutter/bin/cache/flutter_tools.snapshot \
+    build apk --release --flavor dev
+```
+
+Для `analyze` достаточно `.flutter_sdk/flutter/bin/cache/dart-sdk/bin/dart.exe analyze`; тесты — той же обёрткой `... flutter_tools.snapshot test` (переменные PROGRAMFILES(X86) и FLUTTER_ROOT обязательны).
 
 ## 6. Тестирование
 
@@ -191,7 +220,7 @@ flutter analyze
 - Иконки приложения генерируются `flutter_launcher_icons`: исходники в `icons/`, адаптивная иконка Android на оранжевом фоне `#FE4500`.
 - Для iOS требуется добавить `GoogleService-Info.plist` (не коммитится, см. `.gitignore`) и разрешения на геолокацию/уведомления в `ios/Runner/Info.plist`.
 - Минимальная Android-версия: `minSdk 23` (требование `firebase_messaging`).
-- Сборочный стек: Flutter 3.44.6, Dart 3.12.2, AGP 8.2.0, Gradle 8.5, Kotlin 1.9.24, Java / Kotlin JVM target 17.
+- Сборочный стек: Flutter 3.44.6, Dart 3.12.2, AGP 8.11.1, Gradle 8.14, Kotlin 2.2.20, Java / Kotlin JVM target 17.
 
 ## 12. Что стоит помнить при изменениях
 
