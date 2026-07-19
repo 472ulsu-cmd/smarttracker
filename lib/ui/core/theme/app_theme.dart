@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'app_text_styles.dart';
 import 'brand_colors.dart';
@@ -29,7 +28,7 @@ ThemeData appTheme() {
   );
 
   return base.copyWith(
-    textTheme: GoogleFonts.montserratTextTheme(base.textTheme).copyWith(
+    textTheme: base.textTheme.apply(fontFamily: 'Montserrat').copyWith(
       displayLarge: AppTextStyles.displayLarge,
       headlineLarge: AppTextStyles.headlineLarge,
       headlineMedium: AppTextStyles.headlineMedium,

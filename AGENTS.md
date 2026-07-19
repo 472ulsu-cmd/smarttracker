@@ -27,7 +27,7 @@
 - **Фоновая синхронизация:** `workmanager`.
 - **Push-уведомления:** `firebase_core`, `firebase_messaging`, `flutter_local_notifications`.
 - **Фото:** `image_picker`, `path_provider`, `path`.
-- **UI:** Material 3, брендовая тема, шрифты через `google_fonts` (Montserrat), иконки через `flutter_launcher_icons`.
+- **UI:** Material 3, брендовая тема, шрифты из assets (Montserrat, Bebas Neue, OFL), иконки через `flutter_launcher_icons`.
 
 ## 3. Структура кода
 

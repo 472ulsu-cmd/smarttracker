@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'brand_colors.dart';
 
@@ -7,47 +6,56 @@ import 'brand_colors.dart';
 ///
 /// Основной шрифт — **Montserrat** (Regular/Medium/SemiBold/Bold).
 /// Акцентный шрифт для крупных заголовков — **Bebas Neue** (Regular).
+/// Шрифты bundled в assets/fonts (OFL), сеть не требуется.
+/// Внимание: Bebas Neue не содержит кириллицу — русские глифы
+/// отрисуются системным fallback-шрифтом.
 class AppTextStyles {
   AppTextStyles._();
 
   // --- Montserrat: основной шрифт ---
 
-  static TextStyle get displayLarge => GoogleFonts.bebasNeue(
+  static TextStyle get displayLarge => const TextStyle(
+        fontFamily: 'Bebas Neue',
         fontSize: 40,
         height: 1.1,
         letterSpacing: 0.5,
         color: BrandColors.graphite,
       );
 
-  static TextStyle get headlineLarge => GoogleFonts.montserrat(
+  static TextStyle get headlineLarge => const TextStyle(
+        fontFamily: 'Montserrat',
         fontSize: 28,
         fontWeight: FontWeight.w700,
         height: 1.25,
         color: BrandColors.graphite,
       );
 
-  static TextStyle get headlineMedium => GoogleFonts.montserrat(
+  static TextStyle get headlineMedium => const TextStyle(
+        fontFamily: 'Montserrat',
         fontSize: 22,
         fontWeight: FontWeight.w600,
         height: 1.3,
         color: BrandColors.graphite,
       );
 
-  static TextStyle get titleLarge => GoogleFonts.montserrat(
+  static TextStyle get titleLarge => const TextStyle(
+        fontFamily: 'Montserrat',
         fontSize: 18,
         fontWeight: FontWeight.w600,
         height: 1.35,
         color: BrandColors.graphite,
       );
 
-  static TextStyle get titleMedium => GoogleFonts.montserrat(
+  static TextStyle get titleMedium => const TextStyle(
+        fontFamily: 'Montserrat',
         fontSize: 16,
         fontWeight: FontWeight.w600,
         height: 1.4,
         color: BrandColors.graphite,
       );
 
-  static TextStyle get bodyLarge => GoogleFonts.montserrat(
+  static TextStyle get bodyLarge => const TextStyle(
+        fontFamily: 'Montserrat',
         fontSize: 16,
         fontWeight: FontWeight.w400,
         height: 1.45,
@@ -55,7 +63,8 @@ class AppTextStyles {
       );
 
   /// Основной наборный текст.
-  static TextStyle get bodyMedium => GoogleFonts.montserrat(
+  static TextStyle get bodyMedium => const TextStyle(
+        fontFamily: 'Montserrat',
         fontSize: 14,
         fontWeight: FontWeight.w400,
         height: 1.5,
@@ -63,21 +72,24 @@ class AppTextStyles {
       );
 
   /// Подписи/метки/меню.
-  static TextStyle get bodySmall => GoogleFonts.montserrat(
+  static TextStyle get bodySmall => const TextStyle(
+        fontFamily: 'Montserrat',
         fontSize: 13,
         fontWeight: FontWeight.w400,
         height: 1.45,
         color: BrandColors.grayDark,
       );
 
-  static TextStyle get labelMedium => GoogleFonts.montserrat(
+  static TextStyle get labelMedium => const TextStyle(
+        fontFamily: 'Montserrat',
         fontSize: 12,
         fontWeight: FontWeight.w500,
         height: 1.4,
         color: BrandColors.grayDark,
       );
 
-  static TextStyle get caption => GoogleFonts.montserrat(
+  static TextStyle get caption => const TextStyle(
+        fontFamily: 'Montserrat',
         fontSize: 11,
         fontWeight: FontWeight.w400,
         height: 1.4,
@@ -85,7 +97,8 @@ class AppTextStyles {
       );
 
   /// Кнопка (Montserrat SemiBold).
-  static TextStyle get button => GoogleFonts.montserrat(
+  static TextStyle get button => const TextStyle(
+        fontFamily: 'Montserrat',
         fontSize: 16,
         fontWeight: FontWeight.w600,
         height: 1.2,
