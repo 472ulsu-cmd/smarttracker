@@ -208,8 +208,6 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
     final accentColor = isLoading ? BrandColors.primary : BrandColors.grayMid;
     final canOpenMap = point.lat != null && point.lon != null;
 
-    final hasWhere =
-        point.city.isNotEmpty || point.address.isNotEmpty || point.date.isNotEmpty;
     final hasCargo = point.cargoType.isNotEmpty ||
         point.loadingMethod.isNotEmpty ||
         point.mass.isNotEmpty ||
@@ -285,67 +283,46 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    // 1. Куда и когда.
-                    if (hasWhere) ...[
-                      const _SectionHeader('Куда и когда'),
-                      if (point.city.isNotEmpty)
-                        Text(
-                          point.city,
-                          style: AppTextStyles.titleMedium,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      if (point.address.isNotEmpty) ...[
-                        if (point.city.isNotEmpty) const SizedBox(height: 8),
-                        _FieldLine(
-                          icon: Icons.place_outlined,
-                          text: point.address,
-                          semanticLabel: 'Адрес',
-                          minHeight: 48,
-                          trailing: canOpenMap
-                              ? TextButton.icon(
-                                  onPressed: _isLaunchingMap
-                                      ? null
-                                      : () => _openMap(context),
-                                  icon: const Icon(Icons.map_outlined, size: 18),
-                                  label: const Text('На карте'),
-                                  style: TextButton.styleFrom(
-                                    minimumSize: const Size(48, 48),
-                                    tapTargetSize:
-                                        MaterialTapTargetSize.padded,
-                                  ),
-                                )
-                              : null,
-                        ),
-                      ],
-                      if (point.date.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        _FieldLine(
-                          icon: Icons.event_outlined,
-                          text: '${DateFormatUtil.date(point.date)}  '
-                              '${DateFormatUtil.time(point.timeFrom)}–'
-                              '${DateFormatUtil.time(point.timeTo)}',
-                          semanticLabel: 'Дата и время',
-                        ),
-                      ],
+                    // Дата и время — над городом.
+                    if (point.date.isNotEmpty)
+                      _FieldLine(
+                        icon: Icons.event_outlined,
+                        text: '${DateFormatUtil.date(point.date)}  '
+                            '${DateFormatUtil.time(point.timeFrom)}–'
+                            '${DateFormatUtil.time(point.timeTo)}',
+                        semanticLabel: 'Дата и время',
+                      ),
+                    if (point.city.isNotEmpty) ...[
+                      if (point.date.isNotEmpty) const SizedBox(height: 8),
+                      Text(
+                        point.city,
+                        style: AppTextStyles.titleMedium,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
-                    // Примечание к точке.
-                    if (point.comment.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: BrandColors.paperWarm,
-                          borderRadius: BorderRadius.circular(BrandRadius.sm),
-                        ),
-                        child: Text(
-                          point.comment,
-                          style: AppTextStyles.bodySmall
-                              .copyWith(color: BrandColors.grayDark),
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                    if (point.address.isNotEmpty) ...[
+                      if (point.city.isNotEmpty || point.date.isNotEmpty)
+                        const SizedBox(height: 8),
+                      _FieldLine(
+                        icon: Icons.place_outlined,
+                        text: point.address,
+                        semanticLabel: 'Адрес',
+                        minHeight: 48,
+                        trailing: canOpenMap
+                            ? TextButton.icon(
+                                onPressed: _isLaunchingMap
+                                    ? null
+                                    : () => _openMap(context),
+                                icon: const Icon(Icons.map_outlined, size: 18),
+                                label: const Text('На карте'),
+                                style: TextButton.styleFrom(
+                                  minimumSize: const Size(48, 48),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.padded,
+                                ),
+                              )
+                            : null,
                       ),
                     ],
                     // 2. Груз.
@@ -410,6 +387,25 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                         ),
                       ],
+                    ],
+                    // Примечание к точке — в конце плитки.
+                    if (point.comment.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: BrandColors.paperWarm,
+                          borderRadius: BorderRadius.circular(BrandRadius.sm),
+                        ),
+                        child: Text(
+                          point.comment,
+                          style: AppTextStyles.bodySmall
+                              .copyWith(color: BrandColors.grayDark),
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ],
                 ),

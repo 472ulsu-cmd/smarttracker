@@ -26,7 +26,7 @@ class OrderListTile extends StatelessWidget {
     final loading = DateFormatUtil.date(order.loadingDate);
     final unloading = DateFormatUtil.date(order.unloadingDate);
     if (loading.isNotEmpty && unloading.isNotEmpty) {
-      return 'Погрузка: $loading — разгрузка: $unloading';
+      return 'Погрузка: $loading — Разгрузка: $unloading';
     }
     if (loading.isNotEmpty) {
       return 'Погрузка: $loading';

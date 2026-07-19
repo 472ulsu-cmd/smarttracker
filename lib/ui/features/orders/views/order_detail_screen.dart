@@ -9,8 +9,10 @@ import '../../../../domain/repositories/orders_repository.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
+import '../../../core/utils/date_format.dart';
 import '../../../core/widgets/brand_card.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/error_banner.dart';
 import '../../../core/widgets/phone_call_row.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../view_models/order_detail_view_model.dart';
@@ -138,7 +140,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 if (_viewModel.loadErrorMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: _ErrorBanner(
+                    child: ErrorBanner(
                       message: _viewModel.loadErrorMessage!,
                       onRetry: _viewModel.isLoading
                           ? null
@@ -422,11 +424,26 @@ class _RoutePoint extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Text(
-            '${point.isLoading ? "Погрузка" : "Разгрузка"} — ${point.city}',
-            style: AppTextStyles.bodyMedium,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${point.isLoading ? "Погрузка" : "Разгрузка"} — ${point.city}',
+                style: AppTextStyles.bodyMedium,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (point.date.isNotEmpty)
+                Text(
+                  '${DateFormatUtil.date(point.date)}  '
+                  '${DateFormatUtil.time(point.timeFrom)}–'
+                  '${DateFormatUtil.time(point.timeTo)}',
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: BrandColors.grayDark),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+            ],
           ),
         ),
       ],
@@ -480,7 +497,7 @@ class _ActionsBar extends StatelessWidget {
                 if (viewModel.errorMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: _ErrorBanner(
+                    child: ErrorBanner(
                       message: viewModel.errorMessage!,
                       onRetry: viewModel.retryLastAction,
                     ),
@@ -583,49 +600,6 @@ class _ActionButton extends StatelessWidget {
         HapticFeedback.mediumImpact();
       }
     }
-  }
-}
-
-/// Баннер ошибки с кнопкой повтора. Контрастный — читаем на ярком солнце.
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.message, this.onRetry});
-
-  final String message;
-  final VoidCallback? onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(
-        color: BrandColors.errorBackground,
-        borderRadius: BorderRadius.circular(BrandRadius.sm),
-        border: Border.all(color: BrandColors.error.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.error_outline, color: BrandColors.error, size: 22),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message,
-              style: AppTextStyles.bodyMedium
-                  .copyWith(color: BrandColors.error),
-            ),
-          ),
-          if (onRetry != null)
-            TextButton(
-              onPressed: onRetry,
-              style: TextButton.styleFrom(
-                minimumSize: const Size(48, 48),
-                padding: EdgeInsets.zero,
-              ),
-              child: const Text('Повторить'),
-            ),
-        ],
-      ),
-    );
   }
 }
 

@@ -100,13 +100,6 @@ class _OrdersScreenState extends State<OrdersScreen>
                           onSelected: () => _viewModel.setSearchScope(
                               OrdersSearchScope.route),
                         ),
-                        _SearchScopeChip(
-                          label: 'По заказчику',
-                          selected: _viewModel.searchScope ==
-                              OrdersSearchScope.customer,
-                          onSelected: () => _viewModel.setSearchScope(
-                              OrdersSearchScope.customer),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -294,8 +287,8 @@ class _UpdateErrorBanner extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style:
-                  AppTextStyles.bodyMedium.copyWith(color: BrandColors.error),
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: BrandColors.errorText),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
