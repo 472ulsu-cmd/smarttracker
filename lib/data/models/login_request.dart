@@ -1,16 +1,9 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-
-part 'login_request.freezed.dart';
-part 'login_request.g.dart';
-
 /// Тело запроса `POST /login`.
-@freezed
-abstract class LoginRequest with _$LoginRequest {
-  const factory LoginRequest({
-    required String login,
-    required String password,
-  }) = _LoginRequest;
+class LoginRequest {
+  const LoginRequest({required this.login, required this.password});
 
-  factory LoginRequest.fromJson(Map<String, dynamic> json) =>
-      _$LoginRequestFromJson(json);
+  final String login;
+  final String password;
+
+  Map<String, dynamic> toJson() => {'login': login, 'password': password};
 }

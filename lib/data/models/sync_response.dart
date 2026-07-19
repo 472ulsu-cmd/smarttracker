@@ -1,16 +1,12 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-
-part 'sync_response.freezed.dart';
-part 'sync_response.g.dart';
-
 /// Конфигурация периодов (`GET /sync`).
-@freezed
-abstract class SyncResponse with _$SyncResponse {
-  const factory SyncResponse({
-    @JsonKey(name: 'coordinates_period') int? coordinatesPeriod,
-    @JsonKey(name: 'sync_period') int? syncPeriod,
-  }) = _SyncResponse;
+class SyncResponse {
+  const SyncResponse({this.coordinatesPeriod, this.syncPeriod});
 
-  factory SyncResponse.fromJson(Map<String, dynamic> json) =>
-      _$SyncResponseFromJson(json);
+  factory SyncResponse.fromJson(Map<String, dynamic> json) => SyncResponse(
+        coordinatesPeriod: (json['coordinates_period'] as num?)?.toInt(),
+        syncPeriod: (json['sync_period'] as num?)?.toInt(),
+      );
+
+  final int? coordinatesPeriod;
+  final int? syncPeriod;
 }
