@@ -93,6 +93,28 @@ void main() {
       expect(detail.photos.single.photos.single.id, 10);
     });
 
+    test('toDetail резолвит относительный url фото от базового URL API', () {
+      final detail = OrderMapper.toDetail(const api.OrdersResponse(
+        id: 7,
+        photo: [
+          api.OrdersResponseOrderPhoto(
+            id: 1,
+            type: 'Погрузка',
+            routePhoto: [
+              api.OrdersResponseOrderRoutePhoto(id: 10, url: '/uploads/1.jpg'),
+              api.OrdersResponseOrderRoutePhoto(id: 11, url: 'uploads/2.jpg'),
+              api.OrdersResponseOrderRoutePhoto(
+                  id: 12, url: 'https://cdn.example/3.jpg'),
+            ],
+          ),
+        ],
+      ));
+      final photos = detail.photos.single.photos;
+      expect(photos[0].url, 'https://st.b2b-logist.com/uploads/1.jpg');
+      expect(photos[1].url, 'https://st.b2b-logist.com/api/uploads/2.jpg');
+      expect(photos[2].url, 'https://cdn.example/3.jpg');
+    });
+
     test('toDetail маппит контрагентов и контакты в точках маршрута', () {
       final detail = OrderMapper.toDetail(const api.OrdersResponse(
         id: 8,

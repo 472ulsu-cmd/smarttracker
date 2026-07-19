@@ -53,6 +53,10 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Приложению нужно знать ваше местоположение, чтобы показывать его диспетчеру.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Камера нужна, чтобы фотографировать груз и документы по заявке.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Доступ к фото нужен, чтобы прикреплять снимки груза из галереи.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Приложению нужно отслеживать местоположение в фоне для работы диспетчера.</string>
 	<key>NSLocationAlwaysUsageDescription</key>

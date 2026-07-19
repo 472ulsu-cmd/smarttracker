@@ -1,6 +1,20 @@
 /// Источник изображения (камера/галерея).
 enum ImageSourceOption { camera, gallery }
 
+/// Пользователь отказал в доступе к камере или галерее.
+///
+/// Выделено отдельным типом (вне sealed-иерархии AppException), чтобы
+/// UI мог предложить переход в системные настройки.
+class PhotoAccessDeniedException implements Exception {
+  const PhotoAccessDeniedException(this.message);
+
+  /// Понятное пользователю сообщение на русском.
+  final String message;
+
+  @override
+  String toString() => 'PhotoAccessDeniedException: $message';
+}
+
 /// Контракт репозитория фото заявки.
 abstract class PhotoRepository {
   /// Загрузить фото по типу (`POST /orders/{id}/photo_type/{typeId}/photo`).

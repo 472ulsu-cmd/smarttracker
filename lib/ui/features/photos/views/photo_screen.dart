@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../config/service_locator.dart';
 import '../../../../data/services/local_photo_store.dart';
@@ -10,7 +13,9 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
 import '../../../core/widgets/brand_card.dart';
+import '../../../core/widgets/photo_status_chip.dart';
 import '../view_models/photo_view_model.dart';
+import 'photo_viewer_screen.dart';
 
 /// Экран фото по заявке.
 ///
@@ -60,16 +65,19 @@ class _PhotoScreenState extends State<PhotoScreen> {
       _lastErrorMessage = error;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            error,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-          ),
+          content: Text(error),
           behavior: SnackBarBehavior.floating,
-          action: SnackBarAction(
-            label: 'Загрузить снова',
-            onPressed: _viewModel.load,
-          ),
+          action: _viewModel.accessDenied
+              ? SnackBarAction(
+                  label: 'Открыть настройки',
+                  onPressed: openAppSettings,
+                )
+              : _viewModel.queuedOffline
+                  ? null // фото в очереди — повтор не нужен
+                  : SnackBarAction(
+                      label: 'Повторить',
+                      onPressed: _viewModel.retryLastAction,
+                    ),
         ),
       );
     } else if (error == null) {
@@ -101,16 +109,22 @@ class _PhotoScreenState extends State<PhotoScreen> {
           }
           return Stack(
             children: [
-              ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: _viewModel.groups.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 16),
-                itemBuilder: (context, index) {
-                  return _PhotoGroupCard(
-                    group: _viewModel.groups[index],
-                    viewModel: _viewModel,
-                  );
-                },
+              // На планшете контент не растягивается во всю ширину.
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _viewModel.groups.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 16),
+                    itemBuilder: (context, index) {
+                      return _PhotoGroupCard(
+                        group: _viewModel.groups[index],
+                        viewModel: _viewModel,
+                      );
+                    },
+                  ),
+                ),
               ),
               if (_viewModel.isUploading)
                 Positioned(
@@ -137,34 +151,19 @@ class _PhotoGroupCard extends StatelessWidget {
   final OrderPhotoGroup group;
   final PhotoViewModel viewModel;
 
-  Future<void> _onResend(BuildContext context, OrderPhoto photo) async {
-    final cached = viewModel.cachedPath(photo.id);
-    if (cached != null) {
-      await viewModel.resend(photo);
-      return;
-    }
-    final source = await showModalBottomSheet<ImageSourceOption>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Сделать снимок'),
-              onTap: () => Navigator.pop(ctx, ImageSourceOption.camera),
-            ),
-            ListTile(
-              leading: const Icon(Icons.image_outlined),
-              title: const Text('Выбрать из галереи'),
-              onTap: () => Navigator.pop(ctx, ImageSourceOption.gallery),
-            ),
-          ],
+  void _openViewer(BuildContext context, int index) {
+    // Платформенный маршрут: на iOS сохраняется edge-swipe назад,
+    // переход и predictive Back остаются системными.
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PhotoViewerScreen(
+          group: group,
+          initialIndex: index,
+          resolveLocalPath: viewModel.cachedPath,
+          resolveRejectionReason: viewModel.rejectionReason,
         ),
       ),
     );
-    if (source == null) return;
-    await viewModel.resend(photo, source: source);
   }
 
   @override
@@ -203,10 +202,12 @@ class _PhotoGroupCard extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final photo in group.photos)
+                for (var i = 0; i < group.photos.length; i++)
                   _PhotoThumb(
-                    photo: photo,
-                    onResend: () => _onResend(context, photo),
+                    photo: group.photos[i],
+                    index: i,
+                    total: group.photos.length,
+                    onTap: () => _openViewer(context, i),
                     viewModel: viewModel,
                   ),
               ],
@@ -246,23 +247,74 @@ class _PhotoGroupCard extends StatelessWidget {
 class _PhotoThumb extends StatelessWidget {
   const _PhotoThumb({
     required this.photo,
-    required this.onResend,
+    required this.index,
+    required this.total,
+    required this.onTap,
     required this.viewModel,
   });
 
   final OrderPhoto photo;
-  final VoidCallback onResend;
+
+  /// Позиция фото в группе (для различения в Semantics-метке).
+  final int index;
+  final int total;
+
+  /// Тап по превью — полноэкранный просмотр.
+  final VoidCallback onTap;
   final PhotoViewModel viewModel;
 
-  Color _statusColor(OrderPhotoStatus s) {
-    switch (s) {
-      case OrderPhotoStatus.approved:
-        return BrandColors.greenWeb;
-      case OrderPhotoStatus.rejected:
-        return BrandColors.error;
-      case OrderPhotoStatus.pending:
-        return BrandColors.grayDark;
+  static const double _thumbSize = 96;
+
+  /// Превью фото: локальный файл из кэша (если загружали с этого
+  /// устройства) или сеть. Декод ограничен физическими пикселями
+  /// превью — полноразмерный кадр в память не попадает.
+  Widget _buildThumb(BuildContext context) {
+    final cached = viewModel.cachedPath(photo.id);
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final cacheSize = (_thumbSize * dpr).round();
+
+    if (cached != null) {
+      return Image.file(
+        File(cached),
+        width: _thumbSize,
+        height: _thumbSize,
+        fit: BoxFit.cover,
+        cacheWidth: cacheSize,
+        cacheHeight: cacheSize,
+        errorBuilder: (_, __, ___) => _networkThumb(cacheSize),
+      );
     }
+    return _networkThumb(cacheSize);
+  }
+
+  Widget _networkThumb(int cacheSize) {
+    if (photo.url.isEmpty) return _broken();
+    return Image.network(
+      photo.url,
+      width: _thumbSize,
+      height: _thumbSize,
+      fit: BoxFit.cover,
+      cacheWidth: cacheSize,
+      cacheHeight: cacheSize,
+      loadingBuilder: (context, child, progress) => progress == null
+          ? child
+          : Container(
+              width: _thumbSize,
+              height: _thumbSize,
+              color: BrandColors.grayLighter,
+            ),
+      errorBuilder: (_, __, ___) => _broken(),
+    );
+  }
+
+  Widget _broken() {
+    return Container(
+      width: _thumbSize,
+      height: _thumbSize,
+      color: BrandColors.grayLighter,
+      child:
+          const Icon(Icons.broken_image_outlined, color: BrandColors.grayDark),
+    );
   }
 
   @override
@@ -274,88 +326,32 @@ class _PhotoThumb extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Stack(
-          children: [
-            ClipRRect(
+        Semantics(
+          button: true,
+          label:
+              'Открыть фото ${index + 1} из $total, статус: ${photo.status.label}',
+          child: GestureDetector(
+            onTap: onTap,
+            child: ClipRRect(
               borderRadius: BorderRadius.circular(BrandRadius.sm),
-              child: photo.url.isEmpty
-                  ? Container(
-                      width: 96,
-                      height: 96,
-                      color: BrandColors.grayLighter,
-                      child: const Icon(Icons.broken_image_outlined,
-                          color: BrandColors.grayMid),
-                    )
-                  : Image.network(
-                      photo.url,
-                      width: 96,
-                      height: 96,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, progress) =>
-                          progress == null
-                              ? child
-                              : Container(
-                                  width: 96,
-                                  height: 96,
-                                  color: BrandColors.grayLighter,
-                                ),
-                      errorBuilder: (_, __, ___) => Container(
-                        width: 96,
-                        height: 96,
-                        color: BrandColors.grayLighter,
-                        child: const Icon(Icons.broken_image_outlined,
-                            color: BrandColors.grayMid),
-                      ),
-                    ),
+              child: _buildThumb(context),
             ),
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Semantics(
-                label: 'Переотправить фото',
-                child: Material(
-                  type: MaterialType.circle,
-                  color: BrandColors.graphite,
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: onResend,
-                    customBorder: const CircleBorder(),
-                    child: const SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: Icon(
-                        Icons.refresh,
-                        size: 18,
-                        color: BrandColors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
         const SizedBox(height: 4),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: _statusColor(photo.status).withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(BrandRadius.sm),
-          ),
-          child: Text(
-            photo.status.label,
-            style: AppTextStyles.caption
-                .copyWith(color: _statusColor(photo.status)),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+        // «На рассмотрении» не влезает в ширину превью одной строкой —
+        // чип переносится на две, текст статуса не обрезаем.
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _thumbSize),
+          child: PhotoStatusChip(status: photo.status),
         ),
         if (photo.status == OrderPhotoStatus.rejected && reason.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
               reason,
-              style: AppTextStyles.caption.copyWith(color: BrandColors.error),
+              style:
+                  AppTextStyles.bodySmall.copyWith(color: BrandColors.error),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               softWrap: true,
@@ -369,29 +365,36 @@ class _PhotoThumb extends StatelessWidget {
 class _UploadingBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: BrandColors.graphite,
-        borderRadius: BorderRadius.circular(BrandRadius.pill),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(
-            height: 16,
-            width: 16,
-            child: CircularProgressIndicator(
-                strokeWidth: 2, color: BrandColors.white),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            'Загружаем фото…',
-            style: AppTextStyles.bodySmall.copyWith(color: BrandColors.white),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+    // liveRegion: TalkBack/VoiceOver объявят о начале загрузки.
+    return Semantics(
+      liveRegion: true,
+      label: 'Загружаем фото',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: BrandColors.graphite,
+          borderRadius: BorderRadius.circular(BrandRadius.pill),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              height: 16,
+              width: 16,
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: BrandColors.white),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Загружаем фото…',
+              style:
+                  AppTextStyles.bodySmall.copyWith(color: BrandColors.white),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -421,8 +424,6 @@ class _Center extends StatelessWidget {
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyMedium
                   .copyWith(color: BrandColors.grayDark),
-              maxLines: 5,
-              overflow: TextOverflow.ellipsis,
             ),
             if (action != null) ...[
               const SizedBox(height: 16),

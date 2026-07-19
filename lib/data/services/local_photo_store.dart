@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Локальный кэш путей загруженных фото заявки и причин отклонения.
@@ -15,6 +17,36 @@ class LocalPhotoStore {
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
+    // Сироты (файлы неудачных/забытых аплоадов) чистим best-effort.
+    await cleanupOrphans();
+  }
+
+  /// Удаляет файлы фото старше [olderThan] из ApplicationDocuments/photos.
+  ///
+  /// Сироты копятся после сбоев аплоада. Файлы старше порога либо уже на
+  /// сервере, либо их действие в офлайн-очереди давно помечено failed —
+  /// удаление безопасно. Best-effort: любая ошибка → 0, запуск не ломаем.
+  Future<int> cleanupOrphans({
+    Duration olderThan = const Duration(days: 30),
+  }) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final photosDir = Directory(p.join(appDir.path, 'photos'));
+      if (!await photosDir.exists()) return 0;
+      final cutoff = DateTime.now().subtract(olderThan);
+      var removed = 0;
+      await for (final entity in photosDir.list()) {
+        if (entity is! File) continue;
+        final stat = await entity.stat();
+        if (stat.modified.isBefore(cutoff)) {
+          await entity.delete();
+          removed++;
+        }
+      }
+      return removed;
+    } catch (_) {
+      return 0;
+    }
   }
 
   Future<void> savePath(int routePhotoId, String path) async {

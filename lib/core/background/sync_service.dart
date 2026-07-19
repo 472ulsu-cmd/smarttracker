@@ -74,11 +74,22 @@ Future<void> _process(PendingAction action) async {
       );
       break;
     case PendingActionType.photoUpload:
-      await getIt<PhotoRepository>().uploadPhotoByType(
-        (payload['orderId'] as num).toInt(),
-        (payload['routePhotoTypeId'] as num).toInt(),
-        payload['filePath'] as String,
-      );
+      final routePhotoId = payload['routePhotoId'];
+      if (routePhotoId != null) {
+        // Переотправка отклонённого фото — по id существующего фото.
+        await getIt<PhotoRepository>().uploadPhoto(
+          (payload['orderId'] as num).toInt(),
+          (routePhotoId as num).toInt(),
+          payload['filePath'] as String,
+        );
+      } else {
+        // Новое фото — по типу группы.
+        await getIt<PhotoRepository>().uploadPhotoByType(
+          (payload['orderId'] as num).toInt(),
+          (payload['routePhotoTypeId'] as num).toInt(),
+          payload['filePath'] as String,
+        );
+      }
       break;
     case PendingActionType.coordinates:
       // Координаты обрабатываются пакетным вызовом до входа в [_process].

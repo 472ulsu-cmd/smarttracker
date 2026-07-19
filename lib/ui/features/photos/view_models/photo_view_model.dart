@@ -1,27 +1,36 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../../data/services/local_photo_store.dart';
+import '../../../../data/services/pending_action_store.dart';
 import '../../../../domain/models/app_exception.dart';
 import '../../../../domain/models/order_photo.dart';
+import '../../../../domain/models/pending_action.dart';
 import '../../../../domain/repositories/orders_repository.dart';
 import '../../../../domain/repositories/photo_repository.dart';
 
 /// ViewModel экрана фото заявки.
 ///
-/// Загружает фото из деталей заявки, обеспечивает загрузку и переотправку.
+/// Загружает фото из деталей заявки, обеспечивает загрузку новых фото.
 /// Экран фото доступен только для заявок, принятых в работу.
+///
+/// При сетевом сбое аплоада фото не теряется: действие ставится в
+/// офлайн-очередь [PendingActionStore] и доотправляется фоновой
+/// синхронизацией при появлении сети.
 class PhotoViewModel extends ChangeNotifier {
   PhotoViewModel(
     this.orderId,
     this._photoRepo,
     this._ordersRepo,
-    this._localPhotoStore,
-  );
+    this._localPhotoStore, {
+    Future<void> Function(PendingAction action)? enqueueAction,
+  }) : _enqueueAction =
+            enqueueAction ?? PendingActionStore.instance.enqueue;
 
   final int orderId;
   final PhotoRepository _photoRepo;
   final OrdersRepository _ordersRepo;
   final LocalPhotoStore _localPhotoStore;
+  final Future<void> Function(PendingAction action) _enqueueAction;
 
   List<OrderPhotoGroup> _groups = const [];
   List<OrderPhotoGroup> get groups => _groups;
@@ -35,6 +44,19 @@ class PhotoViewModel extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
+  /// Последняя ошибка — отказ в доступе к камере/галерее
+  /// (UI предлагает переход в настройки).
+  bool _accessDenied = false;
+  bool get accessDenied => _accessDenied;
+
+  /// Фото поставлено в офлайн-очередь (ошибка носит информационный характер,
+  /// повторное действие не требуется).
+  bool _queuedOffline = false;
+  bool get queuedOffline => _queuedOffline;
+
+  /// Повтор последнего неудачного действия (аплоад).
+  Future<bool> Function()? _lastRetry;
+
   bool _disposed = false;
 
   @override
@@ -45,6 +67,19 @@ class PhotoViewModel extends ChangeNotifier {
 
   void _notify() {
     if (!_disposed) notifyListeners();
+  }
+
+  void _resetErrorFlags() {
+    _errorMessage = null;
+    _accessDenied = false;
+    _queuedOffline = false;
+  }
+
+  /// Повторить последнее неудачное действие (или перезагрузить список).
+  Future<bool> retryLastAction() {
+    final retry = _lastRetry;
+    if (retry != null) return retry();
+    return load().then((_) => _errorMessage == null);
   }
 
   Future<void> load() async {
@@ -67,19 +102,41 @@ class PhotoViewModel extends ChangeNotifier {
   }
 
   /// Загрузить фото для группы по типу (камера/галерея).
-  Future<bool> uploadForGroup(OrderPhotoGroup group, ImageSourceOption source) async {
+  Future<bool> uploadForGroup(
+      OrderPhotoGroup group, ImageSourceOption source) async {
     if (_disposed || _isUploading) return false;
     _isUploading = true;
-    _errorMessage = null;
+    _resetErrorFlags();
+    _lastRetry = () => uploadForGroup(group, source);
     _notify();
 
+    final filePath = await _pickSafe(source);
+    if (filePath == null) {
+      _isUploading = false;
+      _notify();
+      return false;
+    }
+
     try {
-      final filePath = await _photoRepo.pickImage(source);
-      if (filePath == null) return false;
-      final newId = await _photoRepo.uploadPhotoByType(orderId, group.id, filePath);
+      final newId =
+          await _photoRepo.uploadPhotoByType(orderId, group.id, filePath);
       await _localPhotoStore.savePath(newId, filePath);
       await load(); // обновляем список
       return true;
+    } on NetworkException {
+      // Нет сети: файл на месте — ставим в офлайн-очередь.
+      await _enqueueAction(PendingAction(
+        type: PendingActionType.photoUpload,
+        payload: {
+          'orderId': orderId,
+          'routePhotoTypeId': group.id,
+          'filePath': filePath,
+        },
+      ));
+      _queuedOffline = true;
+      _errorMessage =
+          'Нет соединения. Фото сохранено и отправится автоматически при появлении сети.';
+      return false;
     } on AppException catch (e) {
       _errorMessage = e.message;
       return false;
@@ -100,37 +157,21 @@ class PhotoViewModel extends ChangeNotifier {
   String? rejectionReason(int routePhotoId) =>
       _localPhotoStore.getRejectionReason(routePhotoId);
 
-  /// Переотправить ранее отклонённое фото.
-  ///
-  /// Если локальный путь сохранён в кэше, использует его; иначе,
-  /// при переданном [source], предлагает выбрать новое фото.
-  /// Возвращает `true`, если переотправка прошла успешно.
-  Future<bool> resend(OrderPhoto photo, {ImageSourceOption? source}) async {
-    if (_disposed || _isUploading) return false;
-    _isUploading = true;
-    _errorMessage = null;
-    _notify();
-
+  /// Выбор изображения с корректной обработкой отказа в разрешении.
+  /// Возвращает null при отмене; ошибки пишет в [_errorMessage].
+  Future<String?> _pickSafe(ImageSourceOption source) async {
     try {
-      String? filePath = _localPhotoStore.getExistingPath(photo.id);
-      if (filePath == null && source != null) {
-        filePath = await _photoRepo.pickImage(source);
-      }
-      if (filePath == null) return false;
-      await _photoRepo.uploadPhoto(orderId, photo.id, filePath);
-      await _localPhotoStore.savePath(photo.id, filePath);
-      await load();
-      return true;
+      return await _photoRepo.pickImage(source);
+    } on PhotoAccessDeniedException catch (e) {
+      _accessDenied = true;
+      _errorMessage = e.message;
+      return null;
     } on AppException catch (e) {
       _errorMessage = e.message;
-      return false;
+      return null;
     } catch (_) {
-      _errorMessage =
-          'Не удалось переотправить фото. Проверьте подключение и попробуйте снова.';
-      return false;
-    } finally {
-      _isUploading = false;
-      _notify();
+      _errorMessage = 'Не удалось получить изображение.';
+      return null;
     }
   }
 }

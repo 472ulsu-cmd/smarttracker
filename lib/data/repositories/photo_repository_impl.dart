@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -67,6 +68,11 @@ class PhotoRepositoryImpl implements PhotoRepository {
         source: source == ImageSourceOption.camera
             ? ImageSource.camera
             : ImageSource.gallery,
+        // 2000px достаточно, чтобы диспетчер различил груз и документы,
+        // а файл худеет с нескольких МБ до сотен КБ — критично
+        // для мобильной сети и офлайн-очереди.
+        maxWidth: 2000,
+        maxHeight: 2000,
         imageQuality: 80,
       );
       if (xFile == null) return null;
@@ -84,6 +90,16 @@ class PhotoRepositoryImpl implements PhotoRepository {
       );
       await File(xFile.path).copy(dest);
       return dest;
+    } on PlatformException catch (e) {
+      // Отказ в разрешении — отдельный тип: UI предложит путь в настройки.
+      if (e.code.contains('access_denied')) {
+        throw PhotoAccessDeniedException(
+          source == ImageSourceOption.camera
+              ? 'Нет доступа к камере. Разрешите доступ в настройках приложения.'
+              : 'Нет доступа к фото. Разрешите доступ в настройках приложения.',
+        );
+      }
+      throw const UnknownException('Не удалось получить изображение.');
     } catch (_) {
       throw const UnknownException('Не удалось получить изображение.');
     }

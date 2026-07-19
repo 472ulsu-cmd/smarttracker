@@ -1,3 +1,4 @@
+import '../../config/app_config.dart';
 import '../../domain/models/order.dart';
 import '../../domain/models/order_photo.dart';
 import '../models/orders_response.dart' as api;
@@ -93,11 +94,26 @@ class OrderMapper {
     final comment = p.comment ?? '';
     return OrderPhoto(
       id: p.id ?? 0,
-      url: p.url ?? '',
+      url: _absolutePhotoUrl(p.url),
       status: status,
       comment: comment,
       rejectionReason:
           status == OrderPhotoStatus.rejected ? comment : '',
     );
+  }
+
+  /// Абсолютный URL фото. Спека не фиксирует формат `url`; если API
+  /// вернёт относительный путь, резолвим его от базового URL API
+  /// (`/uploads/x.jpg` → от origin'а, `uploads/x.jpg` → от /api/).
+  static String _absolutePhotoUrl(String? url) {
+    final raw = url ?? '';
+    if (raw.isEmpty) return raw;
+    final uri = Uri.tryParse(raw);
+    if (uri == null || uri.hasScheme) return raw;
+    try {
+      return Uri.parse(AppConfig.production.baseUrl).resolve(raw).toString();
+    } on FormatException {
+      return raw;
+    }
   }
 }
