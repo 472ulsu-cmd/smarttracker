@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../config/service_locator.dart';
 import '../../../../domain/models/order.dart';
+import '../../../../domain/repositories/orders_repository.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
@@ -28,7 +29,7 @@ class _OrderRouteScreenState extends State<OrderRouteScreen> {
   @override
   void initState() {
     super.initState();
-    _viewModel = getIt<OrderDetailViewModel>(param1: widget.orderId);
+    _viewModel = OrderDetailViewModel(widget.orderId, getIt<OrdersRepository>());
     _viewModel.addListener(_onChanged);
     _viewModel.load();
   }

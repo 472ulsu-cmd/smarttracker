@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../config/service_locator.dart';
@@ -287,17 +286,20 @@ class _PhotoThumb extends StatelessWidget {
                       child: const Icon(Icons.broken_image_outlined,
                           color: BrandColors.grayMid),
                     )
-                  : CachedNetworkImage(
-                      imageUrl: photo.url,
+                  : Image.network(
+                      photo.url,
                       width: 96,
                       height: 96,
                       fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(
-                        width: 96,
-                        height: 96,
-                        color: BrandColors.grayLighter,
-                      ),
-                      errorWidget: (_, __, ___) => Container(
+                      loadingBuilder: (context, child, progress) =>
+                          progress == null
+                              ? child
+                              : Container(
+                                  width: 96,
+                                  height: 96,
+                                  color: BrandColors.grayLighter,
+                                ),
+                      errorBuilder: (_, __, ___) => Container(
                         width: 96,
                         height: 96,
                         color: BrandColors.grayLighter,

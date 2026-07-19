@@ -13,7 +13,6 @@ import '../data/repositories/profile_repository_impl.dart';
 import '../data/repositories/sync_repository_impl.dart';
 import '../data/services/dio_provider.dart';
 import '../data/services/local_photo_store.dart';
-import '../data/services/pending_refresh_store.dart';
 import '../data/services/secure_storage_service.dart';
 import '../data/services/settings_service.dart';
 import '../data/services/sync_config_service.dart';
@@ -29,8 +28,6 @@ import '../ui/features/location/view_models/location_permission_view_model.dart'
 import '../ui/features/notifications/view_models/notifications_view_model.dart';
 import '../ui/features/notifications/view_models/unread_badge_view_model.dart';
 import '../ui/features/orders/view_models/orders_view_model.dart';
-import '../ui/features/orders/view_models/order_detail_view_model.dart';
-import '../ui/features/photos/view_models/photo_view_model.dart';
 import '../ui/features/profile/view_models/profile_view_model.dart';
 import 'app_config.dart';
 import 'refresh_bus.dart';
@@ -146,17 +143,6 @@ Future<void> setupDependencies(AppConfig config) async {
   }
   await getIt<SyncConfigService>().init();
 
-  if (!getIt.isRegistered<PendingRefreshStore>()) {
-    getIt.registerLazySingleton<PendingRefreshStore>(
-      () => PendingRefreshStore.instance,
-    );
-  }
-
-  if (!getIt.isRegistered<LocalPhotoStore>()) {
-    getIt.registerLazySingleton<LocalPhotoStore>(LocalPhotoStore.new);
-  }
-  await getIt<LocalPhotoStore>().init();
-
   // --- Шины обновления списков (singleton) ---
   if (!getIt.isRegistered<OrdersRefreshBus>()) {
     getIt.registerLazySingleton<OrdersRefreshBus>(OrdersRefreshBus.new);
@@ -193,22 +179,8 @@ Future<void> setupDependencies(AppConfig config) async {
       () => UnreadBadgeViewModel(getIt<NotificationsRepository>()),
     );
   }
-  getIt.registerFactoryParam<OrdersViewModel, void, void>(
-    (_, __) => OrdersViewModel(getIt<OrdersRepository>()),
-  );
-  getIt.registerFactoryParam<OrderDetailViewModel, int, void>(
-    (orderId, _) => OrderDetailViewModel(
-      orderId,
-      getIt<OrdersRepository>(),
-    ),
-  );
-  getIt.registerFactoryParam<PhotoViewModel, int, void>(
-    (orderId, _) => PhotoViewModel(
-      orderId,
-      getIt<PhotoRepository>(),
-      getIt<OrdersRepository>(),
-      getIt<LocalPhotoStore>(),
-    ),
+  getIt.registerFactory<OrdersViewModel>(
+    () => OrdersViewModel(getIt<OrdersRepository>()),
   );
   getIt.registerFactory<ProfileViewModel>(
     () => ProfileViewModel(getIt<ProfileRepository>()),
