@@ -63,7 +63,8 @@ ThemeData appTheme() {
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: BrandColors.primary,
+        // primaryText — WCAG AA для текста на белом (4.7:1), primary даёт 3.46:1.
+        foregroundColor: BrandColors.primaryText,
         textStyle: AppTextStyles.titleMedium.copyWith(fontSize: 15),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       ),

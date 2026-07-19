@@ -30,19 +30,15 @@ class _OrderRouteScreenState extends State<OrderRouteScreen> {
   void initState() {
     super.initState();
     _viewModel = OrderDetailViewModel(widget.orderId, getIt<OrdersRepository>());
-    _viewModel.addListener(_onChanged);
+    // Отдельный listener не нужен: заголовок и тело перестраиваются
+    // собственными ListenableBuilder.
     _viewModel.load();
   }
 
   @override
   void dispose() {
-    _viewModel.removeListener(_onChanged);
     _viewModel.dispose();
     super.dispose();
-  }
-
-  void _onChanged() {
-    if (mounted) setState(() {});
   }
 
   @override
@@ -92,8 +88,6 @@ class _OrderRouteScreenState extends State<OrderRouteScreen> {
                     Text(
                       message,
                       textAlign: TextAlign.center,
-                      maxLines: 5,
-                      overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bodyMedium
                           .copyWith(color: BrandColors.grayDark),
                     ),
@@ -127,15 +121,21 @@ class _OrderRouteScreenState extends State<OrderRouteScreen> {
           return RefreshIndicator(
             color: BrandColors.primary,
             onRefresh: _viewModel.load,
-            child: ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              itemCount: order.routeDetails.length,
-              itemBuilder: (context, index) {
-                final point = order.routeDetails[index];
-                final isLast = index == order.routeDetails.length - 1;
-                return _RouteTimelineTile(point: point, isLast: isLast);
-              },
+            // На планшете контент не растягивается во всю ширину.
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  itemCount: order.routeDetails.length,
+                  itemBuilder: (context, index) {
+                    final point = order.routeDetails[index];
+                    final isLast = index == order.routeDetails.length - 1;
+                    return _RouteTimelineTile(point: point, isLast: isLast);
+                  },
+                ),
+              ),
             ),
           );
         },
@@ -205,7 +205,10 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
     final point = widget.point;
     final isLast = widget.isLast;
     final isLoading = point.isLoading;
+    // Иконки и точка таймлайна — яркие (для нетекстовых 3:1 достаточно).
     final accentColor = isLoading ? BrandColors.primary : BrandColors.grayMid;
+    // Текстовая метка типа — контрастная пара по WCAG AA (12px → 4.5:1).
+    final labelColor = isLoading ? BrandColors.primaryText : BrandColors.grayDark;
     final canOpenMap = point.lat != null && point.lon != null;
 
     final hasCargo = point.cargoType.isNotEmpty ||
@@ -235,8 +238,6 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                     isLoading ? Icons.upload_rounded : Icons.download_rounded,
                     color: BrandColors.white,
                     size: 14,
-                    semanticLabel:
-                        isLoading ? 'Точка погрузки' : 'Точка разгрузки',
                   ),
                 ),
                 if (!isLast)
@@ -266,8 +267,6 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                               : Icons.download_rounded,
                           size: 16,
                           color: accentColor,
-                          semanticLabel:
-                              isLoading ? 'Погрузка' : 'Разгрузка',
                         ),
                         const SizedBox(width: 6),
                         Semantics(
@@ -275,7 +274,7 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                           child: Text(
                             isLoading ? 'Погрузка' : 'Разгрузка',
                             style: AppTextStyles.labelMedium.copyWith(
-                              color: accentColor,
+                              color: labelColor,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -314,7 +313,17 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                                 onPressed: _isLaunchingMap
                                     ? null
                                     : () => _openMap(context),
-                                icon: const Icon(Icons.map_outlined, size: 18),
+                                // canLaunchUrl по цепочке навигаторов
+                                // занимает заметное время — показываем спиннер.
+                                icon: _isLaunchingMap
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2),
+                                      )
+                                    : const Icon(Icons.map_outlined,
+                                        size: 18),
                                 label: const Text('На карте'),
                                 style: TextButton.styleFrom(
                                   minimumSize: const Size(48, 48),
@@ -325,7 +334,7 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                             : null,
                       ),
                     ],
-                    // 2. Груз.
+                    // Груз.
                     if (hasCargo) ...[
                       const SizedBox(height: 16),
                       const _SectionHeader('Груз'),
@@ -354,13 +363,13 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                       if (point.volume.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         _FieldLine(
-                          icon: Icons.water_drop_outlined,
+                          icon: Icons.view_in_ar_outlined,
                           text: 'Объём: ${point.volume} м³',
                           semanticLabel: 'Объём',
                         ),
                       ],
                     ],
-                    // 3. Контакты.
+                    // Контакты.
                     if (hasContacts) ...[
                       const SizedBox(height: 16),
                       const _SectionHeader('Контакты'),
@@ -398,12 +407,12 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                           color: BrandColors.paperWarm,
                           borderRadius: BorderRadius.circular(BrandRadius.sm),
                         ),
+                        // Комментарий показываем целиком: там коды КПП
+                        // и инструкции — обрезать нельзя.
                         child: Text(
                           point.comment,
                           style: AppTextStyles.bodySmall
                               .copyWith(color: BrandColors.grayDark),
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -470,13 +479,13 @@ class _FieldLine extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
+            // Информационный текст не обрезаем: адрес и дата критичны
+            // для водителя при любом размере шрифта.
             child: Text(
               text,
               style: AppTextStyles.bodySmall.copyWith(
                 color: BrandColors.grayDark,
               ),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
             ),
           ),
           trailing ?? const SizedBox.shrink(),
