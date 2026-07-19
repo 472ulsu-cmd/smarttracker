@@ -195,7 +195,7 @@ flutter analyze
 
 ## 12. Что стоит помнить при изменениях
 
-- После правок в `data/models/*.dart` запускайте `build_runner`.
+- После правок в `data/models/orders_response.dart` и `data/models/photo_responses.dart` запускайте `build_runner` (freezed остался только на этих двух моделях; остальные DTO — ручные классы с `fromJson`/`toJson`, кодогенерация им не нужна).
 - Сгенерированные `*.g.dart` / `*.freezed.dart` не коммитятся (добавлены в `.gitignore`) и генерируются локально или на CI.
 - Если меняете интерфейс репозитория, обновите и mock-реализацию в `lib/data/repositories/mock_repositories.dart`.
 - `AuthViewModel` и `LocationPermissionViewModel` — синглтоны; изменения состояния влияют на роутер и `MainShell`.

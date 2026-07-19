@@ -1,45 +1,58 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-
-part 'user_request.freezed.dart';
-part 'user_request.g.dart';
-
 /// Тело запроса обновления профиля (`POST /user`).
-@freezed
-abstract class UserRequest with _$UserRequest {
-  const factory UserRequest({
-    int? id,
-    String? login,
-    String? name,
-    @JsonKey(name: 'second_name') String? secondName,
-    String? surname,
-    String? phone,
-    @JsonKey(name: 'phone_code') int? phoneCode,
-    String? avatar,
-  }) = _UserRequest;
+class UserRequest {
+  const UserRequest({
+    this.id,
+    this.login,
+    this.name,
+    this.secondName,
+    this.surname,
+    this.phone,
+    this.phoneCode,
+    this.avatar,
+  });
 
-  factory UserRequest.fromJson(Map<String, dynamic> json) =>
-      _$UserRequestFromJson(json);
+  final int? id;
+  final String? login;
+  final String? name;
+  final String? secondName;
+  final String? surname;
+  final String? phone;
+  final int? phoneCode;
+  final String? avatar;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'login': login,
+        'name': name,
+        'second_name': secondName,
+        'surname': surname,
+        'phone': phone,
+        'phone_code': phoneCode,
+        'avatar': avatar,
+      };
 }
 
 /// Тело запроса смены пароля (`POST /user/password`).
-@freezed
-abstract class UserPasswordRequest with _$UserPasswordRequest {
-  const factory UserPasswordRequest({
-    @JsonKey(name: 'old_password') required String oldPassword,
-    required String password,
-  }) = _UserPasswordRequest;
+class UserPasswordRequest {
+  const UserPasswordRequest({
+    required this.oldPassword,
+    required this.password,
+  });
 
-  factory UserPasswordRequest.fromJson(Map<String, dynamic> json) =>
-      _$UserPasswordRequestFromJson(json);
+  final String oldPassword;
+  final String password;
+
+  Map<String, dynamic> toJson() => {
+        'old_password': oldPassword,
+        'password': password,
+      };
 }
 
 /// Тело запроса отправки FCM-токена (`PUT /user/notification`).
-@freezed
-abstract class UserNotificationRequest with _$UserNotificationRequest {
-  const factory UserNotificationRequest({
-    required String token,
-  }) = _UserNotificationRequest;
+class UserNotificationRequest {
+  const UserNotificationRequest({required this.token});
 
-  factory UserNotificationRequest.fromJson(Map<String, dynamic> json) =>
-      _$UserNotificationRequestFromJson(json);
+  final String token;
+
+  Map<String, dynamic> toJson() => {'token': token};
 }

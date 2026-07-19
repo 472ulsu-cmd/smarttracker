@@ -1,21 +1,31 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-
-part 'notifications_response.freezed.dart';
-part 'notifications_response.g.dart';
-
 /// Элемент списка уведомлений (`GET /notification/{type_id}`).
-@freezed
-abstract class NotificationsResponseItem with _$NotificationsResponseItem {
-  const factory NotificationsResponseItem({
-    int? id,
-    String? message,
-    String? datetime,
-    @JsonKey(name: 'status_id') int? statusId,
-    @JsonKey(name: 'order_id') int? orderId,
-    @JsonKey(name: 'route_photo_id') int? routePhotoId,
-    @JsonKey(name: 'route_photo_type_id') int? routePhotoTypeId,
-  }) = _NotificationsResponseItem;
+class NotificationsResponseItem {
+  const NotificationsResponseItem({
+    this.id,
+    this.message,
+    this.datetime,
+    this.statusId,
+    this.orderId,
+    this.routePhotoId,
+    this.routePhotoTypeId,
+  });
 
   factory NotificationsResponseItem.fromJson(Map<String, dynamic> json) =>
-      _$NotificationsResponseItemFromJson(json);
+      NotificationsResponseItem(
+        id: (json['id'] as num?)?.toInt(),
+        message: json['message'] as String?,
+        datetime: json['datetime'] as String?,
+        statusId: (json['status_id'] as num?)?.toInt(),
+        orderId: (json['order_id'] as num?)?.toInt(),
+        routePhotoId: (json['route_photo_id'] as num?)?.toInt(),
+        routePhotoTypeId: (json['route_photo_type_id'] as num?)?.toInt(),
+      );
+
+  final int? id;
+  final String? message;
+  final String? datetime;
+  final int? statusId;
+  final int? orderId;
+  final int? routePhotoId;
+  final int? routePhotoTypeId;
 }

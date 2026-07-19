@@ -1,38 +1,54 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-
-part 'login_response.freezed.dart';
-part 'login_response.g.dart';
-
 /// Ответ `POST /login`.
 ///
 /// При успехе `code == 200` и поля `token`/`account` заполнены.
 /// При ошибке `code < 0` (например -4, -10) — учётные данные неверны.
-@freezed
-abstract class LoginResponse with _$LoginResponse {
-  const factory LoginResponse({
-    @JsonKey(name: 'code') int? code,
-    String? token,
-    AccountApiModel? account,
-  }) = _LoginResponse;
+class LoginResponse {
+  const LoginResponse({this.code, this.token, this.account});
 
-  factory LoginResponse.fromJson(Map<String, dynamic> json) =>
-      _$LoginResponseFromJson(json);
+  factory LoginResponse.fromJson(Map<String, dynamic> json) => LoginResponse(
+        code: (json['code'] as num?)?.toInt(),
+        token: json['token'] as String?,
+        account: json['account'] is Map<String, dynamic>
+            ? AccountApiModel.fromJson(json['account'] as Map<String, dynamic>)
+            : null,
+      );
+
+  final int? code;
+  final String? token;
+  final AccountApiModel? account;
 }
 
 /// Вложенная модель аккаунта из ответа `/login`.
-@freezed
-abstract class AccountApiModel with _$AccountApiModel {
-  const factory AccountApiModel({
-    int? id,
-    String? login,
-    String? name,
-    @JsonKey(name: 'second_name') String? secondName,
-    String? surname,
-    String? phone,
-    @JsonKey(name: 'phone_code') int? phoneCode,
-    String? avatar,
-  }) = _AccountApiModel;
+class AccountApiModel {
+  const AccountApiModel({
+    this.id,
+    this.login,
+    this.name,
+    this.secondName,
+    this.surname,
+    this.phone,
+    this.phoneCode,
+    this.avatar,
+  });
 
   factory AccountApiModel.fromJson(Map<String, dynamic> json) =>
-      _$AccountApiModelFromJson(json);
+      AccountApiModel(
+        id: (json['id'] as num?)?.toInt(),
+        login: json['login'] as String?,
+        name: json['name'] as String?,
+        secondName: json['second_name'] as String?,
+        surname: json['surname'] as String?,
+        phone: json['phone'] as String?,
+        phoneCode: (json['phone_code'] as num?)?.toInt(),
+        avatar: json['avatar'] as String?,
+      );
+
+  final int? id;
+  final String? login;
+  final String? name;
+  final String? secondName;
+  final String? surname;
+  final String? phone;
+  final int? phoneCode;
+  final String? avatar;
 }

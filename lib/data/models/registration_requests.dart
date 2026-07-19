@@ -1,45 +1,62 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
-
-part 'registration_requests.freezed.dart';
-part 'registration_requests.g.dart';
-
 /// `POST /registration` и `POST /restore`.
-@freezed
-abstract class RegistrationRequest with _$RegistrationRequest {
-  const factory RegistrationRequest({
-    required String login,
-    required String password,
-    required String phone,
-    @JsonKey(name: 'phone_code_id') required int phoneCodeId,
-  }) = _RegistrationRequest;
+class RegistrationRequest {
+  const RegistrationRequest({
+    required this.login,
+    required this.password,
+    required this.phone,
+    required this.phoneCodeId,
+  });
 
-  factory RegistrationRequest.fromJson(Map<String, dynamic> json) =>
-      _$RegistrationRequestFromJson(json);
+  final String login;
+  final String password;
+  final String phone;
+  final int phoneCodeId;
+
+  Map<String, dynamic> toJson() => {
+        'login': login,
+        'password': password,
+        'phone': phone,
+        'phone_code_id': phoneCodeId,
+      };
 }
 
 /// Запрос SMS-кода (`POST /user/send_phone_code`, `send_restoring_phone_code`).
-@freezed
-abstract class SendPhoneCodeRequest with _$SendPhoneCodeRequest {
-  const factory SendPhoneCodeRequest({
-    required String login,
-    required String phone,
-    @JsonKey(name: 'phone_code_id') required int phoneCodeId,
-  }) = _SendPhoneCodeRequest;
+class SendPhoneCodeRequest {
+  const SendPhoneCodeRequest({
+    required this.login,
+    required this.phone,
+    required this.phoneCodeId,
+  });
 
-  factory SendPhoneCodeRequest.fromJson(Map<String, dynamic> json) =>
-      _$SendPhoneCodeRequestFromJson(json);
+  final String login;
+  final String phone;
+  final int phoneCodeId;
+
+  Map<String, dynamic> toJson() => {
+        'login': login,
+        'phone': phone,
+        'phone_code_id': phoneCodeId,
+      };
 }
 
 /// Проверка SMS-кода (`POST /user/verify_phone_code`).
-@freezed
-abstract class VerifyPhoneCodeRequest with _$VerifyPhoneCodeRequest {
-  const factory VerifyPhoneCodeRequest({
-    required String login,
-    required String phone,
-    @JsonKey(name: 'phone_code_id') required int phoneCodeId,
-    required String code,
-  }) = _VerifyPhoneCodeRequest;
+class VerifyPhoneCodeRequest {
+  const VerifyPhoneCodeRequest({
+    required this.login,
+    required this.phone,
+    required this.phoneCodeId,
+    required this.code,
+  });
 
-  factory VerifyPhoneCodeRequest.fromJson(Map<String, dynamic> json) =>
-      _$VerifyPhoneCodeRequestFromJson(json);
+  final String login;
+  final String phone;
+  final int phoneCodeId;
+  final String code;
+
+  Map<String, dynamic> toJson() => {
+        'login': login,
+        'phone': phone,
+        'phone_code_id': phoneCodeId,
+        'code': code,
+      };
 }
