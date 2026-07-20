@@ -17,9 +17,6 @@ class OrderDetailViewModel extends ChangeNotifier {
   OrderDetail? _order;
   OrderDetail? get order => _order;
 
-  /// Предыдущий статус заявки. Используется для undo после смены статуса.
-  int? _previousStatusId;
-
   /// Последний статус, на который пытались перейти. Используется для retry.
   OrderStatus? _lastAttemptedStatus;
   OrderStatus? get lastAttemptedStatus => _lastAttemptedStatus;
@@ -38,10 +35,6 @@ class OrderDetailViewModel extends ChangeNotifier {
 
   String? _successMessage;
   String? get successMessage => _successMessage;
-
-  int? get previousStatusId => _previousStatusId;
-
-  bool _isUndoInProgress = false;
 
   Future<void> load() async {
     if (_isLoading) return;
@@ -101,16 +94,8 @@ class OrderDetailViewModel extends ChangeNotifier {
 
     try {
       await _repository.changeStatus(orderId, next.id);
-      final previousStatusId = _order?.status;
       _order = await _repository.fetchOrderDetail(orderId);
-      _previousStatusId = previousStatusId;
-      // Отказ необратим — undo не нужен.
-      if (next == OrderStatus.rejected) {
-        _previousStatusId = null;
-      }
-      if (!_isUndoInProgress) {
-        _successMessage = _successMessageFor(_order!.status);
-      }
+      _successMessage = _successMessageFor(_order!.status);
       // Триггерим обновление списка заявок.
       getIt<OrdersRefreshBus>().notifyChanged();
       notifyListeners();
@@ -135,27 +120,6 @@ class OrderDetailViewModel extends ChangeNotifier {
     final status = _lastAttemptedStatus;
     if (status == null) return false;
     return changeStatus(status);
-  }
-
-  /// Попытаться отменить последнюю смену статуса.
-  /// Возвращает true, если backend принял обратный переход.
-  Future<bool> undoLastStatusChange() async {
-    final previous = _previousStatusId;
-    if (previous == null || _order == null) return false;
-    final previousStatus = OrderStatus.fromId(previous);
-    if (previousStatus == null) return false;
-    _isUndoInProgress = true;
-    try {
-      final result = await changeStatus(previousStatus);
-      if (result) {
-        _successMessage = 'Действие отменено.';
-        _previousStatusId = null;
-        notifyListeners();
-      }
-      return result;
-    } finally {
-      _isUndoInProgress = false;
-    }
   }
 
   String _successMessageFor(int statusId) {

@@ -105,9 +105,6 @@ class AuthStepperViewModel extends ChangeNotifier {
   /// возвращает false, если кулдаун ещё не истёк.
   Future<bool> resendCode() async {
     if (!canResend) return false;
-    // Старый код более недействителен после запроса нового — очищаем,
-    // чтобы пользователь не отправил его по ошибке.
-    smsCode = '';
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -149,14 +146,10 @@ class AuthStepperViewModel extends ChangeNotifier {
       return true;
     } on AppException catch (e) {
       _errorMessage = e.message;
-      // Неверный код больше не пригодится — очищаем, чтобы поле ввода
-      // сбросилось и пользователь не отправил его повторно.
-      smsCode = '';
       notifyListeners();
       return false;
     } catch (_) {
       _errorMessage = 'Не удалось проверить код. Попробуйте ещё раз.';
-      smsCode = '';
       notifyListeners();
       return false;
     } finally {

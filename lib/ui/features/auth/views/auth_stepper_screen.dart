@@ -40,6 +40,11 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
   final _passwordCtrl = TextEditingController();
   final _passwordConfirmCtrl = TextEditingController();
 
+  /// Счётчик сбросов SMS-поля. При изменении ValueKey поля пересоздаётся
+  /// полностью — это надёжно чистит автозаполнение ОС и кеш платформы
+  /// при запросе нового кода или неверном вводе.
+  int _smsFieldReset = 0;
+
   @override
   void initState() {
     super.initState();
@@ -61,15 +66,6 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
   }
 
   void _onChanged() {
-    // VM может очистить smsCode (после неверного ввода или при запросе
-    // нового кода) — синхронизируем контроллер поля, чтобы визуально
-    // поле тоже очистилось.
-    if (_smsCtrl.text != _vm.smsCode) {
-      _smsCtrl.value = TextEditingValue(
-        text: _vm.smsCode,
-        selection: TextSelection.collapsed(offset: _vm.smsCode.length),
-      );
-    }
     if (mounted) setState(() {});
   }
 
@@ -206,7 +202,11 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 16),
+          // ValueKey сбрасывает состояние поля (включая автозаполнение ОС
+          // и кеш платформы) при каждом запросе нового SMS — иначе на
+          // некоторых устройствах поле «залипает» на старом коде.
           _DigitsField(
+            key: ValueKey('sms-field-$_smsFieldReset'),
             controller: _smsCtrl,
             label: 'Код из SMS',
             length: 4,
@@ -306,9 +306,12 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
 
   /// Очищает поле SMS-кода: после неудачной проверки и перед повторным
   /// запросом кода, чтобы водитель не отправлял устаревший код.
+  /// Счётчик _smsFieldReset пересоздаёт поле через ValueKey — это
+  /// гарантированно сбрасывает автозаполнение ОС, в отличие от plain clear().
   void _clearSmsField() {
     _smsCtrl.clear();
     _vm.smsCode = '';
+    _smsFieldReset += 1;
     if (mounted) setState(() {});
   }
 
@@ -394,6 +397,7 @@ class _StepIndicator extends StatelessWidget {
 
 class _DigitsField extends StatefulWidget {
   const _DigitsField({
+    super.key,
     required this.label,
     required this.length,
     required this.onChanged,

@@ -17,24 +17,6 @@ import '../../../core/widgets/phone_call_row.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../view_models/order_detail_view_model.dart';
 
-/// Подсказка о следующем шаге для текущего статуса заявки.
-String? _statusHintFor(int statusId) {
-  switch (OrderStatus.fromId(statusId)) {
-    case OrderStatus.newRequest:
-      return 'Примите заявку, чтобы начать маршрут.';
-    case OrderStatus.inProgress:
-      return 'Следующий шаг — погрузка груза и фото.';
-    case OrderStatus.loaded:
-      return 'Доставьте груз и завершите заявку.';
-    case OrderStatus.completed:
-      return 'Заявка завершена. Спасибо за работу!';
-    case OrderStatus.rejected:
-      return 'Вы отказались от этой заявки.';
-    default:
-      return null;
-  }
-}
-
 /// Человекочитаемая метка действия по статусу.
 String _statusActionLabel(OrderStatus s) {
   switch (s) {
@@ -150,7 +132,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 if (_viewModel.successMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: _SuccessBanner(viewModel: _viewModel),
+                    child: _SuccessBanner(message: _viewModel.successMessage!),
                   ),
                 _Summary(order: order),
                 const SizedBox(height: 16),
@@ -208,30 +190,6 @@ class _Summary extends StatelessWidget {
               ),
               StatusChip(statusId: order.status),
             ],
-          ),
-          Builder(
-            builder: (context) {
-              final hint = _statusHintFor(order.status);
-              if (hint == null) return const SizedBox.shrink();
-              return Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.info_outline_rounded,
-                        size: 18, color: BrandColors.primary),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        hint,
-                        style: AppTextStyles.bodyMedium
-                            .copyWith(color: BrandColors.grayDark),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
           ),
           const SizedBox(height: 12),
           Row(
@@ -603,19 +561,14 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
-/// Проминентный баннер успешной смены статуса с подсказкой и отменой.
+/// Баннер успешной смены статуса (без возможности отмены).
 class _SuccessBanner extends StatelessWidget {
-  const _SuccessBanner({required this.viewModel});
+  const _SuccessBanner({required this.message});
 
-  final OrderDetailViewModel viewModel;
+  final String message;
 
   @override
   Widget build(BuildContext context) {
-    final message = viewModel.successMessage;
-    if (message == null) return const SizedBox.shrink();
-
-    final canUndo = viewModel.previousStatusId != null;
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
@@ -641,27 +594,6 @@ class _SuccessBanner extends StatelessWidget {
               ),
             ),
           ),
-          if (canUndo)
-            TextButton(
-              onPressed: () async {
-                final undone = await viewModel.undoLastStatusChange();
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      undone
-                          ? 'Действие отменено'
-                          : 'Не удалось отменить действие',
-                    ),
-                  ),
-                );
-              },
-              style: TextButton.styleFrom(
-                minimumSize: const Size(48, 48),
-                padding: EdgeInsets.zero,
-              ),
-              child: const Text('Отменить'),
-            ),
         ],
       ),
     );
