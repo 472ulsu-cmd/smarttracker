@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../config/service_locator.dart';
 import '../../data/services/settings_service.dart';
@@ -65,7 +66,9 @@ class BackgroundBootstrap {
       await LocationService.instance.start(
         intervalMs: config.coordinatesPeriodSec * 1000,
       );
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('background: LocationService.start failed: $e\n$st');
+    }
 
     // Push.
     if (_firebaseReady) {

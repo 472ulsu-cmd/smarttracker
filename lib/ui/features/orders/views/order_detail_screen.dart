@@ -132,7 +132,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 if (_viewModel.successMessage != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: _SuccessBanner(message: _viewModel.successMessage!),
+                    child: _SuccessBanner(
+                      message: _viewModel.successMessage!,
+                      isRejection: _viewModel.lastAttemptedStatus ==
+                          OrderStatus.rejected,
+                    ),
                   ),
                 _Summary(order: order),
                 const SizedBox(height: 16),
@@ -527,29 +531,67 @@ class _ActionButton extends StatelessWidget {
   Future<void> _confirm(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(_statusActionLabel(status)),
-        content: Text(_statusActionConsequence(status)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Отмена'),
-          ),
-          if (isDestructive)
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: BrandColors.error,
-                side: const BorderSide(color: BrandColors.error),
+      builder: (ctx) => Dialog(
+        backgroundColor: BrandColors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(BrandRadius.md),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 8, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Заголовок вверху слева, крестик закрытия — вверху справа
+              // на той же строке.
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      _statusActionLabel(status),
+                      style: AppTextStyles.titleMedium,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Закрыть',
+                    icon: const Icon(Icons.close_rounded),
+                    style: IconButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () => Navigator.pop(ctx, false),
+                  ),
+                ],
               ),
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Отказаться'),
-            )
-          else
-            ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Подтвердить'),
-            ),
-        ],
+              const SizedBox(height: 8),
+              Text(
+                _statusActionConsequence(status),
+                style: AppTextStyles.bodyMedium
+                    .copyWith(color: BrandColors.grayDark),
+              ),
+              const SizedBox(height: 20),
+              if (isDestructive)
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: BrandColors.error,
+                    side: const BorderSide(color: BrandColors.error),
+                    minimumSize: const Size.fromHeight(52),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Отказаться'),
+                )
+              else
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Подтвердить'),
+                ),
+            ],
+          ),
+        ),
       ),
     );
     if (confirmed == true && context.mounted) {
@@ -562,26 +604,37 @@ class _ActionButton extends StatelessWidget {
 }
 
 /// Баннер успешной смены статуса (без возможности отмены).
+///
+/// При отклонении заявки [isRejection] = true — используется красная палитра
+/// вместо зелёной, чтобы визуально подчеркнуть негативный исход.
 class _SuccessBanner extends StatelessWidget {
-  const _SuccessBanner({required this.message});
+  const _SuccessBanner({required this.message, this.isRejection = false});
 
   final String message;
+  final bool isRejection;
 
   @override
   Widget build(BuildContext context) {
+    final accentColor =
+        isRejection ? BrandColors.statusRejectedForeground : BrandColors.greenWeb;
+    final backgroundColor = isRejection
+        ? BrandColors.statusRejectedBackground
+        : BrandColors.successBackground;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: BrandColors.successBackground,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(BrandRadius.sm),
-        border: Border.all(color: BrandColors.greenWeb.withValues(alpha: 0.4)),
+        border: Border.all(color: accentColor.withValues(alpha: 0.4)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.check_circle_outline_rounded,
-            color: BrandColors.greenWeb,
+          Icon(
+            isRejection
+                ? Icons.highlight_off_rounded
+                : Icons.check_circle_outline_rounded,
+            color: accentColor,
             size: 22,
           ),
           const SizedBox(width: 10),

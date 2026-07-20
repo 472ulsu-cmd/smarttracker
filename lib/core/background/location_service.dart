@@ -56,17 +56,47 @@ class LocationService {
   Future<void> start({int? intervalMs}) async {
     if (intervalMs != null) this.intervalMs = intervalMs;
     init();
-    FlutterForegroundTask.setTaskHandler(LocationTaskHandler());
-    await FlutterForegroundTask.startService(
-      notificationTitle: _notificationTitle,
-      notificationText: 'Передача геопозиции…',
-    );
+
+    // На Android 13+ уведомление foreground-сервиса не покажется без
+    // явного запроса POST_NOTIFICATIONS. Без разрешения система не даёт
+    // поднять сервис вообще — поэтому запрашиваем до старта.
+    try {
+      final perm = await FlutterForegroundTask.requestNotificationPermission();
+      debugPrint('foreground: notification permission = ${perm.name}');
+    } catch (e, st) {
+      debugPrint('foreground: requestNotificationPermission failed: $e\n$st');
+    }
+
+    // startCallback — top-level функция с @pragma('vm:entry-point'):
+    // плагин v10+ регистрирует TaskHandler в отдельном изоляте через неё.
+    try {
+      final result = await FlutterForegroundTask.startService(
+        notificationTitle: _notificationTitle,
+        notificationText: 'Передача геопозиции…',
+        callback: startCallback,
+      );
+      if (result is ServiceRequestFailure) {
+        debugPrint('foreground: startService failed: ${result.error}');
+      } else {
+        debugPrint('foreground: service started successfully');
+      }
+    } catch (e, st) {
+      debugPrint('foreground: startService exception: $e\n$st');
+    }
   }
 
   /// Остановить foreground-сервис.
   Future<void> stop() async {
     await FlutterForegroundTask.stopService();
   }
+}
+
+/// Точка входа для изолята foreground-сервиса (обязательно top-level).
+///
+/// Регистрирует [LocationTaskHandler] в изоляте, в котором крутится сервис.
+@pragma('vm:entry-point')
+void startCallback() {
+  FlutterForegroundTask.setTaskHandler(LocationTaskHandler());
 }
 
 /// Обработчик фоновой задачи геолокации.

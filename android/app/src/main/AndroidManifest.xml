@@ -49,6 +49,16 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Foreground-сервис геолокации (flutter_foreground_task v10+).
+             Имя класса не менять — плагин ищет именно его.
+             foregroundServiceType="location" обязателен на Android 14+,
+             stopWithTask="false" позволяет сервису пережить сворачивание. -->
+        <service
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:foregroundServiceType="location"
+            android:stopWithTask="false"
+            android:exported="false" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

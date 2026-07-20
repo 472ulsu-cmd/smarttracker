@@ -125,15 +125,15 @@ class OrderDetailViewModel extends ChangeNotifier {
   String _successMessageFor(int statusId) {
     switch (OrderStatus.fromId(statusId)) {
       case OrderStatus.inProgress:
-        return 'Заявка принята в работу. Следующий шаг — погрузка груза и фото.';
+        return 'Заявка принята в работу';
       case OrderStatus.loaded:
-        return 'Погрузка подтверждена. Доставьте груз и завершите заявку.';
+        return 'Погрузка подтверждена';
       case OrderStatus.completed:
-        return 'Заявка завершена. Спасибо за работу!';
+        return 'Заявка завершена';
       case OrderStatus.rejected:
-        return 'Заявка отклонена.';
+        return 'Заявка отклонена';
       default:
-        return 'Статус заявки изменён.';
+        return 'Статус заявки изменён';
     }
   }
 }
