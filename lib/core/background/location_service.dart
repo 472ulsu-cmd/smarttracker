@@ -42,7 +42,12 @@ class LocationService {
       iosNotificationOptions: const IOSNotificationOptions(),
       foregroundTaskOptions: ForegroundTaskOptions(
         eventAction: ForegroundTaskEventAction.repeat(intervalMs),
-        autoRunOnBoot: false,
+        // Автозапуск сервиса после перезагрузки устройства и после обновления
+        // приложения: диспетчер не должен терять координаты водителя, даже
+        // если телефон перезагрузился в рейсе. Для этого плагин использует
+        // RECEIVE_BOOT_COMPLETED (см. AndroidManifest.xml).
+        autoRunOnBoot: true,
+        autoRunOnMyPackageReplaced: true,
         allowWakeLock: true,
         allowWifiLock: true,
       ),

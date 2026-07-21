@@ -113,6 +113,9 @@ flutter build apk --release --flavor prod
 Рабочая команда сборки (Git Bash):
 
 ```bash
+# Dev-сборка: ходит на dev-сервер по HTTP (cleartext разрешён в dev/AndroidManifest.xml).
+# Флаг --no-tree-shake-icons обязателен: иначе Flutter вырезает неиспользуемые
+# иконки Material/Cupertino и часть из них пропадает в runtime.
 env "PROGRAMFILES(X86)=C:\Program Files (x86)" \
     "PATH=$PATH:/c/Windows/System32/WindowsPowerShell/v1.0" \
     "FLUTTER_ROOT=$(pwd -W)\\.flutter_sdk\\flutter" \
@@ -120,8 +123,35 @@ env "PROGRAMFILES(X86)=C:\Program Files (x86)" \
     "ANDROID_HOME=$(pwd -W)\\.android_sdk" \
     .flutter_sdk/flutter/bin/cache/dart-sdk/bin/dart.exe \
     .flutter_sdk/flutter/bin/cache/flutter_tools.snapshot \
-    build apk --release --flavor dev
+    build apk --release --flavor dev --no-tree-shake-icons \
+    --dart-define=API_BASE_URL=http://st-dev.b2b-logist.com/api/
 ```
+
+```bash
+# Prod-сборка: ходит на production-сервер по HTTPS (baseUrl по умолчанию
+# в lib/config/app_config.dart).
+env "PROGRAMFILES(X86)=C:\Program Files (x86)" \
+    "PATH=$PATH:/c/Windows/System32/WindowsPowerShell/v1.0" \
+    "FLUTTER_ROOT=$(pwd -W)\\.flutter_sdk\\flutter" \
+    "JAVA_HOME=$(pwd -W)\\.jdk\\jdk-17.0.19+10" \
+    "ANDROID_HOME=$(pwd -W)\\.android_sdk" \
+    .flutter_sdk/flutter/bin/cache/dart-sdk/bin/dart.exe \
+    .flutter_sdk/flutter/bin/cache/flutter_tools.snapshot \
+    build apk --release --flavor prod --no-tree-shake-icons
+```
+
+```bash
+# App Bundle для Google Play (release, подписан release-keystore).
+# Остальные env-переменные те же, что и для APK.
+... flutter_tools.snapshot \
+    build appbundle --release --flavor prod --no-tree-shake-icons
+```
+
+**Важно про `baseUrl` и flavor'ы:**
+
+- `lib/main.dart` использует `AppConfig.production` — там `baseUrl` берётся из `--dart-define=API_BASE_URL` с дефолтом `https://st.b2b-logist.com/api/`.
+- **Dev-сборка обязана собираться с `--dart-define=API_BASE_URL=http://st-dev.b2b-logist.com/api/`** — иначе она попадёт на production и будет работать с боевыми данными.
+- Prod-сборка собирается без `--dart-define` и ходит на production по умолчанию.
 
 Для `analyze` достаточно `.flutter_sdk/flutter/bin/cache/dart-sdk/bin/dart.exe analyze`; тесты — той же обёрткой `... flutter_tools.snapshot test` (переменные PROGRAMFILES(X86) и FLUTTER_ROOT обязательны).
 

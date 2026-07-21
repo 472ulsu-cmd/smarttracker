@@ -45,9 +45,17 @@ app.*.map.json
 /android/app/release
 
 # Firebase configuration — contains API keys; do not commit.
-google-services.json
+# Каждое правило игнорирует конкретный путь файла Firebase-конфигурации.
+# Если добавляете новый flavor — впишите его google-services.json сюда.
 /android/app/google-services.json
+/android/app/src/*/google-services.json
+/android/key.properties
 ios/Runner/GoogleService-Info.plist
+
+# Release signing — keystore и пароли к нему не коммитим.
+/android/key.properties
+*.jks
+*.keystore
 
 # AI agent generated state and system skills.
 .impeccable/

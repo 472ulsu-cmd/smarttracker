@@ -24,6 +24,17 @@ if (flutterVersionName == null) {
     flutterVersionName = "1.0"
 }
 
+// Release-подпись: пароли и путь к keystore лежат в android/key.properties
+// (вне git). Если файл отсутствует — release-сборка откатывается на debug
+// подпись, чтобы flutter run --release работал локально без keystore.
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withReader("UTF-8") { reader ->
+        keystoreProperties.load(reader)
+    }
+}
+
 android {
     namespace = "com.b2blogist.smarttracker"
     compileSdk = 36
@@ -39,6 +50,18 @@ android {
         jvmTarget = "17"
     }
 
+    signingConfigs {
+        // Собственный release-keystore для публикации в Google Play.
+        // Параметры берутся из android/key.properties (вне git).
+        // Файл создаётся один раз: см. GOOGLE_PLAY_AUDIT.md.
+        release {
+            keyAlias = keystoreProperties["keyAlias"]
+            keyPassword = keystoreProperties["keyPassword"]
+            storeFile = keystoreProperties["storeFile"] ? file(keystoreProperties["storeFile"]) : null
+            storePassword = keystoreProperties["storePassword"]
+        }
+    }
+
     defaultConfig {
         applicationId = "com.b2blogist.smarttracker"
         // minSdk 23 требуется для firebase_messaging
@@ -50,9 +73,12 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            // Если есть key.properties — подписываем release-ключом.
+            // Иначе (локальная разработка без keystore) — debug-ключом,
+            // чтобы flutter run --release работал.
+            signingConfig = keystorePropertiesFile.exists()
+                    ? signingConfigs.release
+                    : signingConfigs.debug
         }
     }
 
