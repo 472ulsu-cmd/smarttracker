@@ -45,6 +45,10 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
   /// при запросе нового кода или неверном вводе.
   int _smsFieldReset = 0;
 
+  /// Явное согласие с пользовательским соглашением при регистрации.
+  /// Без установленной галочки кнопка «Зарегистрироваться» неактивна.
+  bool _agreementAccepted = false;
+
   @override
   void initState() {
     super.initState();
@@ -112,6 +116,12 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
                       const SizedBox(height: 24),
                       _PrimaryButton(
                         isLoading: _vm.isLoading,
+                        // На финальном шаге регистрации кнопка неактивна,
+                        // пока не отмечено согласие с пользовательским
+                        // соглашением (явный акцепт вместо пассивной подписи).
+                        enabled: !(_vm.step == AuthStep.password &&
+                            widget.mode == AuthFlowMode.registration &&
+                            !_agreementAccepted),
                         label: _buttonLabel(),
                         onPressed: _next,
                       ),
@@ -265,10 +275,14 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
             ),
           ),
           // Акцепт оферты привязан к моменту регистрации (п. 1.4 соглашения),
-          // поэтому уведомление — на последнем шаге, у кнопки подтверждения.
+          // поэтому чек-бокс — на последнем шаге, у кнопки подтверждения.
+          // Без явного согласия кнопка «Зарегистрироваться» неактивна.
           if (widget.mode == AuthFlowMode.registration) ...[
             const SizedBox(height: 16),
-            const _AgreementConsent(),
+            _AgreementConsent(
+              value: _agreementAccepted,
+              onChanged: (v) => setState(() => _agreementAccepted = v ?? false),
+            ),
           ],
         ];
     }
@@ -627,16 +641,19 @@ class _PrimaryButton extends StatelessWidget {
     required this.isLoading,
     required this.label,
     required this.onPressed,
+    this.enabled = true,
   });
 
   final bool isLoading;
   final String label;
   final VoidCallback onPressed;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
+    final isActive = enabled && !isLoading;
     return ElevatedButton(
-      onPressed: isLoading ? null : onPressed,
+      onPressed: isActive ? onPressed : null,
       child: isLoading
           ? const SizedBox(
               height: 22,
@@ -649,12 +666,18 @@ class _PrimaryButton extends StatelessWidget {
   }
 }
 
-/// Уведомление о принятии соглашения на последнем шаге регистрации.
+/// Чек-бокс явного согласия с пользовательским соглашением на последнем шаге
+/// регистрации. Без установленной галочки кнопка «Зарегистрироваться»
+/// неактивна.
 ///
-/// «Пользовательское соглашение» открывается внутри приложения,
-/// «Политика конфиденциальности» — внешним PDF в браузере.
+/// Клик по тексту переключает чек-бокс. «Пользовательское соглашение»
+/// открывается внутри приложения, «Политика конфиденциальности» — внешним
+/// PDF в браузере; эти ссылки НЕ переключают чек-бокс.
 class _AgreementConsent extends StatefulWidget {
-  const _AgreementConsent();
+  const _AgreementConsent({required this.value, required this.onChanged});
+
+  final bool value;
+  final ValueChanged<bool?> onChanged;
 
   @override
   State<_AgreementConsent> createState() => _AgreementConsentState();
@@ -705,24 +728,52 @@ class _AgreementConsentState extends State<_AgreementConsent> {
       decoration: TextDecoration.underline,
       decorationColor: BrandColors.primaryText,
     );
-    return Text.rich(
-      TextSpan(
-        style: base,
-        children: [
-          const TextSpan(text: 'Нажимая «Зарегистрироваться», вы принимаете '),
-          TextSpan(
-            text: 'Пользовательское соглашение',
-            style: link,
-            recognizer: _agreementRecognizer,
-          ),
-          const TextSpan(text: ' и '),
-          TextSpan(
-            text: 'Политику конфиденциальности',
-            style: link,
-            recognizer: _policyRecognizer,
-          ),
-          const TextSpan(text: '.'),
-        ],
+    return InkWell(
+      onTap: () => widget.onChanged(!widget.value),
+      borderRadius: BorderRadius.circular(BrandRadius.sm),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Checkbox(
+              value: widget.value,
+              onChanged: widget.onChanged,
+              // Сжимаем стандартные огромные отступы Material-чекбокса,
+              // чтобы он выровнялся с первой строкой текста.
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: GestureDetector(
+                // Перехватываем тап по тексту, чтобы он переключал чек-бокс,
+                // но не «съедал» тапы по ссылкам (у них свой recognizer).
+                behavior: HitTestBehavior.translucent,
+                onTap: () => widget.onChanged(!widget.value),
+                child: Text.rich(
+                  TextSpan(
+                    style: base,
+                    children: [
+                      const TextSpan(text: 'Я принимаю '),
+                      TextSpan(
+                        text: 'Пользовательское соглашение',
+                        style: link,
+                        recognizer: _agreementRecognizer,
+                      ),
+                      const TextSpan(text: ' и '),
+                      TextSpan(
+                        text: 'Политику конфиденциальности',
+                        style: link,
+                        recognizer: _policyRecognizer,
+                      ),
+                      const TextSpan(text: '.'),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

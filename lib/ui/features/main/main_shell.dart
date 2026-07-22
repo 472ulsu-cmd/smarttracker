@@ -2,37 +2,57 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../config/service_locator.dart';
+import '../../features/notifications/view_models/notifications_view_model.dart';
 import '../../features/notifications/view_models/unread_badge_view_model.dart';
 
 /// Каркас с нижней навигацией: Заявки, Уведомления, Профиль.
 ///
 /// Использует StatefulNavigationShell из go_router (StatefulShellRoute)
 /// для сохранения состояния каждой вкладки.
-class MainShell extends StatelessWidget {
+class MainShell extends StatefulWidget {
   const MainShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
+  State<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends State<MainShell> {
+  @override
+  void initState() {
+    super.initState();
+    // Предзагрузка уведомлений и счётчика сразу после входа: ветка
+    // «Уведомления» строится лениво (IndexedStack), поэтому без явного
+    // вызова здесь список остался бы пустым до первого открытия вкладки,
+    // а бейдж не обновился бы. VM — singleton, данные переживут переходы.
+    getIt<NotificationsViewModel>().load();
+    getIt<UnreadBadgeViewModel>().refresh();
+  }
+
+  void _onDestinationSelected(int index) {
+    // При переходе на вкладку уведомлений — обновим счётчик.
+    if (index == 1) {
+      getIt<UnreadBadgeViewModel>().refresh();
+    }
+    widget.navigationShell.goBranch(
+      index,
+      // Если вкладка уже активна — вернуться в начало стека.
+      initialLocation: index == widget.navigationShell.currentIndex,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final navigationShell = widget.navigationShell;
 
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(
         selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (index) {
-          // При переходе на вкладку уведомлений — обновим счётчик.
-          if (index == 1) {
-            getIt<UnreadBadgeViewModel>().refresh();
-          }
-          navigationShell.goBranch(
-            index,
-            // Если вкладка уже активна — вернуться в начало стека.
-            initialLocation: index == navigationShell.currentIndex,
-          );
-        },
+        onDestinationSelected: _onDestinationSelected,
         backgroundColor: theme.bottomNavigationBarTheme.backgroundColor ??
             colorScheme.surface,
         indicatorColor: colorScheme.primary.withValues(alpha: 0.12),

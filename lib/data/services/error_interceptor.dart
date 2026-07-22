@@ -66,6 +66,13 @@ class ErrorInterceptor extends Interceptor {
 
     // 401/403 — неавторизован.
     if (statusCode == 401 || statusCode == 403) {
+      // При регистрации 401/403 означает, что паспорт уже занят —
+      // у нового пользователя ещё нет пароля, который можно ввести неверно.
+      if (path.startsWith('/registration')) {
+        return const ValidationException(
+            message: 'Пользователь с таким паспортом уже зарегистрирован. '
+                'Попробуйте войти или восстановить пароль.');
+      }
       // Для публичных auth-эндпоинтов (например /login) 401 означает
       // неверные учётные данные, а не истёкшую сессию.
       if (_isPublicAuthPath(path)) {
@@ -129,9 +136,16 @@ class ErrorInterceptor extends Interceptor {
         path.startsWith('/user/send_restoring_phone_code');
     final isRestore =
         isSendRestoringPhoneCode || path.startsWith('/restore');
+    final isRegistration = path.startsWith('/registration');
     switch (code) {
       case -4:
       case -10:
+        // При регистрации эти коды означают, что паспорт уже занят —
+        // у нового пользователя ещё нет пароля, который можно ввести неверно.
+        if (isRegistration) {
+          return 'Пользователь с таким паспортом уже зарегистрирован. '
+              'Попробуйте войти или восстановить пароль.';
+        }
         return 'Неверный паспорт или пароль. Проверьте введённые данные.';
       case -6:
         if (isSendPhoneCode) {

@@ -6,6 +6,7 @@ import '../../../../config/service_locator.dart';
 import '../../../../domain/models/user.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../core/theme/brand_radius.dart';
 import '../../../core/widgets/user_avatar.dart';
 import '../../../features/auth/view_models/auth_view_model.dart';
 import '../view_models/profile_view_model.dart';
@@ -88,7 +89,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
-                onPressed: () => context.push('/main/profile/edit'),
+                // Ждём закрытия экрана редактирования и перезагружаем свой
+                // экземпляр VM — иначе на экране останутся устаревшие ФИО,
+                // паспорт и телефон (у экрана редактирования свой VM).
+                onPressed: () async {
+                  await context.push('/main/profile/edit');
+                  if (mounted) _viewModel.load();
+                },
                 icon: const Icon(Icons.edit_outlined),
                 label: const Text('Редактировать профиль'),
               ),
@@ -233,19 +240,60 @@ class _LogoutButton extends StatelessWidget {
   Future<void> _confirmLogout(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Выйти из аккаунта?'),
-        content: const Text('Вам нужно будет войти снова.'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Остаться')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: BrandColors.error),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Выйти'),
+      builder: (ctx) => Dialog(
+        backgroundColor: BrandColors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(BrandRadius.md),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Заголовок вверху слева, крестик закрытия — вверху справа
+              // на той же строке (замена бывшей кнопки «Остаться»).
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Выйти из аккаунта?',
+                      style: AppTextStyles.titleMedium,
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Закрыть',
+                    icon: const Icon(Icons.close_rounded),
+                    style: IconButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () => Navigator.pop(ctx, false),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Вам нужно будет войти снова.',
+                style: AppTextStyles.bodyMedium
+                    .copyWith(color: BrandColors.grayDark),
+              ),
+              const SizedBox(height: 20),
+              // Кнопка действия — на всю ширину диалога (как в других
+              // уведомлениях), с красным фоном и белым текстом.
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: BrandColors.error,
+                  foregroundColor: BrandColors.white,
+                  minimumSize: const Size.fromHeight(52),
+                ),
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Выйти'),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
     if (confirmed == true && context.mounted) {

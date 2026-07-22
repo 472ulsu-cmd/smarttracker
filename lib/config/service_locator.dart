@@ -185,10 +185,14 @@ Future<void> setupDependencies(AppConfig config) async {
   getIt.registerFactory<ProfileViewModel>(
     () => ProfileViewModel(getIt<ProfileRepository>()),
   );
-  getIt.registerFactory<NotificationsViewModel>(
-    () => NotificationsViewModel(
-      getIt<NotificationsRepository>(),
-      ordersRepository: getIt<OrdersRepository>(),
-    ),
-  );
+  // Singleton: список уведомлений предзагружается при входе (см. MainShell),
+  // чтобы к моменту открытия вкладки данные были готовы, а бейдж обновился сразу.
+  if (!getIt.isRegistered<NotificationsViewModel>()) {
+    getIt.registerLazySingleton<NotificationsViewModel>(
+      () => NotificationsViewModel(
+        getIt<NotificationsRepository>(),
+        ordersRepository: getIt<OrdersRepository>(),
+      ),
+    );
+  }
 }

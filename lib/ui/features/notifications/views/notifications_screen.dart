@@ -36,9 +36,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   void dispose() {
+    // NotificationsViewModel — singleton (предзагрузка в MainShell),
+    // поэтому dispose не вызываем: иначе один экран убьёт общий инстанс.
     _viewModel.removeListener(_onChanged);
     _refreshBus.removeListener(_onExternalRefresh);
-    _viewModel.dispose();
     super.dispose();
   }
 

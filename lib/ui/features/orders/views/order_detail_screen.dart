@@ -43,7 +43,7 @@ String _statusActionConsequence(OrderStatus s) {
     case OrderStatus.completed:
       return 'Заявка будет переведена в статус «Завершена». Убедитесь, что груз доставлен.';
     case OrderStatus.rejected:
-      return 'Заявка будет удалена из вашего списка. Это действие нельзя отменить.';
+      return 'Заявка будет отменена и перемещена в архив. Это действие нельзя отменить.';
     default:
       return '';
   }
@@ -537,7 +537,7 @@ class _ActionButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(BrandRadius.md),
         ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 8, 20),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,

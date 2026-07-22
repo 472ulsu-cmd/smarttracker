@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 
@@ -16,6 +17,11 @@ import 'ui/features/location/view_models/location_permission_view_model.dart';
 /// DI: get_it. Навигация: go_router.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Приложение работает только в вертикальной (портретной) ориентации.
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
 
   // Конфигурация. Для демо без backend замените на AppConfig.mock.
   const config = AppConfig.production;
