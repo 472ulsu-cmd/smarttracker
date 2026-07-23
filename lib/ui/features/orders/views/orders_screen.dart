@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/refresh_bus.dart';
 import '../../../../config/service_locator.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
-import '../../../core/theme/brand_radius.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../view_models/orders_view_model.dart';
@@ -59,6 +59,12 @@ class _OrdersScreenState extends State<OrdersScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Заявки'),
+        actions: [
+          // Сортировка — стандартное место вторичного действия списка в
+          // Material/HIG: верхний app bar. Не сжимает поле поиска внизу.
+          // PopupMenuButton с двумя пунктами; активный отмечен галочкой.
+          _SortMenu(viewModel: _viewModel),
+        ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: BrandColors.primary,
@@ -79,51 +85,21 @@ class _OrdersScreenState extends State<OrdersScreen>
             child: ListenableBuilder(
               listenable: _viewModel,
               builder: (context, _) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        _SearchScopeChip(
-                          label: 'По номеру',
-                          selected: _viewModel.searchScope ==
-                              OrdersSearchScope.number,
-                          onSelected: () => _viewModel.setSearchScope(
-                              OrdersSearchScope.number),
-                        ),
-                        _SearchScopeChip(
-                          label: 'По маршруту',
-                          selected: _viewModel.searchScope ==
-                              OrdersSearchScope.route,
-                          onSelected: () => _viewModel.setSearchScope(
-                              OrdersSearchScope.route),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      onChanged: _viewModel.setSearchQuery,
-                      decoration: InputDecoration(
-                        hintText: switch (_viewModel.searchScope) {
-                          OrdersSearchScope.number => 'Поиск по номеру',
-                          OrdersSearchScope.route => 'Поиск по маршруту',
-                          OrdersSearchScope.customer => 'Поиск по заказчику',
-                        },
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _viewModel.searchQuery.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                tooltip: 'Очистить',
-                                onPressed: () {
-                                  _viewModel.setSearchQuery('');
-                                },
-                              )
-                            : null,
-                      ),
-                    ),
-                  ],
+                return TextField(
+                  onChanged: _viewModel.setSearchQuery,
+                  decoration: InputDecoration(
+                    hintText: 'Поиск заявок',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _viewModel.searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            tooltip: 'Очистить',
+                            onPressed: () {
+                              _viewModel.setSearchQuery('');
+                            },
+                          )
+                        : null,
+                  ),
                 );
               },
             ),
@@ -231,32 +207,79 @@ class _OrdersTabBody extends StatelessWidget {
   }
 }
 
-class _SearchScopeChip extends StatelessWidget {
-  const _SearchScopeChip({
-    required this.label,
-    required this.selected,
-    required this.onSelected,
-  });
+/// Меню сортировки заявок в AppBar.
+///
+/// Стандартное платформенное место для вторичного действия списка: верхний
+/// app bar (Material/HIG). PopupMenuButton с двумя пунктами; активное
+/// направление отмечено галочкой, что делает текущее состояние видимым без
+/// необходимости открывать меню повторно. Тактильная отдача подтверждает
+/// смену состояния — водитель в перчатках может не видеть подсветки.
+class _SortMenu extends StatelessWidget {
+  const _SortMenu({required this.viewModel});
 
-  final String label;
-  final bool selected;
-  final VoidCallback onSelected;
+  final OrdersViewModel viewModel;
 
   @override
   Widget build(BuildContext context) {
-    return ChoiceChip(
-      label: Text(label),
-      selected: selected,
-      onSelected: (_) => onSelected(),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(BrandRadius.pill),
-      ),
-      side: const BorderSide(color: BrandColors.grayLight),
-      backgroundColor: BrandColors.white,
-      selectedColor: BrandColors.primary,
-      labelStyle: AppTextStyles.bodyMedium.copyWith(
-        color: selected ? BrandColors.white : BrandColors.graphite,
-      ),
+    return PopupMenuButton<OrdersSortMode>(
+      tooltip: 'Сортировка',
+      icon: const Icon(Icons.sort_rounded),
+      // Дефолтный padding PopupMenuButton уже даёт touch target ≥48dp
+      // по Material/HIG — критично в поле и в перчатках.
+      onSelected: (mode) {
+        HapticFeedback.selectionClick();
+        viewModel.setSortMode(mode);
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: OrdersSortMode.newestFirst,
+          child: _SortMenuLabel(
+            label: 'Сначала новые',
+            selected: viewModel.sortMode == OrdersSortMode.newestFirst,
+          ),
+        ),
+        PopupMenuItem(
+          value: OrdersSortMode.oldestFirst,
+          child: _SortMenuLabel(
+            label: 'Сначала старые',
+            selected: viewModel.sortMode == OrdersSortMode.oldestFirst,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Строка пункта меню сортировки: текст + галочка у активного.
+class _SortMenuLabel extends StatelessWidget {
+  const _SortMenuLabel({required this.label, required this.selected});
+
+  final String label;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        // Зарезервированное место под галочку — чтобы тексты обоих пунктов
+        // стояли по одной вертикали независимо от выбранного.
+        SizedBox(
+          width: 24,
+          child: selected
+              ? const Icon(Icons.check_rounded,
+                  size: 20, color: BrandColors.primary)
+              : const SizedBox.shrink(),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          label,
+          style: AppTextStyles.bodyLarge.copyWith(
+            color:
+                selected ? BrandColors.primary : BrandColors.graphite,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -170,14 +170,27 @@ void main() {
       expect(vm.ordersOf(OrdersTab.archive).single.num, 'З-9');
     });
 
-    test('поиск по заказчику фильтрует список', () async {
+    test('поиск по частичному совпадению фильтрует по любому полю', () async {
       final vm = OrdersViewModel(_FakeOrdersRepo());
       await vm.loadAll();
-      vm.setSearchScope(OrdersSearchScope.customer);
-      vm.setSearchQuery('альфа');
 
+      // Совпадение по номеру.
+      vm.setSearchQuery('з-1');
+      expect(vm.ordersOf(OrdersTab.newOrders).single.num, 'З-1');
+
+      // Совпадение по маршруту.
+      vm.setSearchQuery('г');
+      expect(vm.ordersOf(OrdersTab.inProgress).map((e) => e.num),
+          anyOf(equals(['З-2']), equals(['З-2', 'З-3'])));
+
+      // Совпадение по заказчику.
+      vm.setSearchQuery('альфа');
       expect(vm.ordersOf(OrdersTab.newOrders).single.num, 'З-1');
       expect(vm.ordersOf(OrdersTab.inProgress), isEmpty);
+
+      // Очистка запроса возвращает весь список.
+      vm.setSearchQuery('');
+      expect(vm.ordersOf(OrdersTab.newOrders).single.num, 'З-1');
     });
   });
 }

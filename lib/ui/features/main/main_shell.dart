@@ -32,7 +32,7 @@ class _MainShellState extends State<MainShell> {
 
   void _onDestinationSelected(int index) {
     // При переходе на вкладку уведомлений — обновим счётчик.
-    if (index == 1) {
+    if (index == _notificationsTabIndex) {
       getIt<UnreadBadgeViewModel>().refresh();
     }
     widget.navigationShell.goBranch(
@@ -41,6 +41,9 @@ class _MainShellState extends State<MainShell> {
       initialLocation: index == widget.navigationShell.currentIndex,
     );
   }
+
+  /// Индекс вкладки уведомлений в нижней навигации.
+  static const _notificationsTabIndex = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +71,11 @@ class _MainShellState extends State<MainShell> {
             selectedIcon:
                 Icon(Icons.notifications, color: colorScheme.primary),
             label: 'Уведомления',
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings, color: colorScheme.primary),
+            label: 'Настройки',
           ),
           NavigationDestination(
             icon: const Icon(Icons.person_outline),

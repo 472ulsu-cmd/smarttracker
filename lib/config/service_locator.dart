@@ -182,9 +182,15 @@ Future<void> setupDependencies(AppConfig config) async {
   getIt.registerFactory<OrdersViewModel>(
     () => OrdersViewModel(getIt<OrdersRepository>()),
   );
-  getIt.registerFactory<ProfileViewModel>(
-    () => ProfileViewModel(getIt<ProfileRepository>()),
-  );
+  // ProfileViewModel — singleton: профиль водителя — разделяемое состояние.
+  // Экраны профиля/редактирования/смены пароля слушают один экземпляр, поэтому
+  // после updateProfile()/uploadAvatar() изменения подтягиваются через
+  // notifyListeners() без ручной перезагрузки и хаков с результатом pop().
+  if (!getIt.isRegistered<ProfileViewModel>()) {
+    getIt.registerLazySingleton<ProfileViewModel>(
+      () => ProfileViewModel(getIt<ProfileRepository>()),
+    );
+  }
   // Singleton: список уведомлений предзагружается при входе (см. MainShell),
   // чтобы к моменту открытия вкладки данные были готовы, а бейдж обновился сразу.
   if (!getIt.isRegistered<NotificationsViewModel>()) {

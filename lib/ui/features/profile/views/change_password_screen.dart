@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/service_locator.dart';
-import '../../../../domain/repositories/profile_repository.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../view_models/profile_view_model.dart';
 
@@ -27,14 +26,14 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   void initState() {
     super.initState();
-    _viewModel = ProfileViewModel(getIt<ProfileRepository>());
+    _viewModel = getIt<ProfileViewModel>();
     _viewModel.addListener(_onChanged);
   }
 
   @override
   void dispose() {
+    // VM — singleton, его не диспозим; только снимаем слушатель.
     _viewModel.removeListener(_onChanged);
-    _viewModel.dispose();
     _oldController.dispose();
     _newController.dispose();
     _confirmController.dispose();

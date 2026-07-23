@@ -89,13 +89,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 16),
               ElevatedButton.icon(
-                // Ждём закрытия экрана редактирования и перезагружаем свой
-                // экземпляр VM — иначе на экране останутся устаревшие ФИО,
-                // паспорт и телефон (у экрана редактирования свой VM).
-                onPressed: () async {
-                  await context.push('/main/profile/edit');
-                  if (mounted) _viewModel.load();
-                },
+                // VM — singleton: экран редактирования после сохранения зовёт
+                // updateProfile() на том же экземпляре, который слушаем мы,
+                // поэтому при возврате здесь ФИО/паспорт/телефон уже свежие.
+                onPressed: () => context.push('/main/profile/edit'),
                 icon: const Icon(Icons.edit_outlined),
                 label: const Text('Редактировать профиль'),
               ),

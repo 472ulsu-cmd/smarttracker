@@ -7,11 +7,10 @@ import '../../../../domain/models/notification_item.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/utils/date_format.dart';
-import '../../../core/widgets/brand_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../view_models/notifications_view_model.dart';
 
-/// Экран уведомлений с переключателем push.
+/// Экран уведомлений.
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
@@ -74,7 +73,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         builder: (context, _) {
           return Column(
             children: [
-              _PushToggle(viewModel: _viewModel),
               if (_viewModel.unreadCount > 0)
                 _MarkAllBar(
                   count: _viewModel.unreadCount,
@@ -170,46 +168,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             },
           );
         },
-      ),
-    );
-  }
-}
-
-class _PushToggle extends StatelessWidget {
-  const _PushToggle({required this.viewModel});
-  final NotificationsViewModel viewModel;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: BrandCard(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          children: [
-            const Icon(Icons.notifications_active_outlined,
-                color: BrandColors.primary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Получать push-уведомления',
-                style: AppTextStyles.bodyLarge,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            ListenableBuilder(
-              listenable: viewModel.settings,
-              builder: (context, _) {
-                return Switch(
-                  value: viewModel.settings.pushEnabled,
-                  activeThumbColor: BrandColors.primary,
-                  onChanged: viewModel.isBusy ? null : viewModel.togglePush,
-                );
-              },
-            ),
-          ],
-        ),
       ),
     );
   }
