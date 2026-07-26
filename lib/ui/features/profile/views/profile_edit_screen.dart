@@ -6,6 +6,7 @@ import '../../../../config/service_locator.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../view_models/profile_view_model.dart';
+import 'phone_confirm_dialog.dart';
 
 /// Экран редактирования профиля (ФИО, паспорт, телефон).
 class ProfileEditScreen extends StatefulWidget {
@@ -62,12 +63,77 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    final login = _passportController.text.trim();
+    final name = _nameController.text.trim();
+    final secondName = _secondNameController.text.trim();
+    final surname = _surnameController.text.trim();
+    final newPhone = _phoneController.text.trim();
+
+    // Смена телефона требует подтверждения по SMS: сервер отклоняет
+    // POST /user с неподтверждённым номером (code:-14 «The phone unconfirmed»).
+    // Если телефон не менялся — сохраняем как обычно, без SMS.
+    final phoneChanged = _viewModel.user?.phone != newPhone;
+    if (!phoneChanged) {
+      await _saveProfile(login, name, secondName, surname, newPhone);
+      return;
+    }
+
+    // Телефон изменился → отправляем SMS-код на новый номер.
+    final sent = await _viewModel.requestPhoneCode(newPhone);
+    if (!mounted) return;
+    if (!sent) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _viewModel.errorMessage ??
+                'Не удалось отправить код. Проверьте номер и попробуйте ещё раз.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    // Открываем диалог ввода кода. confirmPhoneAndSave внутри проверит код
+    // и сохранит профиль. true — успех, профиль уже обновлён в singleton-VM.
+    final confirmed = await showPhoneConfirmDialog(
+      context,
+      newPhone: newPhone,
+      login: login,
+      name: name,
+      secondName: secondName,
+      surname: surname,
+    );
+    _viewModel.resetPhoneConfirmation();
+    if (!mounted) return;
+    if (confirmed == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Профиль сохранён')),
+      );
+      // go() вместо pop(): updateProfile() внутри зовёт
+      // AuthViewModel.updateUser() → notifyListeners(), а AuthViewModel
+      // входит в refreshListenable роутера. Из-за этого роутер пере-парсит
+      // стек и в StatefulShellRoute.indexedStack context.pop() «съедается»
+      // этой перестройкой (гонка, известная в go_router 17). go() задаёт
+      // целевую локацию детерминированно, поэтому возврат на экран профиля
+      // срабатывает надёжно.
+      context.go('/main/profile');
+    }
+  }
+
+  /// Сохранение профиля без смены телефона (или когда телефон не менялся).
+  Future<void> _saveProfile(
+    String login,
+    String name,
+    String secondName,
+    String surname,
+    String phone,
+  ) async {
     final ok = await _viewModel.updateProfile(
-      login: _passportController.text.trim(),
-      name: _nameController.text.trim(),
-      secondName: _secondNameController.text.trim(),
-      surname: _surnameController.text.trim(),
-      phone: _phoneController.text.trim(),
+      login: login,
+      name: name,
+      secondName: secondName,
+      surname: surname,
+      phone: phone,
       phoneCode: 1,
     );
     if (!mounted) return;
@@ -77,7 +143,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       );
       // VM — singleton: updateProfile() уже обновил общий _user и позвал
       // notifyListeners(), поэтому экран профиля перерисуется сам.
-      context.pop();
+      context.go('/main/profile');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -169,6 +235,8 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _phoneController,
+                    readOnly: true,
+                    enableInteractiveSelection: false,
                     keyboardType: TextInputType.phone,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
@@ -178,6 +246,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       labelText: 'Телефон (без +7)',
                       hintText: '9001234567',
                       prefixIcon: Icon(Icons.phone_outlined),
+                      suffixIcon: Icon(Icons.lock_outline),
                     ),
                     validator: (value) {
                       final v = (value ?? '').trim();

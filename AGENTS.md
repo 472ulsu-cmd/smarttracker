@@ -55,9 +55,10 @@ lib/
 
 - `pubspec.yaml` — зависимости, версия, assets, конфигурация иконок.
 - `analysis_options.yaml` — `flutter_lints`, исключение сгенерированных файлов, `invalid_annotation_target: ignore`.
-- `android/app/build.gradle` — `applicationId`, `compileSdk 36`, `minSdk 23`, Java/Kotlin JVM target 17, dev/prod flavors, `coreLibraryDesugaringEnabled`, плагин `google-services`.
-- `android/settings.gradle` — AGP 8.11.1, Kotlin 2.2.20, Flutter Gradle Plugin 1.0.0.
+- `android/app/build.gradle` — `applicationId`, `compileSdk 36`, `minSdk 24` (`flutter.minSdkVersion`, комментарий про 23 устарел), Java/Kotlin JVM target 17, dev/prod flavors, `coreLibraryDesugaringEnabled`, плагин `google-services`.
+- `android/settings.gradle` — AGP 8.11.2, Kotlin 2.2.21, Flutter Gradle Plugin 1.0.0.
 - `android/gradle/wrapper/gradle-wrapper.properties` — Gradle 8.14 (зеркало Tencent).
+- `.fvmrc` — закреплённая версия Flutter (`3.44.6`) для FVM; сам симлинк FVM в `.gitignore`.
 - `android/app/src/main/AndroidManifest.xml` — разрешения (INTERNET, геолокация, foreground service, уведомления, RECEIVE_BOOT_COMPLETED).
 - `android/build.gradle` — репозитории google/mavenCentral.
 - `openapi.yaml` — OpenAPI-спецификация backend API.
@@ -103,6 +104,13 @@ flutter build apk --release --flavor prod
 - Flutter SDK: `.flutter_sdk/flutter` (3.44.6)
 - JDK 17: `.jdk/jdk-17.0.19+10`
 - Android SDK: `.android_sdk` (platform-36, build-tools 36.0.0; `sdk.dir` в `android/local.properties` указывает сюда)
+
+#### Управление версией Flutter (FVM)
+
+Версия Flutter зафиксирована через FVM в `.fvmrc` (`3.44.6`). Сам файл `.fvmrc` коммитится в репозиторий, а симлинк FVM (`.fvm/flutter_sdk`) — нет (см. `.gitignore`).
+
+- **Разработчикам с установленным FVM:** используйте `fvm flutter <команда>` / `fvm dart <команда>` — FVM подхватит версию из `.fvmrc` автоматически.
+- **Средам без FVM (CI, данный Windows-box):** остаётся локальный `.flutter_sdk/` как fallback; команды ниже используют именно его. Оба пути указывают на одну и ту же версию 3.44.6.
 
 Особенности:
 
@@ -249,8 +257,9 @@ flutter analyze
 - Release-сборка Android подписывается debug-ключом (см. `android/app/build.gradle` `signingConfig = signingConfigs.debug`) — **перед публикацией нужно настроить собственный signing config**.
 - Иконки приложения генерируются `flutter_launcher_icons`: исходники в `icons/`, адаптивная иконка Android на оранжевом фоне `#FE4500`.
 - Для iOS требуется добавить `GoogleService-Info.plist` (не коммитится, см. `.gitignore`) и разрешения на геолокацию/уведомления в `ios/Runner/Info.plist`.
-- Минимальная Android-версия: `minSdk 23` (требование `firebase_messaging`).
-- Сборочный стек: Flutter 3.44.6, Dart 3.12.2, AGP 8.11.1, Gradle 8.14, Kotlin 2.2.20, Java / Kotlin JVM target 17.
+- Минимальная Android-версия: `minSdk 24` (`flutter.minSdkVersion`; исторический комментарий про 23 устарел — `firebase_messaging` 16 требует ≥23, фактически выставлено 24).
+- Минимальная iOS-версия: deployment target `16.0` (выровнено в `project.pbxproj`, `AppFrameworkInfo.plist` и `Podfile`; требование App Store для новых сабмишенов).
+- Сборочный стек: Flutter 3.44.6 (закреплён в `.fvmrc`), Dart 3.12.2, AGP 8.11.2, Gradle 8.14, Kotlin 2.2.21, Java / Kotlin JVM target 17.
 
 ## 12. Что стоит помнить при изменениях
 

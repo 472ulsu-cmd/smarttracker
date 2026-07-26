@@ -84,6 +84,7 @@ class PushService {
   static const _channelName = 'Уведомления';
 
   StreamSubscription<RemoteMessage>? _onMessageSub;
+  StreamSubscription<RemoteMessage>? _onMessageOpenedSub;
 
   /// Инициализация. Возвращает FCM-токен (если получен) или null.
   Future<String?> init() async {
@@ -115,11 +116,24 @@ class PushService {
     // Foreground-сообщения → локальное уведомление (если push включён).
     _onMessageSub = FirebaseMessaging.onMessage.listen(_handleForeground);
 
+    // App запущено тапом по уведомлению (cold start: приложение было закрыто).
+    // Обновляем списки сразу, как только приложение открылось.
+    final initial = await FirebaseMessaging.instance.getInitialMessage();
+    if (initial != null) {
+      _refresh();
+    }
+
+    // App в фоне, пользователь тапает по системному уведомлению →
+    // приложение открывается. Триггерим обновление списков.
+    _onMessageOpenedSub =
+        FirebaseMessaging.onMessageOpenedApp.listen((_) => _refresh());
+
     return token;
   }
 
   void dispose() {
     _onMessageSub?.cancel();
+    _onMessageOpenedSub?.cancel();
   }
 
   Future<void> _sendToken(String token) async {

@@ -68,3 +68,7 @@ docs/superpowers/
 .flutter_sdk/
 .jdk/
 .android_sdk/
+
+# FVM — версия Flutter фиксируется в .fvmrc, сам симлинк не коммитим.
+.fvm/flutter_sdk
+.fvm/version

@@ -19,7 +19,6 @@ import 'ui/features/profile/views/change_password_screen.dart';
 import 'ui/features/profile/views/feedback_screen.dart';
 import 'ui/features/profile/views/profile_edit_screen.dart';
 import 'ui/features/profile/views/profile_screen.dart';
-import 'ui/features/settings/views/settings_screen.dart';
 
 /// Все маршруты приложения.
 class AppRoutes {
@@ -34,7 +33,6 @@ class AppRoutes {
   static const locationPermission = '/location-permission';
   static const orders = '/main/orders';
   static const notifications = '/main/notifications';
-  static const settings = '/main/settings';
   static const profile = '/main/profile';
 }
 
@@ -158,12 +156,6 @@ GoRouter createRouter() {
             GoRoute(
               path: AppRoutes.notifications,
               builder: (context, state) => const NotificationsScreen(),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: AppRoutes.settings,
-              builder: (context, state) => const SettingsScreen(),
             ),
           ]),
           StatefulShellBranch(routes: [

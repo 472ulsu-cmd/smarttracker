@@ -73,11 +73,6 @@ class _MainShellState extends State<MainShell> {
             label: 'Уведомления',
           ),
           NavigationDestination(
-            icon: const Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings, color: colorScheme.primary),
-            label: 'Настройки',
-          ),
-          NavigationDestination(
             icon: const Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person, color: colorScheme.primary),
             label: 'Профиль',
