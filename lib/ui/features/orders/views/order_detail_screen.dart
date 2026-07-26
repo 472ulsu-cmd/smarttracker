@@ -144,7 +144,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 const SizedBox(height: 16),
                 _RouteCard(order: order),
                 const SizedBox(height: 16),
-                if (order.status != OrderStatus.newRequest.id) ...[
+                // Фото доступно для заявок, принятых в работу.
+                // Скрыто для «Новой заявки» (ещё не принято) и «Отказа».
+                if (order.status != OrderStatus.newRequest.id &&
+                    order.status != OrderStatus.rejected.id) ...[
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.photo_camera_outlined,
