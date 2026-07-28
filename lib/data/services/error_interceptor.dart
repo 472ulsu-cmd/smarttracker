@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../domain/models/app_exception.dart';
 
@@ -11,7 +12,7 @@ class ErrorInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    final exception = _map(err);
+    final exception = mapError(err);
     handler.next(
       DioException(
         requestOptions: err.requestOptions,
@@ -23,6 +24,13 @@ class ErrorInterceptor extends Interceptor {
       ),
     );
   }
+
+  /// Преобразует [DioException] в доменное [AppException].
+  ///
+  /// Вынесено из [onError], чтобы логику маппинга можно было покрыть
+  /// unit-тестами без запуска реальной сети.
+  @visibleForTesting
+  AppException mapError(DioException err) => _map(err);
 
   AppException _map(DioException err) {
     switch (err.type) {
@@ -118,7 +126,9 @@ class ErrorInterceptor extends Interceptor {
   /// Человек-понятные сообщения по известным кодам API.
   ///
   /// Коды получены из тестов реальных эндпоинтов:
-  /// - `-4` / `-10` — неверный паспорт или пароль (`/login`);
+  /// - `-4` / `-10`:
+  ///   * на `/login` — неверный паспорт или пароль;
+  ///   * на `/user/password` — неверный текущий пароль;
   /// - `-6`:
   ///   * на `/user/send_phone_code` (регистрация) — паспорт уже занят;
   ///   * на `/user/send_restoring_phone_code` (восстановление) — логин не найден;
@@ -137,6 +147,9 @@ class ErrorInterceptor extends Interceptor {
     final isRestore =
         isSendRestoringPhoneCode || path.startsWith('/restore');
     final isRegistration = path.startsWith('/registration');
+    // Смена пароля из профиля: на форме нет поля паспорта, только текущий и
+    // новые пароли — поэтому упоминание паспорта здесь вводит в заблуждение.
+    final isChangePassword = path.startsWith('/user/password');
     switch (code) {
       case -4:
       case -10:
@@ -145,6 +158,10 @@ class ErrorInterceptor extends Interceptor {
         if (isRegistration) {
           return 'Пользователь с таким паспортом уже зарегистрирован. '
               'Попробуйте войти или восстановить пароль.';
+        }
+        // Смена пароля: коды -4/-10 означают неверный текущий пароль.
+        if (isChangePassword) {
+          return 'Неверный текущий пароль. Проверьте ввод и попробуйте ещё раз.';
         }
         return 'Неверный паспорт или пароль. Проверьте введённые данные.';
       case -6:
