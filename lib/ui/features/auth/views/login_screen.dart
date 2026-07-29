@@ -71,11 +71,20 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final auth = getIt<AuthViewModel>();
     final useMock = getIt<AppConfig>().useMock;
-    return Scaffold(
-      // Фон авторизации — иллюстрация с грузовиком на закате.
-      // Поверх неё — мягкий тёплый scrim: картинка остаётся видимой
-      // как тон, а контент читается без шума.
-      body: Stack(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      // Фон входа светлый (paperWarm) — поэтому иконки статус-бара
+      // должны быть тёмными (systemDark), иначе они сливаются с фоном.
+      // Без AppBar свой стиль статус-бара задаёт только AnnotatedRegion.
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+      child: Scaffold(
+        // Фон авторизации — иллюстрация с грузовиком на закате.
+        // Поверх неё — мягкий тёплый scrim: картинка остаётся видимой
+        // как тон, а контент читается без шума.
+        body: Stack(
         fit: StackFit.expand,
         children: [
           Image.asset(
@@ -179,6 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

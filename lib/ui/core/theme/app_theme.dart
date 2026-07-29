@@ -66,7 +66,12 @@ ThemeData appTheme() {
         // primaryText — WCAG AA для текста на белом (4.7:1), primary даёт 3.46:1.
         foregroundColor: BrandColors.primaryText,
         textStyle: AppTextStyles.titleMedium.copyWith(fontSize: 15),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        // Touch-target ≥48dp (Material) / ≥44pt (iOS): без явного minimumSize
+        // при сжатом padding вертикали хит-зона ссылок падала до ~32px.
+        // Size.fromHeight фиксирует только высоту, не трогая ширину (важно
+        // для Row из нескольких ссылок, как «Регистрация | Забыли пароль?»).
+        minimumSize: const Size.fromHeight(48),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
