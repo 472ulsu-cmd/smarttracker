@@ -49,15 +49,20 @@ class _LoginScreenState extends State<LoginScreen> {
     if (mounted) setState(() {});
   }
 
+  /// Цифры паспорта без визуального пробела маски (логическое значение):
+  /// для валидации и отправки на сервер нужен ровно 10-значный ряд.
+  String get _passportDigits =>
+      _loginController.text.replaceAll(RegExp(r'\D'), '');
+
   bool get _isFormValid =>
-      _loginController.text.trim().length == 10 &&
+      _passportDigits.length == 10 &&
       _passwordController.text.isNotEmpty;
 
   Future<void> _handleLogin(AuthViewModel auth) async {
     // Ошибка показывается inline под полями (auth.errorMessage) —
     // без дублирующего SnackBar.
     await auth.login(
-      _loginController.text.trim(),
+      _passportDigits,
       _passwordController.text,
     );
   }
@@ -201,7 +206,17 @@ class _AuthScrim extends StatelessWidget {
 }
 
 /// Шапка экрана входа: логотип «Умная логистика» и название приложения
-/// в две строки — «УМНЫЙ» чёрным (графит), «ВОДИТЕЛЬ» фирменным оранжевым.
+/// в две строки — «УМНЫЙ» графитовым, «ВОДИТЕЛЬ» в primaryText (AA-оранжевый).
+///
+/// Решения по критике P2:
+/// - Графитовый лого (а не чисто чёрный) — вписывается в тёплую палитру,
+///   где текст графитовый; чёрный читался холодным «штампом».
+/// - Название — один [Text.rich] с переносом строки: скринридер произносит
+///   «УМНЫЙ ВОДИТЕЛЬ» одной фразой, а не двумя отдельными utterance.
+/// - Размер берётся из шкалы ([AppTextStyles.headlineLarge], 28), без хардкода.
+/// - «ВОДИТЕЛЬ» в [BrandColors.primaryText] (#D63A00, 4.70:1 на белом) —
+///   AA для обычного текста и оставляет Signal Orange (#FE4500) свободным
+///   для кнопки CTA (One Accent Rule).
 /// Montserrat содержит кириллицу; Bebas Neue её не содержит (был бы
 /// системный fallback), поэтому название — на Montserrat.
 class _BrandHeader extends StatelessWidget {
@@ -209,33 +224,62 @@ class _BrandHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final base = AppTextStyles.headlineLarge.copyWith(letterSpacing: 2);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Image.asset(
-          'assets/images/ul_logo_black.png',
+          'assets/images/ul_logo_graphite.png',
           height: 88,
           fit: BoxFit.contain,
           semanticLabel: 'Логотип «Умная логистика»',
         ),
         const SizedBox(height: 16),
-        Text(
-          'УМНЫЙ',
-          style: AppTextStyles.headlineLarge.copyWith(
-            color: BrandColors.graphite,
-            letterSpacing: 4,
-            fontSize: 30,
+        Text.rich(
+          TextSpan(
+            style: base,
+            children: [
+              TextSpan(
+                text: 'УМНЫЙ',
+                style: base.copyWith(color: BrandColors.graphite),
+              ),
+              const TextSpan(text: '\n'),
+              TextSpan(
+                text: 'ВОДИТЕЛЬ',
+                style: base.copyWith(color: BrandColors.primaryText),
+              ),
+            ],
           ),
-        ),
-        Text(
-          'ВОДИТЕЛЬ',
-          style: AppTextStyles.headlineLarge.copyWith(
-            color: BrandColors.primary,
-            letterSpacing: 4,
-            fontSize: 30,
-          ),
+          textAlign: TextAlign.center,
         ),
       ],
+    );
+  }
+}
+
+/// Форматтер поля паспорта: группирует «серия 4 цифры» + «номер 6 цифр»
+/// пробелом — `4510 712345`. Хранит логику на сырых цифрах: при любой правке
+/// берёт из значения только цифры и заново расставляет один пробел после 4-й.
+/// Так серия и номер опознаются с одного взгляда (критика P1) — водитель не
+/// пересчитывает 10 цифр вслепую.
+class _PassportMaskFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    // Жёсткий лимит 10 цифр — серия (4) + номер (6).
+    final capped = digits.length > 10 ? digits.substring(0, 10) : digits;
+    final buffer = StringBuffer();
+    for (var i = 0; i < capped.length; i++) {
+      if (i == 4) buffer.write(' ');
+      buffer.write(capped[i]);
+    }
+    final formatted = buffer.toString();
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }
@@ -257,17 +301,18 @@ class _PassportField extends StatelessWidget {
       contextMenuBuilder: (_, __) => const SizedBox.shrink(),
       inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(10),
+        LengthLimitingTextInputFormatter(11), // 10 цифр + пробел маски
+        _PassportMaskFormatter(),
       ],
-      maxLength: 10,
+      maxLength: 11,
       decoration: const InputDecoration(
         labelText: 'Серия и номер паспорта',
-        hintText: '1234567890',
+        hintText: '4510 712345',
         counterText: '',
         prefixIcon: Icon(Icons.badge_outlined),
       ),
       validator: (value) {
-        final v = (value ?? '').trim();
+        final v = (value ?? '').replaceAll(RegExp(r'\D'), '');
         if (v.length != 10) {
           return 'Введите 10 цифр серии и номера паспорта';
         }
