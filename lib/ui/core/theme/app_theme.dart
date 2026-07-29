@@ -85,8 +85,10 @@ ThemeData appTheme() {
       fillColor: BrandColors.white,
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      labelStyle: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayMid),
-      hintStyle: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayMid),
+      // grayDark (#57575C, 7.18:1 на белом) вместо grayMid (3.42:1 — провал AA).
+      // Лейблы/плейсхолдеры — это текст, читаемый при каждом вводе; WCAG AA = 4.5:1.
+      labelStyle: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayDark),
+      hintStyle: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayDark),
       errorStyle: AppTextStyles.bodySmall.copyWith(color: BrandColors.error),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(BrandRadius.md),

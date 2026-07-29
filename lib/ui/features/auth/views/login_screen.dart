@@ -67,114 +67,175 @@ class _LoginScreenState extends State<LoginScreen> {
     final auth = getIt<AuthViewModel>();
     final useMock = getIt<AppConfig>().useMock;
     return Scaffold(
-      body: SafeArea(
-        child: ListenableBuilder(
-          listenable: auth,
-          builder: (context, _) {
-            return Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 24, vertical: 24),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 420),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(height: 24),
-                        const _Logo(),
-                        const SizedBox(height: 24),
-                        Text(
-                          'Вход в приложение',
-                          style: AppTextStyles.headlineMedium,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Войдите, используя серию и номер паспорта',
-                          style: AppTextStyles.bodyMedium
-                              .copyWith(color: BrandColors.grayDark),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 24),
-                        AutofillGroup(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _PassportField(controller: _loginController),
-                              const SizedBox(height: 16),
-                              _PasswordField(
-                                controller: _passwordController,
-                                obscure: _obscurePassword,
-                                onToggleVisibility: () => setState(
-                                  () => _obscurePassword = !_obscurePassword,
-                                ),
-                                onSubmitted: _isFormValid && !auth.isLoading
-                                    ? () => _handleLogin(auth)
-                                    : null,
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (auth.errorMessage != null) ...[
-                          const SizedBox(height: 12),
-                          ErrorBanner(message: auth.errorMessage!),
-                        ],
-                        const SizedBox(height: 24),
-                        _LoginButton(
-                          isLoading: auth.isLoading,
-                          enabled: _isFormValid && !auth.isLoading,
-                          onPressed: () => _handleLogin(auth),
-                        ),
-                        const SizedBox(height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+      // Фон авторизации — иллюстрация с грузовиком на закате.
+      // Поверх неё — мягкий тёплый scrim: картинка остаётся видимой
+      // как тон, а контент читается без шума.
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            'assets/images/auth_screen.png',
+            fit: BoxFit.cover,
+            semanticLabel: 'Фон экрана входа',
+          ),
+          const _AuthScrim(),
+          SafeArea(
+            child: ListenableBuilder(
+              listenable: auth,
+              builder: (context, _) {
+                return Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 24),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            TextButton(
-                              onPressed: () => context.push('/auth/register'),
-                              child: const Text('Регистрация'),
+                            const SizedBox(height: 16),
+                            const _BrandHeader(),
+                            const SizedBox(height: 32),
+                            Text(
+                              'Вход в приложение',
+                              style: AppTextStyles.headlineMedium,
+                              textAlign: TextAlign.center,
                             ),
-                            Container(
-                              width: 1,
-                              height: 16,
-                              color: BrandColors.grayLight,
+                            const SizedBox(height: 8),
+                            Text(
+                              'Войдите, используя серию и номер паспорта',
+                              style: AppTextStyles.bodyMedium
+                                  .copyWith(color: BrandColors.grayDark),
+                              textAlign: TextAlign.center,
                             ),
-                            TextButton(
-                              onPressed: () => context.push('/auth/recovery'),
-                              child: const Text('Забыли пароль?'),
+                            const SizedBox(height: 24),
+                            AutofillGroup(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  _PassportField(controller: _loginController),
+                                  const SizedBox(height: 16),
+                                  _PasswordField(
+                                    controller: _passwordController,
+                                    obscure: _obscurePassword,
+                                    onToggleVisibility: () => setState(
+                                      () =>
+                                          _obscurePassword = !_obscurePassword,
+                                    ),
+                                    onSubmitted: _isFormValid && !auth.isLoading
+                                        ? () => _handleLogin(auth)
+                                        : null,
+                                  ),
+                                ],
+                              ),
                             ),
+                            if (auth.errorMessage != null) ...[
+                              const SizedBox(height: 12),
+                              ErrorBanner(message: auth.errorMessage!),
+                            ],
+                            const SizedBox(height: 24),
+                            _LoginButton(
+                              isLoading: auth.isLoading,
+                              enabled: _isFormValid && !auth.isLoading,
+                              onPressed: () => _handleLogin(auth),
+                            ),
+                            const SizedBox(height: 24),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                TextButton(
+                                  onPressed: () => context.push('/auth/register'),
+                                  child: const Text('Регистрация'),
+                                ),
+                                Container(
+                                  width: 1,
+                                  height: 16,
+                                  color: BrandColors.grayLight,
+                                ),
+                                TextButton(
+                                  onPressed: () => context.push('/auth/recovery'),
+                                  child: const Text('Забыли пароль?'),
+                                ),
+                              ],
+                            ),
+                            if (useMock) ...[
+                              const SizedBox(height: 24),
+                              const _MockHint(),
+                            ],
+                            const SizedBox(height: 24),
                           ],
                         ),
-                        if (useMock) ...[
-                          const SizedBox(height: 24),
-                          const _MockHint(),
-                        ],
-                        const SizedBox(height: 24),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ),
-            );
-          },
-        ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _Logo extends StatelessWidget {
-  const _Logo();
+/// Тёплый scrim поверх фоновой иллюстрации.
+///
+/// Равномерный, а не градиентный: фото читается как ровный тёплый тон, а
+/// контраст контента **гарантирован** на любом участке экрана (раньше в
+/// центральной полосе α падала до 0.55 — контент над тёмным участком фото
+/// получал непредсказуемый контраст, что критика P0 отметила как риск для
+/// чтения на улице). Лейблы и хинты полей на это не завязаны — они лежат
+/// внутри белых полей (fillColor=white), их контраст задаётся темой ввода.
+class _AuthScrim extends StatelessWidget {
+  const _AuthScrim();
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      'assets/images/ic_logo.png',
-      width: 200,
-      height: 200,
-      fit: BoxFit.contain,
-      semanticLabel: 'Логотип «Умная логистика»',
+    return IgnorePointer(
+      child: ColoredBox(
+        color: BrandColors.paperWarm.withValues(alpha: 0.85),
+      ),
+    );
+  }
+}
+
+/// Шапка экрана входа: логотип «Умная логистика» и название приложения
+/// в две строки — «УМНЫЙ» чёрным (графит), «ВОДИТЕЛЬ» фирменным оранжевым.
+/// Montserrat содержит кириллицу; Bebas Neue её не содержит (был бы
+/// системный fallback), поэтому название — на Montserrat.
+class _BrandHeader extends StatelessWidget {
+  const _BrandHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Image.asset(
+          'assets/images/ul_logo_black.png',
+          height: 88,
+          fit: BoxFit.contain,
+          semanticLabel: 'Логотип «Умная логистика»',
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'УМНЫЙ',
+          style: AppTextStyles.headlineLarge.copyWith(
+            color: BrandColors.graphite,
+            letterSpacing: 4,
+            fontSize: 30,
+          ),
+        ),
+        Text(
+          'ВОДИТЕЛЬ',
+          style: AppTextStyles.headlineLarge.copyWith(
+            color: BrandColors.primary,
+            letterSpacing: 4,
+            fontSize: 30,
+          ),
+        ),
+      ],
     );
   }
 }
