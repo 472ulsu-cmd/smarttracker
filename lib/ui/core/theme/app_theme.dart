@@ -68,9 +68,11 @@ ThemeData appTheme() {
         textStyle: AppTextStyles.titleMedium.copyWith(fontSize: 15),
         // Touch-target ≥48dp (Material) / ≥44pt (iOS): без явного minimumSize
         // при сжатом padding вертикали хит-зона ссылок падала до ~32px.
-        // Size.fromHeight фиксирует только высоту, не трогая ширину (важно
-        // для Row из нескольких ссылок, как «Регистрация | Забыли пароль?»).
-        minimumSize: const Size.fromHeight(48),
+        // ВАЖНО: Size(0, 48), а НЕ Size.fromHeight(48) — последний задаёт
+        // minWidth = infinity и в Row (как «Регистрация | Забыли пароль?»)
+        // первая кнопка занимала всю ширину, вытесняя остальные ссылки.
+        // minWidth 0 позволяет кнопке сжиматься до содержимого текста.
+        minimumSize: const Size(0, 48),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       ),
     ),
