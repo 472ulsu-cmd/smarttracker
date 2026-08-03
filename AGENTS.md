@@ -215,7 +215,7 @@ flutter analyze
 
 - `NotificationsViewModel` — список уведомлений, оптимистичное `markAsRead` с undo.
 - `UnreadBadgeViewModel` — счётчик непрочитанных для нижней навигации.
-- FCM data-only сообщения парсятся в `PushService`; foreground-сообщения показываются как локальные уведомления и триггят обновление списков. Тап по пушу с `order_id` открывает заявку `/main/orders/:id` через шину `DeepLinkBus` (срабатывает на cold start `getInitialMessage`, на warm `onMessageOpenedApp` и на тап по локальному уведомлению через `onDidReceiveNotificationResponse`; потребитель — `_SmartTrackerApp` в `main.dart`).
+- FCM data-only сообщения парсятся в `PushService`; foreground-сообщения показываются как локальные уведомления и триггят обновление списков. Тап по пушу с `order_id` открывает заявку `/main/orders/:id` через шину `DeepLinkBus` (срабатывает на cold start `getInitialMessage`, на warm `onMessageOpenedApp` и на тап по локальному уведомлению через `onDidReceiveNotificationResponse`; потребитель — `_SmartTrackerApp` в `main.dart`). Парсер `NotificationMessageParser` принимает оба регистра: FCM-payload бэкенда использует **camelCase** (`orderId`, `notificationId`), REST `/notification` — **snake_case** (`order_id`); проверяются оба варианта. Бэкенд FCM также шлёт `notification`-блок, поэтому уведомления всегда отображаются в трее (включая background/terminated).
 - Локальный переключатель push: `SettingsService` + `shared_preferences`.
 
 ### Профиль (`lib/ui/features/profile/`)

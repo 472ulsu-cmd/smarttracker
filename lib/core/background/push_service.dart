@@ -17,6 +17,10 @@ class NotificationMessageParser {
   NotificationMessageParser._();
 
   /// Возвращает ParsedNotification или null, если данных недостаточно.
+  ///
+  /// FCM-пayload от бэкенда использует camelCase-ключи (`orderId`,
+  /// `routePhotoId`, `routePhotoType_id`), REST `/notification` — snake_case
+  /// (`order_id`, ...). Проверяем оба варианта.
   static ParsedNotification? parse(RemoteMessage message) {
     final data = message.data;
     if (data.isEmpty && message.notification == null) return null;
@@ -25,9 +29,12 @@ class NotificationMessageParser {
         data['title'] as String? ??
         'Уведомление';
     final body = message.notification?.body ?? data['message'] as String? ?? '';
-    final orderId = int.tryParse('${data['order_id'] ?? ''}');
-    final routePhotoId = int.tryParse('${data['route_photo_id'] ?? ''}');
-    final routePhotoTypeId = int.tryParse('${data['route_photo_type_id'] ?? ''}');
+    final orderId = int.tryParse(
+        '${data['order_id'] ?? data['orderId'] ?? ''}');
+    final routePhotoId = int.tryParse(
+        '${data['route_photo_id'] ?? data['routePhotoId'] ?? ''}');
+    final routePhotoTypeId = int.tryParse(
+        '${data['route_photo_type_id'] ?? data['routePhotoTypeId'] ?? ''}');
 
     return ParsedNotification(
       title: title,
@@ -118,7 +125,7 @@ class PushService {
     _onMessageSub = FirebaseMessaging.onMessage.listen(_handleForeground);
 
     // App запущено тапом по уведомлению (cold start: приложение было закрыто).
-    // Обновляем списки и открываем заявку, если в пуше есть order_id.
+    // Обновляем списки и открываем заявку, если в пуше есть orderId.
     final initial = await FirebaseMessaging.instance.getInitialMessage();
     if (initial != null) {
       _handleTap(initial);
@@ -165,23 +172,34 @@ class PushService {
   }
 
   /// Тап по уведомлению (FCM): обновляем списки и открываем заявку,
-  /// если в data-payload есть order_id.
+  /// либо вкладку фото (если уведомление про фото).
   void _handleTap(RemoteMessage message) {
     _refresh();
     final parsed = NotificationMessageParser.parse(message);
-    if (parsed?.orderId != null) _goToOrder(parsed!.orderId!);
+    if (parsed == null) return;
+    final path = PushService.pathFor(parsed);
+    if (path != null) getIt<DeepLinkBus>().request(path);
   }
 
-  /// Тап по локальному уведомлению: order_id восстанавливаем из payload.
+  /// Тап по локальному уведомлению: payload кодирует целевой маршрут.
   void _onLocalTap(NotificationResponse response) {
-    final orderId = int.tryParse(response.payload ?? '');
-    if (orderId != null) _goToOrder(orderId);
+    final payload = response.payload;
+    if (payload != null && payload.isNotEmpty) {
+      getIt<DeepLinkBus>().request(payload);
+    }
   }
 
-  /// Запросить переход на заявку через шину deep-link.
-  /// Навигацию выполнит `_SmartTrackerApp`, слушающий [DeepLinkBus].
-  void _goToOrder(int orderId) {
-    getIt<DeepLinkBus>().request('/main/orders/$orderId');
+  /// Целевой маршрут по распарсенному уведомлению:
+  /// - фото-уведомление (есть routePhotoId) и orderId → вкладка фото заявки,
+  /// - иначе (есть orderId) → карточка заявки,
+  /// - иначе null (навигации нет).
+  ///
+  /// Маршрут фото требует orderId, поэтому при отсутствии orderId фото-пуш
+  /// не открывается.
+  static String? pathFor(ParsedNotification n) {
+    if (n.orderId == null) return null;
+    if (n.routePhotoId != null) return '/main/orders/${n.orderId}/photos';
+    return '/main/orders/${n.orderId}';
   }
 
   /// Триггер обновления списков уведомлений, заявок и бейджа.
@@ -210,8 +228,10 @@ class PushService {
         ),
         iOS: DarwinNotificationDetails(),
       ),
-      // order_id как payload — для навигации при тапе.
-      payload: n.orderId?.toString(),
+      // Целевой маршрут как payload — для навигации при тапе.
+      // Содержит «/main/orders/<id>» или «/main/orders/<id>/photos»,
+      // см. [PushService.pathFor].
+      payload: PushService.pathFor(n),
     );
   }
 }
