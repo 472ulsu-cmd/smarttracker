@@ -28,6 +28,9 @@ migrate_working_dir/
 .flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
+
+# Кэш скрипта-генератора городов (tool/generate_cities.py)
+tool/.cache/
 .pub/
 /build/
 *.g.dart
