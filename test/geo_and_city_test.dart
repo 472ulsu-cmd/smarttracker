@@ -4,32 +4,37 @@ import 'package:smarttracker/domain/models/geo_point.dart';
 
 void main() {
   group('GeoPoint datetime', () {
-    test('toJson форматирует datetime: MSK wall-clock + суффикс +0000', () {
-      // 15 июня 2024, 07:30:00 UTC = 10:30:00 по Москве (UTC+3).
-      // Требование бэкенда: wall-clock = MSK, суффикс строки = +0000.
+    test('toJson форматирует datetime: UTC wall-clock + суффикс -0300', () {
+      // 15 июня 2024, 07:30:00 UTC.
+      // Требование бэкенда: wall-clock = UTC (без сдвига), суффикс = -0300.
       final utc = DateTime.utc(2024, 6, 15, 7, 30, 0);
       final p = GeoPoint(lat: 55.75, lng: 37.62, datetime: utc);
 
       final json = p.toJson();
 
-      expect(json['datetime'], '2024-06-15 10:30:00+0000');
+      expect(json['datetime'], '2024-06-15 07:30:00-0300');
       expect(json['lat'], 55.75);
       expect(json['lng'], 37.62);
       expect(json['nearest_city'], '');
     });
 
-    test('toJson сдвигает произвольный локальный момент в MSK', () {
+    test('toJson использует UTC wall-clock для произвольного локального момента', () {
       // Локальное 2024-01-15 22:05:03 эквивалентно какому-то UTC-моменту;
-      // проверяем формат строки и суффикс +0000.
+      // wall-clock в строке должен совпадать с UTC-моментом (без сдвига),
+      // а смещение быть -0300.
       final local = DateTime(2024, 1, 15, 22, 5, 3);
+      final utc = local.toUtc();
 
       final dt = GeoPoint(lat: 0, lng: 0, datetime: local).toJson()['datetime'] as String;
 
-      // Формат: YYYY-MM-DD HH:MM:SS+0000
-      expect(RegExp(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+0000$').hasMatch(dt), isTrue);
-      // Содержательная проверка момента — в первом тесте; здесь важен суффикс
-      // и формат (дата зависит от локального смещения, поэтому не фиксируем её).
-      expect(dt.endsWith('+0000'), isTrue);
+      // Формат: YYYY-MM-DD HH:MM:SS-0300
+      expect(RegExp(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}-0300$').hasMatch(dt), isTrue);
+      expect(dt.endsWith('-0300'), isTrue);
+      // Wall-clock = UTC (без сдвига): часы/минуты/секунды совпадают с UTC.
+      final hhmmss = dt.substring(11, 19);
+      final utcHhmmss =
+          '${utc.hour.toString().padLeft(2, '0')}:${utc.minute.toString().padLeft(2, '0')}:${utc.second.toString().padLeft(2, '0')}';
+      expect(hhmmss, utcHhmmss);
     });
 
     test('toJson включает nearest_city', () {
