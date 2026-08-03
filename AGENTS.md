@@ -226,7 +226,7 @@ flutter analyze
 ### Геолокация и фон (`lib/core/background/`)
 
 - `LocationService` — foreground-сервис, отправляет координаты напрямую; в `PendingActionStore` точка попадает только при ошибке отправки.
-- `CityLookup` — офлайн-поиск ближайшего города по `assets/cities/cities.csv`.
+- `CityLookup` — офлайн-поиск ближайшего города по `assets/cities/cities.csv` (города РФ/СНГ с населением ≥ 50 000, источник — GeoNames; регенерируется `tool/generate_cities.py`).
 - `SyncService` — `workmanager`, периодически отправляет накопленные действия (`statusChange`, `photoUpload`, `coordinates`).
 - `PendingActionStore` — SQLite; после 5 неудачных попыток действие помечается `failed` (для координат не применяется — повторяются бесконечно).
 - Фоновые сервисы стартуют только при одновременном условии: пользователь аутентифицирован И разрешение геолокации = «Всегда».
