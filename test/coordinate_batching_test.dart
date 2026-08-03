@@ -11,7 +11,8 @@ void main() {
           payload: {
             'lat': 55.75,
             'lng': 37.61,
-            'datetime': '2026-07-15 10:00:00+0000',
+            // MSK-строка, сохранённая GeoPoint.toJson: 10:00+0300 = 07:00 UTC.
+            'datetime': '2026-07-15 10:00:00+0300',
             'nearest_city': 'Москва',
           },
         ),
@@ -25,7 +26,7 @@ void main() {
       expect(points.first.nearestCity, 'Москва');
       expect(
         points.first.datetime,
-        DateTime.parse('2026-07-15T10:00:00+0000'),
+        DateTime.parse('2026-07-15T07:00:00+0000'),
       );
     });
 

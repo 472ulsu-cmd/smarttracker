@@ -12,25 +12,25 @@ class GeoPoint {
   final DateTime datetime;
   final String nearestCity;
 
-  /// Время в формате бэкенда `date_format:Y-m-d H:i:sO` — UTC со смещением.
+  /// Время в формате бэкенда `date_format:Y-m-d H:i:sO` — московское, UTC+3.
   ///
-  /// Универсальное время: момент времени по UTC, смещение +0000.
-  /// Пример: `2024-06-15 07:30:00+0000`.
+  /// MSK зафиксирован на UTC+3 без сезонного перевода часов (с 2014 года).
+  /// Пример: `2024-06-15 10:30:00+0300` (для момента 07:30:00 UTC).
   Map<String, dynamic> toJson() => {
         'lat': lat,
         'lng': lng,
-        'datetime': _formatUtcOffset(datetime),
+        'datetime': _formatMsk(datetime),
         'nearest_city': nearestCity,
       };
 }
 
-/// Формат `Y-m-d H:i:sO` (PHP) ↔ `yyyy-MM-dd HH:mm:ssZZZ` в Dart:
-/// `2024-06-15 07:30:00+0000`.
-String _formatUtcOffset(DateTime dt) {
-  final utc = dt.toUtc();
+/// Московское время в формате `Y-m-d H:i:sO` (PHP) ↔ `yyyy-MM-dd HH:mm:ssZZZ`
+/// (Dart): `2024-06-15 10:30:00+0300`. Суффикс `+0300` захардкожен — MSK не
+/// имеет сезонного перевода.
+String _formatMsk(DateTime dt) {
+  final msk = dt.toUtc().add(const Duration(hours: 3));
   String two(int v) => v.toString().padLeft(2, '0');
-  // Смещение UTC: +0000.
-  return '${utc.year.toString().padLeft(4, '0')}-'
-      '${two(utc.month)}-${two(utc.day)} '
-      '${two(utc.hour)}:${two(utc.minute)}:${two(utc.second)}+0000';
+  return '${msk.year.toString().padLeft(4, '0')}-'
+      '${two(msk.month)}-${two(msk.day)} '
+      '${two(msk.hour)}:${two(msk.minute)}:${two(msk.second)}+0300';
 }
