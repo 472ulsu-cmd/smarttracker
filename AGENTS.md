@@ -215,7 +215,7 @@ flutter analyze
 
 - `NotificationsViewModel` — список уведомлений, оптимистичное `markAsRead` с undo.
 - `UnreadBadgeViewModel` — счётчик непрочитанных для нижней навигации.
-- FCM data-only сообщения парсятся в `PushService`; foreground-сообщения показываются как локальные уведомления и триггят обновление списков. Навигация по тапу не реализована (каркас удалён как мёртвый код).
+- FCM data-only сообщения парсятся в `PushService`; foreground-сообщения показываются как локальные уведомления и триггят обновление списков. Тап по пушу с `order_id` открывает заявку `/main/orders/:id` через шину `DeepLinkBus` (срабатывает на cold start `getInitialMessage`, на warm `onMessageOpenedApp` и на тап по локальному уведомлению через `onDidReceiveNotificationResponse`; потребитель — `_SmartTrackerApp` в `main.dart`).
 - Локальный переключатель push: `SettingsService` + `shared_preferences`.
 
 ### Профиль (`lib/ui/features/profile/`)

@@ -93,6 +93,7 @@ class PushService {
     const iosInit = DarwinInitializationSettings();
     await _local.initialize(
       settings: const InitializationSettings(android: androidInit, iOS: iosInit),
+      onDidReceiveNotificationResponse: _onLocalTap,
     );
 
     // Канал для Android (для foreground-уведомлений).
@@ -117,16 +118,16 @@ class PushService {
     _onMessageSub = FirebaseMessaging.onMessage.listen(_handleForeground);
 
     // App запущено тапом по уведомлению (cold start: приложение было закрыто).
-    // Обновляем списки сразу, как только приложение открылось.
+    // Обновляем списки и открываем заявку, если в пуше есть order_id.
     final initial = await FirebaseMessaging.instance.getInitialMessage();
     if (initial != null) {
-      _refresh();
+      _handleTap(initial);
     }
 
     // App в фоне, пользователь тапает по системному уведомлению →
-    // приложение открывается. Триггерим обновление списков.
+    // приложение открывается. Триггерим обновление списков и навигацию.
     _onMessageOpenedSub =
-        FirebaseMessaging.onMessageOpenedApp.listen((_) => _refresh());
+        FirebaseMessaging.onMessageOpenedApp.listen(_handleTap);
 
     return token;
   }
@@ -163,6 +164,26 @@ class PushService {
     _showLocal(parsed);
   }
 
+  /// Тап по уведомлению (FCM): обновляем списки и открываем заявку,
+  /// если в data-payload есть order_id.
+  void _handleTap(RemoteMessage message) {
+    _refresh();
+    final parsed = NotificationMessageParser.parse(message);
+    if (parsed?.orderId != null) _goToOrder(parsed!.orderId!);
+  }
+
+  /// Тап по локальному уведомлению: order_id восстанавливаем из payload.
+  void _onLocalTap(NotificationResponse response) {
+    final orderId = int.tryParse(response.payload ?? '');
+    if (orderId != null) _goToOrder(orderId);
+  }
+
+  /// Запросить переход на заявку через шину deep-link.
+  /// Навигацию выполнит `_SmartTrackerApp`, слушающий [DeepLinkBus].
+  void _goToOrder(int orderId) {
+    getIt<DeepLinkBus>().request('/main/orders/$orderId');
+  }
+
   /// Триггер обновления списков уведомлений, заявок и бейджа.
   void _refresh() {
     try {
@@ -189,6 +210,8 @@ class PushService {
         ),
         iOS: DarwinNotificationDetails(),
       ),
+      // order_id как payload — для навигации при тапе.
+      payload: n.orderId?.toString(),
     );
   }
 }

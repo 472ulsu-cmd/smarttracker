@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import 'config/app_config.dart';
+import 'config/refresh_bus.dart';
 import 'config/service_locator.dart';
 import 'core/background/background_bootstrap.dart';
 import 'router.dart';
@@ -63,6 +64,9 @@ class _SmartTrackerAppState extends State<SmartTrackerApp> {
     _router = createRouter();
     _auth.addListener(_onStateChanged);
     _location.addListener(_onStateChanged);
+    // Deep-link из пуша: PushService пишет целевой путь в шину,
+    // здесь переводим его в навигацию.
+    getIt<DeepLinkBus>().addListener(_onDeepLink);
     _onStateChanged();
   }
 
@@ -70,7 +74,14 @@ class _SmartTrackerAppState extends State<SmartTrackerApp> {
   void dispose() {
     _auth.removeListener(_onStateChanged);
     _location.removeListener(_onStateChanged);
+    getIt<DeepLinkBus>().removeListener(_onDeepLink);
     super.dispose();
+  }
+
+  void _onDeepLink() {
+    if (!mounted) return;
+    final path = getIt<DeepLinkBus>().consume();
+    if (path != null) _router.go(path);
   }
 
   void _onStateChanged() {

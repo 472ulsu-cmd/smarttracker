@@ -152,6 +152,11 @@ Future<void> setupDependencies(AppConfig config) async {
         NotificationsRefreshBus.new);
   }
 
+  // Носитель pending deep-link: тап по пушу → открыть заявку.
+  if (!getIt.isRegistered<DeepLinkBus>()) {
+    getIt.registerLazySingleton<DeepLinkBus>(DeepLinkBus.new);
+  }
+
   // --- ViewModels ---
   // AuthViewModel — singleton: единое состояние сессии для всего приложения
   // (роутер, MainShell, экраны входа/профиля слушают один экземпляр).
