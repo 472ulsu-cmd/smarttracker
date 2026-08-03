@@ -8,8 +8,9 @@ name,lat,lng,countryCode, отсортированный по убыванию �
 Названия городов — русские. Поле name в cities15000.txt содержит латиницу,
 а поле alternatenames — смесь локализаций без тегов языка, поэтому русское
 название берётся из alternateNamesV2.txt по связке isolanguage == 'ru' +
-geonameid (приоритет у isPreferredName=1). Если русского варианта нет —
-используется латинское name.
+geonameid (приоритет у isPreferredName=1). Города без русской локализации
+пропускаются — приложение для водителей на русском, латиница в nearest_city
+недопустима.
 
 Скачанные архивы кэшируются в tool/.cache/ (в .gitignore) — повторные запуски
 не тянут ~200 МБ alternateNamesV2.zip заново.
@@ -156,8 +157,14 @@ def main():
     geonameids = {c["geonameid"] for c in cities}
     ru_names = build_russian_names(geonameids)
 
+    # Города без русской локализации пропускаем — приложение для водителей на
+    # русском, латиница в nearest_city недопустима (выявленные артефакты
+    # GeoNames: Obruchevo, Kisilevsk, Kurortnyy и т. п. — микрорайоны/районы
+    # с завышенным population, для которых нет ru-варианта).
+    total = len(cities)
+    cities = [c for c in cities if c["geonameid"] in ru_names]
     for c in cities:
-        c["display_name"] = ru_names.get(c["geonameid"], c["name"])
+        c["display_name"] = ru_names[c["geonameid"]]
 
     # По убыванию населения — крупные города первыми.
     cities.sort(key=lambda c: c["population"], reverse=True)
@@ -169,10 +176,10 @@ def main():
         for c in cities:
             writer.writerow([c["display_name"], c["lat"], c["lng"], c["country"]])
 
-    missing = sum(1 for c in cities if c["geonameid"] not in ru_names)
+    skipped = total - len(cities)
     print(
         f"Готово: записано {len(cities)} городов "
-        f"(без русского названия — {missing}, fallback на латиницу) в {OUTPUT}",
+        f"(пропущено {skipped} без русской локализации) в {OUTPUT}",
         file=sys.stderr,
     )
 
