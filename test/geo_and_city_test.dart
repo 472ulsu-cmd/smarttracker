@@ -4,14 +4,15 @@ import 'package:smarttracker/domain/models/geo_point.dart';
 
 void main() {
   group('GeoPoint datetime', () {
-    test('toJson форматирует datetime как Y-m-d H:i:s+0300 (MSK)', () {
+    test('toJson форматирует datetime: MSK wall-clock + суффикс +0000', () {
       // 15 июня 2024, 07:30:00 UTC = 10:30:00 по Москве (UTC+3).
+      // Требование бэкенда: wall-clock = MSK, суффикс строки = +0000.
       final utc = DateTime.utc(2024, 6, 15, 7, 30, 0);
       final p = GeoPoint(lat: 55.75, lng: 37.62, datetime: utc);
 
       final json = p.toJson();
 
-      expect(json['datetime'], '2024-06-15 10:30:00+0300');
+      expect(json['datetime'], '2024-06-15 10:30:00+0000');
       expect(json['lat'], 55.75);
       expect(json['lng'], 37.62);
       expect(json['nearest_city'], '');
@@ -19,16 +20,16 @@ void main() {
 
     test('toJson сдвигает произвольный локальный момент в MSK', () {
       // Локальное 2024-01-15 22:05:03 эквивалентно какому-то UTC-моменту;
-      // проверяем формат строки и суффикс MSK.
+      // проверяем формат строки и суффикс +0000.
       final local = DateTime(2024, 1, 15, 22, 5, 3);
 
       final dt = GeoPoint(lat: 0, lng: 0, datetime: local).toJson()['datetime'] as String;
 
-      // Формат: YYYY-MM-DD HH:MM:SS+0300
-      expect(RegExp(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+0300$').hasMatch(dt), isTrue);
+      // Формат: YYYY-MM-DD HH:MM:SS+0000
+      expect(RegExp(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\+0000$').hasMatch(dt), isTrue);
       // Содержательная проверка момента — в первом тесте; здесь важен суффикс
       // и формат (дата зависит от локального смещения, поэтому не фиксируем её).
-      expect(dt.endsWith('+0300'), isTrue);
+      expect(dt.endsWith('+0000'), isTrue);
     });
 
     test('toJson включает nearest_city', () {

@@ -11,8 +11,9 @@ void main() {
           payload: {
             'lat': 55.75,
             'lng': 37.61,
-            // MSK-строка, сохранённая GeoPoint.toJson: 10:00+0300 = 07:00 UTC.
-            'datetime': '2026-07-15 10:00:00+0300',
+            // MSK wall-clock с псевдо-смещением +0000 (формат GeoPoint.toJson):
+            // 10:00 — это MSK, эквивалентно 07:00 UTC. Парсер вычитает 3 часа.
+            'datetime': '2026-07-15 10:00:00+0000',
             'nearest_city': 'Москва',
           },
         ),
@@ -28,6 +29,28 @@ void main() {
         points.first.datetime,
         DateTime.parse('2026-07-15T07:00:00+0000'),
       );
+    });
+
+    test('цикл очередь→повтор не накапливает сдвиг MSK', () {
+      // Защита регрессии: строка из payload (MSK + псевдо-+0000) должна
+      // парситься в истинный UTC-момент, а повторная сериализация давать
+      // ту же строку. Без вычитания 3ч в парсере каждый цикл сдвигал бы +3ч.
+      final stored = '2026-07-15 10:00:00+0000';
+      final actions = [
+        PendingAction(
+          type: PendingActionType.coordinates,
+          payload: {
+            'lat': 0,
+            'lng': 0,
+            'datetime': stored,
+            'nearest_city': '',
+          },
+        ),
+      ];
+
+      final reparsed = geoPointsFromActions(actions).first.toJson()['datetime'] as String;
+
+      expect(reparsed, stored);
     });
 
     test('пропускает не-координатные действия', () {

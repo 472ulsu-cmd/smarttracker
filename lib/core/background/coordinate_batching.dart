@@ -44,10 +44,17 @@ DateTime? _tryParseStoredDatetime(String? stored) {
 }
 
 /// Разбор строки, сохранённой в [GeoPoint.toJson]:
-/// `2024-06-15 10:30:00+0300` → DateTime (MSK-формат, смещение учитывается).
+/// `2024-06-15 10:30:00+0000` (MSK wall-clock с псевдо-смещением +0000) →
+/// истинный UTC-момент.
+///
+/// `DateTime.parse` интерпретирует `+0000` буквально как UTC, поэтому
+/// дополнительно вычитаем 3 часа: wall-clock в строке уже сдвинут в MSK,
+/// и без коррекции момент оказался бы на 3 часа больше реального. Эта
+/// коррекция также сохраняет инвариант цикла «ошибка → повтор» — повторная
+/// сериализация parsed-момента даёт ту же строку, что и исходная.
 DateTime _parseStoredDatetime(String stored) {
   final iso = stored.length >= 11
       ? '${stored.substring(0, 10)}T${stored.substring(11)}'
       : stored;
-  return DateTime.parse(iso);
+  return DateTime.parse(iso).subtract(const Duration(hours: 3));
 }
