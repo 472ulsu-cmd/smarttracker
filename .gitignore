@@ -54,6 +54,7 @@ app.*.map.json
 /android/app/src/*/google-services.json
 /android/key.properties
 ios/Runner/GoogleService-Info.plist
+google-services.json
 
 # Release signing — keystore и пароли к нему не коммитим.
 /android/key.properties
