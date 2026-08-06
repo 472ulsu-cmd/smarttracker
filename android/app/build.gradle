@@ -73,12 +73,9 @@ android {
 
     buildTypes {
         release {
-            // Если есть key.properties — подписываем release-ключом.
-            // Иначе (локальная разработка без keystore) — debug-ключом,
-            // чтобы flutter run --release работал.
-            signingConfig = keystorePropertiesFile.exists()
-                    ? signingConfigs.release
-                    : signingConfigs.debug
+            // По умолчанию release-варианты используют debug-ключ.
+            // Для prodRelease ниже задаётся production-keystore.
+            signingConfig = signingConfigs.debug
         }
     }
 
@@ -92,6 +89,16 @@ android {
             dimension = "env"
             applicationId = "com.b2blogist.smarttracker.develop"
             resValue "string", "app_name", "Умный Водитель Dev"
+        }
+    }
+}
+
+// Подпись задаётся на уровне variant, чтобы devRelease не унаследовал
+// production-ключ только из-за общего release build type.
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        if (variant.name == "prodRelease" && keystorePropertiesFile.exists()) {
+            variant.signingConfig.setConfig(android.signingConfigs.getByName("release"))
         }
     }
 }
