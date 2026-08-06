@@ -16,7 +16,7 @@ class AuthStepperViewModel extends ChangeNotifier {
   final AuthFlowMode mode;
 
   /// Кулдаун повторной отправки SMS-кода, секунд.
-  static const int resendCooldownSeconds = 30;
+  static const int resendCooldownSeconds = 60;
 
   AuthStep _step = AuthStep.passport;
   AuthStep get step => _step;
