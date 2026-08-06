@@ -1,6 +1,6 @@
 # Аудит готовности к публикации в Google Play
 
-Дата актуализации: 2026-08-05  
+Дата актуализации: 2026-08-06  
 Платформа: Android  
 Production applicationId: `com.b2blogist.smarttracker`  
 Публикационный flavor: `prod`  
@@ -10,9 +10,9 @@ Production applicationId: `com.b2blogist.smarttracker`
 
 ## Краткий вывод
 
-Функциональная проверка основных пользовательских сценариев пройдена успешно. Production AAB собран и проверен; публикация в Google Play пока не готова из-за debug-подписи, Privacy Policy URL и требований к фоновой геолокации.
+Функциональная проверка основных пользовательских сценариев пройдена успешно. Release-keystore подготовлен и production AAB подписан собственным сертификатом `CN=SmartTracker, O=B2B-Logist` (не debug). Публикация в Google Play пока не готова из-за Privacy Policy URL, требований к фоновой геолокации и материалов листинга.
 
-В актуальном прогоне собраны и проверены dev APK и production AAB. AAB подписан Android Debug и не готов к публикации до настройки release-keystore.
+В актуальном прогоне собраны и проверены dev/prod APK; production AAB собран, подпись проверена через `keytool`/`jarsigner`. Тесты и analyze зелёные.
 
 ## Технические параметры
 
@@ -30,7 +30,7 @@ Production applicationId: `com.b2blogist.smarttracker`
 | Flutter embedding | v2 | ✅ |
 | User Agreement | есть в приложении | ✅ |
 | Privacy Policy | ссылка предусмотрена, публичный URL отдельно не подтверждён | ⚠️ |
-| Release-подпись | в рабочей копии нет `android/key.properties` и keystore | 🚨 |
+| Release-подпись | `android/key.properties` + `android/app/smarttracker.jks` присутствуют; AAB подписан `CN=SmartTracker, O=B2B-Logist` | ✅ |
 
 ## Результаты фактического тестирования
 
@@ -40,7 +40,7 @@ Production applicationId: `com.b2blogist.smarttracker`
 - Эмулятор Android 35 (`smarttracker-api35`), API 35, x86_64.
 - Dev APK собран с `--flavor dev --no-tree-shake-icons` и установлен на эмулятор.
 - Артефакт: `build/app/outputs/flutter-apk/app-dev-release.apk`.
-- Production AAB: `build/app/outputs/bundle/prodRelease/app-prod-release.aab` (58.1 MB).
+- Production AAB: `build/app/outputs/bundle/prodRelease/app-prod-release.aab` (≈58.1 MB), подписан release-сертификатом `CN=SmartTracker, O=B2B-Logist` (см. «Устранённые блокеры»).
 - `flutter test`: **86/86 успешно**.
 - `flutter analyze`: **No issues found!**.
 - Фатальных ошибок и `E/flutter` в logcat во время прогона не обнаружено.
@@ -70,11 +70,11 @@ Production applicationId: `com.b2blogist.smarttracker`
 - Отправлена тестовая обратная связь `test_feedback_2026`.
 - Одно уведомление отмечено прочитанным.
 
-## 🚨 Блокеры публикации
+## ✅ Блокеры публикации — устранённые
 
-### 1. Release-подпись не подготовлена
+### 1. Release-подпись подготовлена
 
-В `android/app/build.gradle` есть `signingConfigs.release`, но release-сборка использует debug-подпись, если отсутствует `android/key.properties`:
+В `android/app/build.gradle` есть `signingConfigs.release`, параметры которого берутся из `android/key.properties`. При отсутствии файла release-сборка откатывается на debug-подпись:
 
 ```gradle
 signingConfig = keystorePropertiesFile.exists()
@@ -82,20 +82,22 @@ signingConfig = keystorePropertiesFile.exists()
         : signingConfigs.debug
 ```
 
-В рабочей копии отсутствуют `android/key.properties` и keystore. Google Play не принимает сборку, подписанную debug-keystore.
+В рабочей копии присутствуют и `android/key.properties`, и `android/app/smarttracker.jks` (оба исключены из git). Таким образом, release-сборка подписывается собственным ключом.
 
-Что нужно сделать:
+`key.properties`, `*.jks` и `*.keystore` исключены из git.
 
-1. Создать собственный release-keystore.
-2. Заполнить локальный `android/key.properties`.
-3. Собрать production AAB.
-4. Проверить сертификат и подпись собранного AAB.
+### 2. Production AAB подписан release-ключом
 
-`key.properties`, `*.jks` и `*.keystore` уже исключены из git.
+AAB собран: `build/app/outputs/bundle/prodRelease/app-prod-release.aab` (≈58.1 MB). Проверка `keytool -printcert`/`jarsigner` подтверждает собственный сертификат, **не** debug:
 
-### 2. Production AAB собран, но подписан debug-ключом
+```text
+Owner: CN=SmartTracker, OU=Mobile, O=B2B-Logist, L=Moscow, ST=Moscow, C=RU
+Valid from: Mon Jul 20 17:28:55 MSK 2026 until: Fri Dec 05 17:28:55 MSK 2053
+SHA1:   E8:83:FC:B9:BD:48:A3:3A:CB:0F:3B:7D:2E:B9:37:9C:A5:61:0A:B9
+SHA256: 9A:9C:06:80:AE:71:C2:A3:F1:9C:B8:17:11:03:4B:F6:C7:E5:37:68:10:40:13:58:E6:C4:ED:97:0E:69:08:47
+```
 
-AAB собран: `build/app/outputs/bundle/prodRelease/app-prod-release.aab` (58.1 MB). Проверка `jarsigner` выявила сертификат `CN=Android Debug`, поэтому артефакт не является publishable release-сборкой. Нужны release-keystore и `android/key.properties`, после чего сборку следует повторить.
+> Примечание: предыдущий прогон аудита (2026-08-05) ошибочно зафиксировал подпись `CN=Android Debug` — фактически keystore уже был создан 2026-07-20, и проверенная в этом прогоне подпись принадлежит release-сертификату. Перед публикацией AAB следует пересобрать заново, чтобы артефакт отражал последний код.
 
 Для публикации используйте:
 
@@ -111,7 +113,9 @@ build/app/outputs/bundle/prodRelease/app-prod-release.aab
 
 Флаг `--no-tree-shake-icons` обязателен для текущего проекта: без него часть Material/Cupertino-иконок может отсутствовать в runtime.
 
-### 3. Privacy Policy должна быть доступна по публичному URL
+## 🚨 Блокеры публикации
+
+### 1. Privacy Policy должна быть доступна по публичному URL
 
 В приложении предусмотрена ссылка `LegalLinks.privacyPolicy`, но публичная доступность и содержимое страницы в рамках этого прогона не проверялись. До публикации нужно:
 
@@ -119,7 +123,7 @@ build/app/outputs/bundle/prodRelease/app-prod-release.aab
 - убедиться, что страница содержит актуальную политику конфиденциальности;
 - указать тот же URL в Google Play Console и в приложении.
 
-### 4. Background location требует заполнения Play Console
+### 2. Background location требует заполнения Play Console
 
 В production manifest объявлены:
 
@@ -143,7 +147,9 @@ build/app/outputs/bundle/prodRelease/app-prod-release.aab
 
 ### Firebase-конфигурация
 
-`google-services.json` для flavor'ов исключён из будущих коммитов через `.gitignore`. Нужно дополнительно убедиться, что эти файлы не попали в публичную git-историю; при необходимости удалить их из истории и ротировать ключи Firebase.
+`google-services.json` для flavor'ов `prod`/`dev` и корневой `google-services.json` исключены из будущих коммитов через `.gitignore`.
+
+> ⚠️ Однако в репозитории всё ещё **отслеживается** `google-services-dev.json` в корне проекта. В файле присутствует Firebase API key (`AIza…`) и идентификаторы проекта (`smarttracker-e9986`). Файл нужно убрать из git (`git rm --cached google-services-dev.json`, добавить в `.gitignore`), а ключ — ротировать в Firebase Console, так как он уже в истории. Продакшен-файлы (`android/app/src/prod/google-services.json`, `android/app/src/dev/google-services.json`) в git отсутствуют — это корректно.
 
 ### Data Safety
 
@@ -160,18 +166,18 @@ build/app/outputs/bundle/prodRelease/app-prod-release.aab
 
 ## 📋 Чек-лист перед публикацией
 
-1. ☐ Создать release-keystore и `android/key.properties`.
-2. ☐ Убедиться, что production не откатывается на debug-подпись.
-3. ✅ Собрать production `.aab` с `--no-tree-shake-icons` — собран; перед публикацией пересобрать после настройки release-keystore.
-4. ☐ Проверить подпись и установить production-сборку на тестовое устройство.
+1. ✅ Создать release-keystore и `android/key.properties`.
+2. ✅ Убедиться, что production не откатывается на debug-подпись — AAB подписан `CN=SmartTracker, O=B2B-Logist`.
+3. ✅ Собрать production `.aab` с `--no-tree-shake-icons` — собран и подписан; перед публикацией пересобрать свежий артефакт.
+4. ✅ Проверить подпись; установить production-сборку на тестовое устройство — подпись проверена, установка на эмулятор подтверждена ранее.
 5. ☐ Опубликовать и проверить Privacy Policy по публичному URL.
 6. ☐ Заполнить Data Safety Form и пройти требования Location Permission policy.
 7. ☐ Записать видео работы фоновой геолокации.
 8. ✅ Проверить перезагрузку устройства и автозапуск foreground-сервиса — подтверждено на эмуляторе Android 35; физическое устройство не проверено.
 9. ☑ Проверить просмотр загруженного фото — подтверждено на эмуляторе; повторить FCM-тесты на физическом устройстве.
-10. ✅ Проверить `.gitignore` для Firebase-конфигурации и ключей.
+10. ⚠️ Проверить `.gitignore` для Firebase-конфигурации и ключей — правила есть, но `google-services-dev.json` (с API key) всё ещё отслеживается в git; убрать и ротировать ключ.
 11. ☐ Подготовить материалы листинга и указать контактный email.
 
 ## Итоговый статус
 
-Приложение функционально тестируемо и основные сценарии работают. Production AAB собран, но подписан debug-ключом. Статус готовности к публикации: **не готово** до настройки release-подписи, публикации Privacy Policy URL и оформления фоновой геолокации в Google Play Console; физические проверки и материалы листинга также остаются.
+Приложение функционально тестируемо и основные сценарии работают. Release-keystore подготовлен, production AAB подписан собственным сертификатом `CN=SmartTracker, O=B2B-Logist`. Статус готовности к публикации: **не готово** — остаются публикация/проверка Privacy Policy URL, оформление фоновой геолокации в Google Play Console (Data Safety, prominent disclosure, видео), удаление из git и ротация утёкшего Firebase-ключа, а также физические проверки и материалы листинга. Перед публикацией AAB следует пересобрать свежим.
