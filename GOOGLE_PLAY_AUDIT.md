@@ -1,159 +1,177 @@
 # Аудит готовности к публикации в Google Play
 
-Дата аудита: 2026-07-20
-Платформа: Android (`com.b2blogist.smarttracker`)
-Flavor публикации: `prod`
+Дата актуализации: 2026-08-05  
+Платформа: Android  
+Production applicationId: `com.b2blogist.smarttracker`  
+Публикационный flavor: `prod`  
+Тестовый flavor: `dev`
 
 ---
 
-## ✅ Что соответствует требованиям
+## Краткий вывод
 
-| Параметр | Значение | Статус |
+Функциональная проверка основных пользовательских сценариев пройдена успешно. Production AAB собран и проверен; публикация в Google Play пока не готова из-за debug-подписи, Privacy Policy URL и требований к фоновой геолокации.
+
+В актуальном прогоне собраны и проверены dev APK и production AAB. AAB подписан Android Debug и не готов к публикации до настройки release-keystore.
+
+## Технические параметры
+
+| Параметр | Фактическое значение | Статус |
 |---|---|---|
-| `applicationId` | `com.b2blogist.smarttracker` | ✓ |
-| `versionCode` / `versionName` | `1` / `1.0.0` | ✓ |
-| `minSdkVersion` | 24 (системно; в AGENTS.md указано 23, но фактически Flutter ставит 24) | ✓ (≥ 23) |
-| `targetSdkVersion` | 36 | ✓ (актуальная, Google требует ≥ 34 для новых приложений с 2024) |
-| `compileSdk` | 36 | ✓ |
-| Иконка приложения | адаптивная `BW.xml` на всех плотностях | ✓ |
-| Label | «Умный Водитель» | ✓ |
-| HTTPS-only в prod | да (cleartext только в dev-флаворе) | ✓ |
-| Single launchable activity | `MainActivity` с корректным `intent-filter` | ✓ |
-| `flutterEmbedding` v2 | да | ✓ |
-| User Agreement в app | есть (`/auth/agreement`, `assets/legal/user_agreement.md`) | ✓ |
-| Privacy Policy в app | ссылка ведёт наружу (`LegalLinks.privacyPolicy`) | ⚠️ см. ниже |
+| `applicationId` production | `com.b2blogist.smarttracker` | ✅ |
+| `applicationId` dev | `com.b2blogist.smarttracker.develop` | ✅ |
+| `versionCode` / `versionName` | `2` / `2.0.0` | ✅ |
+| `minSdkVersion` | `24` | ✅ |
+| `targetSdkVersion` | `36` | ✅ |
+| `compileSdk` | `36` | ✅ |
+| Label production | «Умный Водитель» | ✅ |
+| HTTPS в production | да; cleartext разрешён только в dev | ✅ |
+| Launchable activity | `MainActivity`, корректный `MAIN/LAUNCHER` | ✅ |
+| Flutter embedding | v2 | ✅ |
+| User Agreement | есть в приложении | ✅ |
+| Privacy Policy | ссылка предусмотрена, публичный URL отдельно не подтверждён | ⚠️ |
+| Release-подпись | в рабочей копии нет `android/key.properties` и keystore | 🚨 |
 
----
+## Результаты фактического тестирования
 
-## 🚨 Критические проблемы (блокируют публикацию)
+### Среда и сборка
 
-### 1. **Release-сборка подписана debug-ключом**
+- Flutter 3.44.6, Dart 3.12.2.
+- Эмулятор Android 35 (`smarttracker-api35`), API 35, x86_64.
+- Dev APK собран с `--flavor dev --no-tree-shake-icons` и установлен на эмулятор.
+- Артефакт: `build/app/outputs/flutter-apk/app-dev-release.apk`.
+- Production AAB: `build/app/outputs/bundle/prodRelease/app-prod-release.aab` (58.1 MB).
+- `flutter test`: **86/86 успешно**.
+- `flutter analyze`: **No issues found!**.
+- Фатальных ошибок и `E/flutter` в logcat во время прогона не обнаружено.
+
+### Проверенные сценарии
+
+- Авторизация тестовым пользователем и восстановление сессии после force-stop/relaunch.
+- Вкладки заявок: новые, в работе, архив; поиск и открытие деталей.
+- Жизненный цикл тестовой заявки №160: `Новая → В работе → Погружен → Завершена`.
+- Загрузка фото по заявке; загруженное фото получило статус «На рассмотрении».
+- Полноэкранный просмотр загруженного фото открыт после фикса hit-target; добавлен regression widget test.
+- Уведомления и переход из уведомления в заявку; deep link открыл заявку №160.
+- Профиль и сохранение данных без изменений.
+- Пользовательское соглашение.
+- Отправка обратной связи.
+- Разрешения уведомлений и геолокации.
+- Запуск foreground-сервиса геолокации; после перезапуска приложения сервис наблюдался активным.
+
+### Исправленное функциональное замечание
+
+В исходном прогоне tap по фото не открывал просмотрщик. Исправлен hit-target превью (`Semantics.onTap` + фиксированный размер + `InkWell`), добавлен `test/photo_thumbnail_test.dart`, viewer подтверждён на эмуляторе Android 35.
+
+### Изменённые тестовые данные
+
+- Заявка №160 переведена в статус «Завершена».
+- В заявку №160 загружено тестовое изображение.
+- Отправлена тестовая обратная связь `test_feedback_2026`.
+- Одно уведомление отмечено прочитанным.
+
+## 🚨 Блокеры публикации
+
+### 1. Release-подпись не подготовлена
+
+В `android/app/build.gradle` есть `signingConfigs.release`, но release-сборка использует debug-подпись, если отсутствует `android/key.properties`:
+
 ```gradle
-signingConfig = signingConfigs.debug  // ← блокировка
+signingConfig = keystorePropertiesFile.exists()
+        ? signingConfigs.release
+        : signingConfigs.debug
 ```
-Google Play **не примет** APK/AAB, подписанный debug-keystore. Нужен собственный release-keystore.
 
-**Что нужно сделать:**
-```bash
-keytool -genkey -v -keystore smarttracker.jks \
-  -keyalg RSA -keysize 2048 -validity 10000 -alias smarttracker
-```
-Затем добавить `signingConfigs.release` в `android/app/build.gradle` и вынести пароли в `key.properties` (не коммитить!).
+В рабочей копии отсутствуют `android/key.properties` и keystore. Google Play не принимает сборку, подписанную debug-keystore.
 
-### 2. **Загружать нужно AAB, а не APK**
-Начиная с августа 2021 Google Play требует формат **Android App Bundle** (`.aab`) для новых приложений.
+Что нужно сделать:
+
+1. Создать собственный release-keystore.
+2. Заполнить локальный `android/key.properties`.
+3. Собрать production AAB.
+4. Проверить сертификат и подпись собранного AAB.
+
+`key.properties`, `*.jks` и `*.keystore` уже исключены из git.
+
+### 2. Production AAB собран, но подписан debug-ключом
+
+AAB собран: `build/app/outputs/bundle/prodRelease/app-prod-release.aab` (58.1 MB). Проверка `jarsigner` выявила сертификат `CN=Android Debug`, поэтому артефакт не является publishable release-сборкой. Нужны release-keystore и `android/key.properties`, после чего сборку следует повторить.
+
+Для публикации используйте:
 
 ```bash
 flutter build appbundle --release --flavor prod --no-tree-shake-icons
-# Артефакт: build/app/outputs/bundle/prodRelease/app-prod-release.aab
 ```
 
-> ⚠️ **Флаг `--no-tree-shake-icons` обязателен** для всех сборок (APK и AAB, dev и prod).
-> Без него Flutter вырезает «неиспользуемые» иконки Material/Cupertino на этапе компиляции,
-> но часть из них на самом деле нужна в runtime (например, иконки со ссылкой через переменную).
-> Это приводило к пропаданию иконок в собранной сборке.
+Ожидаемый артефакт:
 
-### 3. **Отсутствует Privacy Policy в виде публичного URL**
-В `_AgreementConsent` ссылка `LegalLinks.privacyPolicy` ведёт наружу. Google Play Console в списке приложений требует **публично доступный URL** Privacy Policy, и приложение должно содержать пункт меню с ссылкой на неё.
-- В коде ссылка есть ✓
-- Нужно создать веб-страницу (например, на сайте компании) и убедиться, что URL из `LegalLinks.privacyPolicy` ведёт на неё.
-
-### 4. **Foreground service + `ACCESS_BACKGROUND_LOCATION` → требует Data Safety Form**
-Это самая строгая категория в Google Play. Объявлены:
-- `ACCESS_BACKGROUND_LOCATION`
-- `FOREGROUND_SERVICE_LOCATION`
-- `foregroundServiceType="location"`
-
-Триггерится политика **Location Permissions** (действует с 2024):
-- В Data Safety нужно указать: «Location → Approximate / Precise → Background»
-- Дать ссылку на видео-демонстрацию работы фоновой геолокации (Google требует видео в 30+ секунд, где виден foreground notification и отзыв разрешения)
-- Обосновать в консоли, зачем нужен background location
-- Текст prominent disclosure (уже есть в `_DisclosureText`) — Google требует, чтобы в нём был **конкретный текст** про «даже когда приложение закрыто» (проверьте `LegalTexts.locationDisclosureEmphasis`).
-
----
-
-## ⚠️ Серьёзные замечания
-
-### 5. **`RECEIVE_BOOT_COMPLETED` — включён автозапуск после перезагрузки** ✅
-Сервис геолокации настроен на автозапуск после перезагрузки устройства и после обновления приложения (`autoRunOnBoot: true`, `autoRunOnMyPackageReplaced: true` в `location_service.dart`). Разрешение `RECEIVE_BOOT_COMPLETED` объявлено в манифесте — **обосновать при ревью Google Play** (см. готовый текст ниже).
-
-#### Обоснование для Google Play Console
-
-**Где используется разрешение:**
-> Разрешение `RECEIVE_BOOT_COMPLETED` используется исключительно для автоматического перезапуска foreground-сервиса передачи геолокации после перезагрузки устройства. Без него водители в активных логистических маршрутах теряли бы GPS-отслеживание после перезагрузки телефона, что нарушает основную функцию приложения водителя.
-
-**Поле «Why does your app need to receive the BOOT_COMPLETED broadcast?» в Data Safety / Prominent Disclosure:**
-> «Умный Водитель» — это рабочий инструмент водителя-логиста. Приложение передаёт координаты водителя диспетчеру в реальном времени через foreground-сервис геолокации (с видимым уведомлением «Передача геопозиции…»).
->
-> Разрешение RECEIVE_BOOT_COMPLETED необходимо, чтобы foreground-сервис автоматически перезапускался после перезагрузки телефона. Без этого водителю пришлось бы вручную открывать приложение после каждой перезагрузки — в условиях рейса (телефон в кабине, на зарядке, не всегда в руках) это приводило бы к потере координат и нарушению бизнес-процесса доставки.
->
-> Сервис запускается только если пользователь:
-> 1. вошёл в приложение (прошёл аутентификацию);
-> 2. выдал разрешение геолокации «Всегда» (background location).
->
-> При выходе из аккаунта сервис останавливается, и автозапуск после перезагрузки не происходит.
-
-#### Важно проверить при ревью
-- `RebootReceiver` в merged-манифесте имеет `exported=true` — это нужно плагину для приёма системных broadcast'ов (BOOT_COMPLETED, MY_PACKAGE_REPLACED, QUICKBOOT_POWERON).
-- На Android 12+ broadcast'ы BOOT_COMPLETED система шлёт только приложениям, которые были запущены пользователем хотя бы один раз — это безопасное поведение, не нарушает приватность.
-- Сервис стартует только если был корректно остановлен разработчиком (`isCorrectlyStopped()`), иначе остаётся в прежнем состоянии.
-
-### 6. **Нужно явно запросить разрешение уведомлений на Android 13+**
-Сейчас `POST_NOTIFICATIONS` есть в манифесте, но запрос идёт только внутри `LocationService.start()` (через `FlutterForegroundTask.requestNotificationPermission()`). Это сработает, но Google рекомендует показывать запрос **до того**, как функция нужна. Лучше запросить в `PushService.init()` тоже — там уже идёт `FirebaseMessaging.instance.requestPermission()`, но он покрывает только FCM, а не локальные уведомления foreground-сервиса. Покрыто сейчас косвенно — проверьте на реальном устройстве.
-
-### 7. **Targeting SDK 36 — требует `foregroundServiceType` со всеми типами**
-Уже добавил в манифесте (`location`). Проверьте, что `FOREGROUND_SERVICE_LOCATION` разрешение присутствует — ✓ есть.
-
----
-
-## ⚠️ Менее критичные замечания
-
-### 8. **Не исключён `google-services.json` из публичной репозитории**
-AGENTS.md прямо предупреждает: `google-services.json` не должен попадать в git. Проверьте `.gitignore`:
-```bash
-grep "google-services" .gitignore
+```text
+build/app/outputs/bundle/prodRelease/app-prod-release.aab
 ```
-Если файлов нет в `.gitignore`, Firebase-ключи уйдут в репозиторий. **Секреты Firebase не критичны сами по себе**, но Google Play scans AAB на наличие ключей и иногда ругается.
 
-### 9. **`application-label` на всех языках одинаковый**
-Все лейблы — «Умный Водитель», что нормально. Но в Google Play Console можно задать локализованные имена отдельно.
+Флаг `--no-tree-shake-icons` обязателен для текущего проекта: без него часть Material/Cupertino-иконок может отсутствовать в runtime.
 
-### 10. **App Bundle / 64-bit**
-Flutter 3.44 по умолчанию собирает 64-bit нативные библиотеки. AAB автоматически разделяет по ABI, проблем не будет. Главное — собирать `appbundle`, а не `apk`.
+### 3. Privacy Policy должна быть доступна по публичному URL
 
-### 11. **Описания для Data Safety Form**
-Нужно заполнить анкету Data Safety в Play Console (обязательно для всех приложений с 2023):
-- **Location** (precise + background) — для foreground-сервиса
-- **Personal info** (имя, телефон, паспорт) — для регистрации
-- **Photos** — для фото по заявке
-- **Device ID** (FCM token) — для push
+В приложении предусмотрена ссылка `LegalLinks.privacyPolicy`, но публичная доступность и содержимое страницы в рамках этого прогона не проверялись. До публикации нужно:
 
-### 12. **Target audience**
-В Play Console выберите 18+ (или проверьте, что нет контента для детей — у вас приложение для водителей логистики, вопросов быть не должно).
+- проверить URL без авторизации;
+- убедиться, что страница содержит актуальную политику конфиденциальности;
+- указать тот же URL в Google Play Console и в приложении.
 
----
+### 4. Background location требует заполнения Play Console
+
+В production manifest объявлены:
+
+- `ACCESS_FINE_LOCATION`;
+- `ACCESS_COARSE_LOCATION`;
+- `ACCESS_BACKGROUND_LOCATION`;
+- `FOREGROUND_SERVICE_LOCATION`;
+- `foregroundServiceType="location"`.
+
+Нужно подготовить Data Safety Form, prominent disclosure, обоснование фоновой геолокации и видео демонстрации работы foreground-сервиса согласно требованиям Google Play.
+
+## ⚠️ Замечания перед публикацией
+
+### `RECEIVE_BOOT_COMPLETED`
+
+В `location_service.dart` включены `autoRunOnBoot: true` и `autoRunOnMyPackageReplaced: true`, а разрешение объявлено в manifest. После полной перезагрузки эмулятора Android 35 receiver поднял сервис с `code:BOOT_COMPLETED`; `dumpsys` показал `isForeground=true`, `foregroundId=1000`. Запуск проявился с задержкой после `sys.boot_completed=1`; физическое устройство не проверялось. Для Play Console по-прежнему нужно подготовить обоснование разрешения.
+
+### Уведомления Android 13+
+
+Разрешение `POST_NOTIFICATIONS` присутствует и было выдано на эмуляторе. Foreground-уведомление отображалось, ошибок в logcat не обнаружено. Перед публикацией желательно повторить проверку на физическом Android 13+ и отдельно проверить FCM в foreground/background/terminated-состояниях.
+
+### Firebase-конфигурация
+
+`google-services.json` для flavor'ов исключён из будущих коммитов через `.gitignore`. Нужно дополнительно убедиться, что эти файлы не попали в публичную git-историю; при необходимости удалить их из истории и ротировать ключи Firebase.
+
+### Data Safety
+
+В Play Console потребуется отразить фактическую обработку данных:
+
+- точная и фоновая геолокация;
+- персональные данные водителя: имя, телефон, паспортные данные;
+- фотографии по заявкам;
+- device/FCM token для push-уведомлений.
+
+### Материалы листинга
+
+Нужно подготовить описание приложения, иконку/feature graphic, минимум 2–3 скриншота, возрастную категорию и контактный email разработчика.
 
 ## 📋 Чек-лист перед публикацией
 
-1. ✅ ~~Сгенерировать release-keystore и настроить `signingConfigs.release`~~ — готово (`android/app/smarttracker.jks`, `android/key.properties`)
-2. ☐ Собрать `.aab` (а не `.apk`) и подписать release-ключом — команда готова, собирается успешно
-3. ☐ Опубликовать Privacy Policy на публичном URL
-4. ☐ Записать видео-демонстрацию фоновой геолокации (для Location Permission policy)
-5. ☐ Заполнить Data Safety Form в Play Console
-6. ☐ Подготовить иконку 512×512 (feature graphic) и 1024×500 для листинга
-7. ☐ Подготовить 2–3 скриншота для листинга (минимум)
-8. ✅ ~~Проверить, что `google-services.json` в `.gitignore`~~ — готово (покрыты все flavor'ы)
-9. ✅ ~~Определиться с `RECEIVE_BOOT_COMPLETED`~~ — готово: автозапуск включён, обоснование выше
-10. ☐ Указать контактный email для разработчика
+1. ☐ Создать release-keystore и `android/key.properties`.
+2. ☐ Убедиться, что production не откатывается на debug-подпись.
+3. ✅ Собрать production `.aab` с `--no-tree-shake-icons` — собран; перед публикацией пересобрать после настройки release-keystore.
+4. ☐ Проверить подпись и установить production-сборку на тестовое устройство.
+5. ☐ Опубликовать и проверить Privacy Policy по публичному URL.
+6. ☐ Заполнить Data Safety Form и пройти требования Location Permission policy.
+7. ☐ Записать видео работы фоновой геолокации.
+8. ✅ Проверить перезагрузку устройства и автозапуск foreground-сервиса — подтверждено на эмуляторе Android 35; физическое устройство не проверено.
+9. ☑ Проверить просмотр загруженного фото — подтверждено на эмуляторе; повторить FCM-тесты на физическом устройстве.
+10. ✅ Проверить `.gitignore` для Firebase-конфигурации и ключей.
+11. ☐ Подготовить материалы листинга и указать контактный email.
 
----
+## Итоговый статус
 
-## 🎯 Приоритеты для технических правок кода
-
-Можно сделать автоматически:
-1. **Настроить release signing config** в `build.gradle` (с `key.properties`)
-2. **Собрать AAB** вместо APK
-3. **Проверить/обновить `.gitignore`** для `google-services.json`
-4. **Удалить лишнее `RECEIVE_BOOT_COMPLETED`** или включить `autoRunOnBoot`
-
-Остальные пункты (Privacy Policy URL, видео, Data Safety Form, keystore-пароль) требуют решений вне кода.
+Приложение функционально тестируемо и основные сценарии работают. Production AAB собран, но подписан debug-ключом. Статус готовности к публикации: **не готово** до настройки release-подписи, публикации Privacy Policy URL и оформления фоновой геолокации в Google Play Console; физические проверки и материалы листинга также остаются.

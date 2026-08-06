@@ -73,11 +73,11 @@ class _PhotoScreenState extends State<PhotoScreen> {
                   onPressed: openAppSettings,
                 )
               : _viewModel.queuedOffline
-                  ? null // фото в очереди — повтор не нужен
-                  : SnackBarAction(
-                      label: 'Повторить',
-                      onPressed: _viewModel.retryLastAction,
-                    ),
+              ? null // фото в очереди — повтор не нужен
+              : SnackBarAction(
+                  label: 'Повторить',
+                  onPressed: _viewModel.retryLastAction,
+                ),
         ),
       );
     } else if (error == null) {
@@ -97,7 +97,8 @@ class _PhotoScreenState extends State<PhotoScreen> {
           }
           if (_viewModel.groups.isEmpty) {
             return _Center(
-              text: _viewModel.errorMessage ??
+              text:
+                  _viewModel.errorMessage ??
                   'Для этой заявки пока нет фото. Здесь появятся фото погрузки и разгрузки.',
               action: _viewModel.errorMessage != null
                   ? _CenterAction(
@@ -131,11 +132,7 @@ class _PhotoScreenState extends State<PhotoScreen> {
                   top: 16,
                   left: 0,
                   right: 0,
-                  child: Center(
-                    child: SafeArea(
-                      child: _UploadingBadge(),
-                    ),
-                  ),
+                  child: Center(child: SafeArea(child: _UploadingBadge())),
                 ),
             ],
           );
@@ -174,8 +171,11 @@ class _PhotoGroupCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.photo_library_outlined,
-                  color: BrandColors.primary, size: 20),
+              const Icon(
+                Icons.photo_library_outlined,
+                color: BrandColors.primary,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -193,8 +193,9 @@ class _PhotoGroupCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
                 'В этой группе пока нет фото.',
-                style: AppTextStyles.bodySmall
-                    .copyWith(color: BrandColors.grayDark),
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: BrandColors.grayDark,
+                ),
               ),
             )
           else
@@ -203,7 +204,7 @@ class _PhotoGroupCard extends StatelessWidget {
               runSpacing: 8,
               children: [
                 for (var i = 0; i < group.photos.length; i++)
-                  _PhotoThumb(
+                  PhotoThumbnail(
                     photo: group.photos[i],
                     index: i,
                     total: group.photos.length,
@@ -220,7 +221,9 @@ class _PhotoGroupCard extends StatelessWidget {
                   onPressed: viewModel.isUploading
                       ? null
                       : () => viewModel.uploadForGroup(
-                          group, ImageSourceOption.camera),
+                          group,
+                          ImageSourceOption.camera,
+                        ),
                   icon: const Icon(Icons.camera_alt_outlined),
                   label: const Text('Сделать фото'),
                 ),
@@ -231,7 +234,9 @@ class _PhotoGroupCard extends StatelessWidget {
                   onPressed: viewModel.isUploading
                       ? null
                       : () => viewModel.uploadForGroup(
-                          group, ImageSourceOption.gallery),
+                          group,
+                          ImageSourceOption.gallery,
+                        ),
                   icon: const Icon(Icons.image_outlined),
                   label: const Text('Выбрать фото'),
                 ),
@@ -244,8 +249,9 @@ class _PhotoGroupCard extends StatelessWidget {
   }
 }
 
-class _PhotoThumb extends StatelessWidget {
-  const _PhotoThumb({
+class PhotoThumbnail extends StatelessWidget {
+  const PhotoThumbnail({
+    super.key,
     required this.photo,
     required this.index,
     required this.total,
@@ -312,8 +318,10 @@ class _PhotoThumb extends StatelessWidget {
       width: _thumbSize,
       height: _thumbSize,
       color: BrandColors.grayLighter,
-      child:
-          const Icon(Icons.broken_image_outlined, color: BrandColors.grayDark),
+      child: const Icon(
+        Icons.broken_image_outlined,
+        color: BrandColors.grayDark,
+      ),
     );
   }
 
@@ -328,13 +336,22 @@ class _PhotoThumb extends StatelessWidget {
       children: [
         Semantics(
           button: true,
+          onTap: onTap,
           label:
               'Открыть фото ${index + 1} из $total, статус: ${photo.status.label}',
-          child: GestureDetector(
-            onTap: onTap,
-            child: ClipRRect(
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
               borderRadius: BorderRadius.circular(BrandRadius.sm),
-              child: _buildThumb(context),
+              child: SizedBox(
+                width: _thumbSize,
+                height: _thumbSize,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(BrandRadius.sm),
+                  child: ExcludeSemantics(child: _buildThumb(context)),
+                ),
+              ),
             ),
           ),
         ),
@@ -350,8 +367,7 @@ class _PhotoThumb extends StatelessWidget {
             padding: const EdgeInsets.only(top: 4),
             child: Text(
               reason,
-              style:
-                  AppTextStyles.bodySmall.copyWith(color: BrandColors.error),
+              style: AppTextStyles.bodySmall.copyWith(color: BrandColors.error),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               softWrap: true,
@@ -383,13 +399,14 @@ class _UploadingBadge extends StatelessWidget {
               height: 16,
               width: 16,
               child: CircularProgressIndicator(
-                  strokeWidth: 2, color: BrandColors.white),
+                strokeWidth: 2,
+                color: BrandColors.white,
+              ),
             ),
             const SizedBox(width: 8),
             Text(
               'Загружаем фото…',
-              style:
-                  AppTextStyles.bodySmall.copyWith(color: BrandColors.white),
+              style: AppTextStyles.bodySmall.copyWith(color: BrandColors.white),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -422,8 +439,9 @@ class _Center extends StatelessWidget {
             Text(
               text,
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium
-                  .copyWith(color: BrandColors.grayDark),
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: BrandColors.grayDark,
+              ),
             ),
             if (action != null) ...[
               const SizedBox(height: 16),
