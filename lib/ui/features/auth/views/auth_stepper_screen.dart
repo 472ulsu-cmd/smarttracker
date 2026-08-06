@@ -180,7 +180,7 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Укажите номер телефона (10 цифр, код +7)',
+            'Укажите номер телефона (10 цифр, без +7)',
             style: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayDark),
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
