@@ -10,6 +10,7 @@ import '../view_models/auth_view_model.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
+import '../../../core/widgets/app_snack_bars.dart';
 import '../../../core/widgets/error_banner.dart';
 import '../../legal/agreement_content.dart';
 import '../view_models/auth_stepper_view_model.dart';
@@ -60,6 +61,8 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
   void dispose() {
     _vm.removeListener(_onChanged);
     _vm.dispose();
+    _passwordErrorNotifier.dispose();
+    _passwordConfirmErrorNotifier.dispose();
     _passportCtrl.dispose();
     _passportConfirmCtrl.dispose();
     _phoneCtrl.dispose();
@@ -68,6 +71,22 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
     _passwordConfirmCtrl.dispose();
     super.dispose();
   }
+
+  /// Пересчёт field-level ошибок пароля без setState экрана.
+  void _recomputePasswordErrors() {
+    final p = _vm.password;
+    final c = _vm.passwordConfirm;
+    _passwordErrorNotifier.value =
+        p.isNotEmpty && p.length < 6 ? 'Минимум 6 символов' : null;
+    _passwordConfirmErrorNotifier.value =
+        p.isNotEmpty && c.isNotEmpty && p != c ? 'Пароли не совпадают' : null;
+  }
+
+  // Field-level диагностика пароля вынесена в ValueNotifier: это позволяет
+  // показывать ошибки живьём, не вызывая setState на каждый keystroke — иначе
+  // весь экран (включая фокусный TextFormField) пересобирался при каждом вводе.
+  final _passwordErrorNotifier = ValueNotifier<String?>(null);
+  final _passwordConfirmErrorNotifier = ValueNotifier<String?>(null);
 
   void _onChanged() {
     if (mounted) setState(() {});
@@ -143,15 +162,11 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
           Text(
             'Шаг 1 из 4. Паспорт',
             style: AppTextStyles.headlineMedium,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 8),
           Text(
             'Введите серию и номер паспорта (10 цифр)',
             style: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayDark),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 16),
           _DigitsField(
@@ -175,15 +190,11 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
           Text(
             'Шаг 2 из 4. Телефон',
             style: AppTextStyles.headlineMedium,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 8),
           Text(
             'Укажите номер телефона (10 цифр, без +7)',
             style: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayDark),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 16),
           _DigitsField(
@@ -201,15 +212,11 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
           Text(
             'Шаг 3 из 4. SMS-код',
             style: AppTextStyles.headlineMedium,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 8),
           Text(
             'Мы отправили код на номер +7 ${_vm.phone}',
             style: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayDark),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 16),
           // ValueKey сбрасывает состояние поля (включая автозаполнение ОС
@@ -227,7 +234,6 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
           const SizedBox(height: 8),
           _ResendSection(
             vm: _vm,
-            onChangePhone: _vm.back,
             onResend: _clearSmsField,
           ),
         ];
@@ -236,40 +242,43 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
           Text(
             'Шаг 4 из 4. Пароль',
             style: AppTextStyles.headlineMedium,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 8),
           Text(
             'Придумайте пароль (минимум 6 символов)',
             style: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayDark),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 16),
           AutofillGroup(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _PasswordField(
-                  controller: _passwordCtrl,
-                  label: 'Пароль',
-                  errorText: _passwordError,
-                  onChanged: (v) {
-                    _vm.password = v;
-                    // Пересобираем, чтобы field-ошибки обновлялись живьём.
-                    setState(() {});
-                  },
+                ValueListenableBuilder<String?>(
+                  valueListenable: _passwordErrorNotifier,
+                  builder: (context, error, _) => _PasswordField(
+                    controller: _passwordCtrl,
+                    label: 'Пароль',
+                    errorText: error,
+                    onChanged: (v) {
+                      _vm.password = v;
+                      // Обновляем field-ошибки без пересборки экрана:
+                      // фокусный TextFormField больше не дрожит на каждом вводе.
+                      _recomputePasswordErrors();
+                    },
+                  ),
                 ),
                 const SizedBox(height: 12),
-                _PasswordField(
-                  controller: _passwordConfirmCtrl,
-                  label: 'Повторите пароль',
-                  errorText: _passwordConfirmError,
-                  onChanged: (v) {
-                    _vm.passwordConfirm = v;
-                    setState(() {});
-                  },
+                ValueListenableBuilder<String?>(
+                  valueListenable: _passwordConfirmErrorNotifier,
+                  builder: (context, error, _) => _PasswordField(
+                    controller: _passwordConfirmCtrl,
+                    label: 'Повторите пароль',
+                    errorText: error,
+                    onChanged: (v) {
+                      _vm.passwordConfirm = v;
+                      _recomputePasswordErrors();
+                    },
+                  ),
                 ),
               ],
             ),
@@ -286,21 +295,6 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
           ],
         ];
     }
-  }
-
-  /// Field-level диагностика первого поля пароля (показываем после ввода).
-  String? get _passwordError {
-    final p = _vm.password;
-    if (p.isNotEmpty && p.length < 6) return 'Минимум 6 символов';
-    return null;
-  }
-
-  /// Field-level диагностика подтверждения (когда оба поля непустые).
-  String? get _passwordConfirmError {
-    final p = _vm.password;
-    final c = _vm.passwordConfirm;
-    if (p.isNotEmpty && c.isNotEmpty && p != c) return 'Пароли не совпадают';
-    return null;
   }
 
   String _buttonLabel() {
@@ -339,8 +333,7 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
       case AuthStep.phone:
         if (_vm.phone.length != 10) {
           _vm.clearError();
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Введите 10 цифр номера телефона')));
+          showErrorSnackBar(context, 'Введите 10 цифр номера телефона');
           return;
         }
         ok = await _vm.requestSmsCode();
@@ -355,14 +348,11 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
         if (ok && mounted) {
           // Peak-end: подтверждаем успех до навигации (дальше роутер
           // сразу попросит геолокацию).
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                widget.mode == AuthFlowMode.registration
-                    ? 'Готово! Вы вошли в приложение'
-                    : 'Пароль обновлён. Вы вошли в приложение',
-              ),
-            ),
+          showSuccessSnackBar(
+            context,
+            widget.mode == AuthFlowMode.registration
+                ? 'Готово! Вы вошли в приложение'
+                : 'Пароль обновлён. Вы вошли в приложение',
           );
           // Синхронизируем глобальный AuthViewModel: после registerAndLogin
           // токен сохранён в SecureStorage — восстановим сессию.
@@ -593,16 +583,17 @@ class _PasswordFieldState extends State<_PasswordField> {
   }
 }
 
-/// Повторная отправка кода с кулдауном и возврат к смене номера.
+/// Повторная отправка SMS-кода с кулдауном.
+///
+/// Вернуться к смене номера можно системным «Назад» (AppBar / edge-swipe),
+/// который через PopScope ходит по шагам.
 class _ResendSection extends StatelessWidget {
   const _ResendSection({
     required this.vm,
-    required this.onChangePhone,
     required this.onResend,
   });
 
   final AuthStepperViewModel vm;
-  final VoidCallback onChangePhone;
 
   /// Вызывается перед повторной отправкой кода (например, для очистки поля).
   final VoidCallback onResend;
@@ -610,28 +601,19 @@ class _ResendSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final remaining = vm.resendRemaining;
-    return Column(
-      children: [
-        TextButton(
-          onPressed: vm.canResend
-              ? () {
-                  onResend();
-                  vm.resendCode();
-                }
-              : null,
-          style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-          child: Text(
-            remaining > 0
-                ? 'Отправить код повторно ($remaining с)'
-                : 'Отправить код повторно',
-          ),
-        ),
-        TextButton(
-          onPressed: onChangePhone,
-          style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-          child: const Text('Изменить номер'),
-        ),
-      ],
+    return TextButton(
+      onPressed: vm.canResend
+          ? () {
+              onResend();
+              vm.resendCode();
+            }
+          : null,
+      style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+      child: Text(
+        remaining > 0
+            ? 'Отправить код повторно ($remaining с)'
+            : 'Отправить код повторно',
+      ),
     );
   }
 }
@@ -713,9 +695,7 @@ class _AgreementConsentState extends State<_AgreementConsent> {
       opened = false;
     }
     if (!opened && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Не удалось открыть ссылку')),
-      );
+      showErrorSnackBar(context, 'Не удалось открыть ссылку');
     }
   }
 

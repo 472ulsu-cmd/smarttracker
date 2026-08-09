@@ -67,7 +67,13 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       appBar: AppBar(title: const Text('Обратная связь')),
       resizeToAvoidBottomInset: true,
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        // Нижний safe-area: кнопка «Отправить» не под home-indicator.
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: 16 + MediaQuery.viewPaddingOf(context).bottom,
+        ),
         children: [
           Text(
             'Опишите замечание или предложение:',
@@ -83,10 +89,18 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           ),
           if (_viewModel.errorMessage != null) ...[
             const SizedBox(height: 8),
-            Text(
-              _viewModel.errorMessage!,
-              style: AppTextStyles.caption
-                  .copyWith(color: BrandColors.error),
+            // Live-region: скринридер анонсирует ошибку отправки.
+            // errorText (#B3261E) вместо error (#D32F2F) — AA-контраст для
+            // читаемого текста; см. комментарий в brand_colors.dart:43-45.
+            Semantics(
+              container: true,
+              liveRegion: true,
+              label: 'Ошибка. ${_viewModel.errorMessage}',
+              child: Text(
+                _viewModel.errorMessage!,
+                style: AppTextStyles.caption
+                    .copyWith(color: BrandColors.errorText),
+              ),
             ),
           ],
           const SizedBox(height: 16),

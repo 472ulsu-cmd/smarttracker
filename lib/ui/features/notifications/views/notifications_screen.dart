@@ -7,6 +7,7 @@ import '../../../../domain/models/notification_item.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/utils/date_format.dart';
+import '../../../core/widgets/app_snack_bars.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../view_models/notifications_view_model.dart';
 
@@ -56,9 +57,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (errorMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(errorMessage)),
-          );
+          showErrorSnackBar(context, errorMessage);
         }
       });
     }
@@ -90,7 +89,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget _body() {
     return RefreshIndicator(
       onRefresh: _viewModel.load,
-      color: BrandColors.primary,
       child: LayoutBuilder(
         builder: (context, constraints) {
           if (_viewModel.isLoading && _viewModel.items.isEmpty) {
@@ -216,79 +214,101 @@ class _NotificationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: enabled ? onTap : null,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Индикатор непрочитанного.
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: ExcludeSemantics(
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: item.isRead
-                        ? Colors.transparent
-                        : BrandColors.primary,
+    // Семантика тайла: помечаем как кнопку, когда тап открывает заявку,
+    // и префиксом «Непрочитано» доводим статус до скринридера (точка
+    // непрочитанного спрятана в ExcludeSemantics и вес шрифта невидим
+    // для VoiceOver/TalkBack — иначе слепой водитель не различает статусы).
+    final isAction = item.hasOrder && enabled;
+    final readPrefix = item.isRead ? '' : 'Непрочитано. ';
+    final orderRef = item.hasOrder
+        ? (orderNumber != null
+            ? 'Заявка № $orderNumber'
+            : 'Заявка № ${item.orderId}')
+        : null;
+    final tileLabel = '$readPrefix${item.message}'
+        '${orderRef != null ? '. $orderRef' : ''}';
+    return Semantics(
+      button: isAction,
+      label: tileLabel,
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Индикатор непрочитанного.
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: ExcludeSemantics(
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: item.isRead
+                          ? Colors.transparent
+                          : BrandColors.primary,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.message,
-                    style: item.isRead
-                        ? AppTextStyles.bodyMedium
-                            .copyWith(color: BrandColors.grayDark)
-                        : AppTextStyles.titleMedium,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (item.datetime.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      DateFormatUtil.dateTime(item.datetime),
-                      style: AppTextStyles.caption,
-                      maxLines: 1,
+                      item.message,
+                      style: item.isRead
+                          ? AppTextStyles.bodyMedium
+                              .copyWith(color: BrandColors.grayDark)
+                          : AppTextStyles.titleMedium,
+                      // Подняли с 3 до 5: важные непрочитанные сообщения не
+                      // должны обрезаться при крупном масштабе шрифта.
+                      maxLines: 5,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (item.datetime.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        DateFormatUtil.dateTime(item.datetime),
+                        style: AppTextStyles.caption,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    if (item.hasOrder) ...[
+                      const SizedBox(height: 4),
+                      ExcludeSemantics(
+                        // Уже в общем label тайла — не дублируем.
+                        child: Text(
+                          orderNumber != null
+                              ? 'Заявка № $orderNumber'
+                              : 'Заявка № ${item.orderId}',
+                          style: AppTextStyles.caption
+                              .copyWith(color: BrandColors.primary),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ],
-                  if (item.hasOrder) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      orderNumber != null
-                          ? 'Заявка № $orderNumber'
-                          : 'Заявка № ${item.orderId}',
-                      style: AppTextStyles.caption
-                          .copyWith(color: BrandColors.primary),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            if (item.hasOrder)
-              const SizedBox(
-                width: 48,
-                height: 48,
-                child: Center(
-                  child: ExcludeSemantics(
-                    child: Icon(Icons.chevron_right_rounded,
-                        color: BrandColors.grayMid),
-                  ),
                 ),
               ),
-          ],
+              if (item.hasOrder)
+                const SizedBox(
+                  width: 48,
+                  height: 48,
+                  child: Center(
+                    child: ExcludeSemantics(
+                      child: Icon(Icons.chevron_right_rounded,
+                          color: BrandColors.grayMid),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

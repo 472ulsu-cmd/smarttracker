@@ -9,7 +9,7 @@ import '../../data/services/local_photo_store.dart';
 import '../../data/services/settings_service.dart';
 import '../../domain/models/order_photo.dart';
 import '../../domain/repositories/notifications_repository.dart';
-import '../../ui/features/notifications/view_models/unread_badge_view_model.dart';
+import '../../ui/features/notifications/view_models/notifications_view_model.dart';
 
 /// Парсер data-only FCM-сообщений в структуру {title, body, order_id,
 /// route_photo_id, route_photo_type_id}.
@@ -205,9 +205,14 @@ class PushService {
   /// Триггер обновления списков уведомлений, заявок и бейджа.
   void _refresh() {
     try {
+      // NotificationsRefreshBus обновляет NotificationsViewModel, но его
+      // подписчик — только notifications_screen, который строится лениво
+      // (IndexedStack). Поэтому при пуше до первого открытия вкладки шина
+      // VM не обновит — дёргаем load() напрямую. Бейдж — проекция VM и
+      // синхронизируется автоматически через подписку.
+      getIt<NotificationsViewModel>().load();
       getIt<NotificationsRefreshBus>().notifyChanged();
       getIt<OrdersRefreshBus>().notifyChanged();
-      getIt<UnreadBadgeViewModel>().refresh();
     } catch (_) {
       // DI может быть ещё не готов — игнорируем.
     }

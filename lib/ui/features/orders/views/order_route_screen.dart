@@ -9,6 +9,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
 import '../../../core/utils/date_format.dart';
+import '../../../core/widgets/app_snack_bars.dart';
 import '../../../core/widgets/brand_card.dart';
 import '../../../core/widgets/phone_call_row.dart';
 import '../view_models/order_detail_view_model.dart';
@@ -119,7 +120,6 @@ class _OrderRouteScreenState extends State<OrderRouteScreen> {
             );
           }
           return RefreshIndicator(
-            color: BrandColors.primary,
             onRefresh: _viewModel.load,
             // На планшете контент не растягивается во всю ширину.
             child: Center(
@@ -192,11 +192,7 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
     }
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Не удалось открыть карты. Установите навигатор.'),
-        ),
-      );
+      showErrorSnackBar(context, 'Не удалось открыть карты. Установите навигатор.');
     }
   }
 
@@ -219,45 +215,58 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
         point.client.manager.isNotEmpty ||
         point.client.phone.isNotEmpty;
 
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 32,
-            child: Column(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: accentColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    isLoading ? Icons.upload_rounded : Icons.download_rounded,
-                    color: BrandColors.white,
-                    size: 14,
-                  ),
-                ),
-                if (!isLast)
-                  Expanded(
-                    child: Container(
-                      width: 2,
-                      color: BrandColors.grayLight,
-                    ),
-                  ),
-              ],
+    // IntrinsicHeight ранее заставлял каждую плитку делать лишний полный
+    // layout-pass, чтобы соединительная линия таймлайна дотянулась до высоты
+    // карточки. Здесь линия рисуется в Stack за контентом и просто обрезается
+    // по высоте плитки — это тот же визуальный результат без лишних layout-проходов.
+    return Stack(
+      children: [
+        // Соединительная линия таймлайна: от центра точки (24px высотой)
+        // вниз до конца плитки. Align.bottomLeft + bounded height обеспечивает
+        // линию до низа без измерения соседней карточки.
+        if (!isLast)
+          Positioned(
+            // Точка 24px центрирована в 32px колонке: X 4–28, центр = 16.
+            // Линия шириной 2px центрируется по тому же X=16 → left = 15.
+            left: 15,
+            top: 24,
+            bottom: 0,
+            child: Container(
+              width: 2,
+              color: BrandColors.grayLight,
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: BrandCard(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 32,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: accentColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isLoading ? Icons.upload_rounded : Icons.download_rounded,
+                        color: BrandColors.white,
+                        size: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: BrandCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                     // Тип операции: иконка + текст (погрузка/разгрузка).
                     Row(
                       children: [
@@ -420,9 +429,10 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                 ),
               ),
             ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

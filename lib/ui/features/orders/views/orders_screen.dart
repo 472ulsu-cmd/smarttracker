@@ -183,7 +183,6 @@ class _OrdersTabBody extends StatelessWidget {
               ),
             Expanded(
               child: RefreshIndicator(
-                color: BrandColors.primary,
                 onRefresh: () => viewModel.loadTab(tab),
                 child: ListView.separated(
                   physics: const AlwaysScrollableScrollPhysics(),

@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -108,8 +110,13 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
     final serviceDisabled =
         _viewModel.status == LocationPermissionStatus.serviceDisabled;
 
-    return Scaffold(
-      body: SafeArea(
+    return PopScope(
+      // Шлюз геолокации: без разрешения работа невозможна, поэтому системный
+      // back/edge-swipe (iOS) не должен покидать экран — иначе заявленное
+      // «выход только закрытием приложения» нарушается на iOS.
+      canPop: false,
+      child: Scaffold(
+        body: SafeArea(
         child: ListenableBuilder(
           listenable: _viewModel,
           builder: (context, _) {
@@ -141,9 +148,8 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                         serviceDisabled
                             ? 'Геолокация отключена'
                             : 'Доступ к геолокации',
+                        textAlign: TextAlign.center,
                         style: AppTextStyles.headlineLarge,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 12),
                       if (serviceDisabled) ...[
@@ -170,10 +176,13 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                       ],
                       const SizedBox(height: 12),
                       Text(
+                        // errorText (#B3261E, ≈6:1) вместо error (#D32F2F,
+                        // 4.23:1 — провал AA). Это читаемый текст на светлом
+                        // фоне — см. комментарий в brand_colors.dart:43-45.
                         'Без геолокации работа в приложении невозможна.',
                         textAlign: TextAlign.center,
                         style: AppTextStyles.bodySmall
-                            .copyWith(color: BrandColors.error),
+                            .copyWith(color: BrandColors.errorText),
                       ),
                       if (_viewModel.errorMessage != null &&
                           _viewModel.status !=
@@ -193,11 +202,13 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
+                                  // Сообщение об ошибке — читаемый текст:
+                                  // используем AA-контрастный errorText.
+                                  // maxLines убран: родитель SingleChildScrollView
+                                  // поглощает рост текста при крупном масштабе.
                                   _viewModel.errorMessage!,
                                   style: AppTextStyles.bodySmall.copyWith(
-                                      color: BrandColors.error),
-                                  maxLines: 5,
-                                  overflow: TextOverflow.ellipsis,
+                                      color: BrandColors.errorText),
                                 ),
                               ),
                             ],
@@ -249,7 +260,12 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                       ],
                       const SizedBox(height: 24),
                       Text(
-                        'Чтобы закрыть приложение, нажмите кнопку «Назад».',
+                        // На Android упоминаем системную кнопку/жест «Назад».
+                        // На iOS её нет — там предлагаем закрыть приложение
+                        // через переключатель задач (swipe up).
+                        Platform.isAndroid
+                            ? 'Чтобы закрыть приложение, нажмите системную кнопку или жест «Назад».'
+                            : 'Чтобы закрыть приложение, смахните его вверх из переключателя задач.',
                         textAlign: TextAlign.center,
                         style: AppTextStyles.caption
                             .copyWith(color: BrandColors.grayDark),
@@ -261,6 +277,7 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
             );
           },
         ),
+      ),
       ),
     );
   }

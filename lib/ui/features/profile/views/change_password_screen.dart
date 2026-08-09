@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/service_locator.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../core/widgets/app_snack_bars.dart';
 import '../view_models/profile_view_model.dart';
 
 /// Экран смены пароля.
@@ -51,18 +52,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       _newController.text,
     );
     if (ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Пароль изменён')),
-      );
+      showSuccessSnackBar(context, 'Пароль изменён');
       context.pop();
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _viewModel.errorMessage ??
-                'Не удалось сменить пароль. Проверьте текущий пароль и попробуйте ещё раз.',
-          ),
-        ),
+      showErrorSnackBar(
+        context,
+        _viewModel.errorMessage ??
+            'Не удалось сменить пароль. Проверьте текущий пароль и попробуйте ещё раз.',
       );
     }
   }
@@ -73,9 +69,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       appBar: AppBar(title: const Text('Сменить пароль')),
       body: Form(
         key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
+          child: ListView(
+            // Нижний safe-area: кнопка «Изменить пароль» не под home-indicator.
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: 16 + MediaQuery.viewPaddingOf(context).bottom,
+            ),
+            children: [
             _PasswordField(
               controller: _oldController,
               label: 'Текущий пароль',

@@ -7,6 +7,7 @@ import '../../../../domain/models/user.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
+import '../../../core/widgets/app_snack_bars.dart';
 import '../../../core/widgets/user_avatar.dart';
 import '../../../features/auth/view_models/auth_view_model.dart';
 import '../view_models/profile_view_model.dart';
@@ -46,9 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           error != _lastErrorMessage &&
           _viewModel.user != null) {
         _lastErrorMessage = error;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error)),
-        );
+        showErrorSnackBar(context, error);
       } else if (error == null) {
         _lastErrorMessage = null;
       }
@@ -73,7 +72,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
           }
           return ListView(
-            padding: const EdgeInsets.all(16),
+            // Нижний safe-area: на notched-iPhone / gesture-nav Android кнопка
+            // «Выйти» не должна уходить под home-indicator.
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: 16 + MediaQuery.viewPaddingOf(context).bottom,
+            ),
             children: [
               _AvatarHeader(
                 user: user,
@@ -171,13 +177,20 @@ class _AvatarHeader extends StatelessWidget {
       children: [
         GestureDetector(
           onTap: isSaving ? null : () => _showAvatarSource(context, onPick),
+          // Контейнер-семантика: объединяет действие «Изменить фото» и
+          // описание аватара в один узел. Без container= true внутренний
+          // Semantics UserAvatar («Аватар пользователя …») сливался бы с
+          // внешним, и скринридер зачитывал оба — дважды.
           child: Semantics(
             button: true,
+            container: true,
             label: 'Изменить фото профиля',
-            child: UserAvatar(
-              avatar: user.avatar,
-              initials: user.initials,
-              radius: 48,
+            child: ExcludeSemantics(
+              child: UserAvatar(
+                avatar: user.avatar,
+                initials: user.initials,
+                radius: 48,
+              ),
             ),
           ),
         ),
@@ -199,21 +212,27 @@ class _FieldRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label,
-              style: AppTextStyles.caption
-                  .copyWith(color: BrandColors.grayDark)),
-          Text(
-            value,
-            style: AppTextStyles.bodyLarge,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+    // ListTile даёт бесплатные Material-семантики label/value и адаптивную
+    // плотность; readability layout «подпись сверху, значение снизу» сохранён
+    // через Column в title. Поле только для чтения (без onTap/трейлинга).
+    return Semantics(
+      label: '$label: $value',
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label,
+                style: AppTextStyles.caption
+                    .copyWith(color: BrandColors.grayDark)),
+            Text(
+              value,
+              style: AppTextStyles.bodyLarge,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -235,6 +254,9 @@ class _LogoutButton extends StatelessWidget {
   }
 
   Future<void> _confirmLogout(BuildContext context) async {
+    // Брендовый диалог: те же кнопки, что и во всём приложении —
+    // ElevatedButton во всю ширину (52dp, 12px radius). showDialog + Dialog
+    // работает идентично на обеих платформах без платформенных сюрпризов.
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => Dialog(
@@ -248,8 +270,6 @@ class _LogoutButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Заголовок вверху слева, крестик закрытия — вверху справа
-              // на той же строке (замена бывшей кнопки «Остаться»).
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -277,8 +297,7 @@ class _LogoutButton extends StatelessWidget {
                     .copyWith(color: BrandColors.grayDark),
               ),
               const SizedBox(height: 20),
-              // Кнопка действия — на всю ширину диалога (как в других
-              // уведомлениях), с красным фоном и белым текстом.
+              // Деструктивное действие — красный фон, во всю ширину.
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: BrandColors.error,

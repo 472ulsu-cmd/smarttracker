@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
+import '../../../core/widgets/app_snack_bars.dart';
 import '../agreement_content.dart';
 
 /// Экран «Пользовательское соглашение».
@@ -68,9 +69,7 @@ class _AgreementScreenState extends State<AgreementScreen> {
       opened = false;
     }
     if (!opened && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Не удалось открыть ссылку')),
-      );
+      showErrorSnackBar(context, 'Не удалось открыть ссылку');
     }
   }
 

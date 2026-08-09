@@ -178,10 +178,13 @@ Future<void> setupDependencies(AppConfig config) async {
     );
   }
 
-  // Singleton: общий счётчик для бейджа нижней навигации.
+  // Singleton: общий счётчик для бейджа нижней навигации. Бейдж — проекция
+  // NotificationsViewModel (единственный источник правты о непрочитанных),
+  // поэтому слушает именно VM, а не репозиторий: мгновенно реагирует на
+  // markAsRead/markAllRead. Порядок регистрации не важен — get_it lazy-resolve.
   if (!getIt.isRegistered<UnreadBadgeViewModel>()) {
     getIt.registerLazySingleton<UnreadBadgeViewModel>(
-      () => UnreadBadgeViewModel(getIt<NotificationsRepository>()),
+      () => UnreadBadgeViewModel(getIt<NotificationsViewModel>()),
     );
   }
   getIt.registerFactory<OrdersViewModel>(

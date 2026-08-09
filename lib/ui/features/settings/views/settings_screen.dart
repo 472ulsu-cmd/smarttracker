@@ -45,7 +45,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         listenable: _settings,
         builder: (context, _) {
           return ListView(
-            padding: const EdgeInsets.all(16),
+            // Нижний safe-area: контент не под home-indicator.
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: 16 + MediaQuery.viewPaddingOf(context).bottom,
+            ),
             children: [
               Text(
                 'Уведомления',
@@ -53,26 +59,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 8),
               BrandCard(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
-                    const Icon(Icons.notifications_active_outlined,
-                        color: BrandColors.primary),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Получать push-уведомления',
-                        style: AppTextStyles.bodyLarge,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Switch(
-                      value: _settings.pushEnabled,
-                      activeThumbColor: BrandColors.primary,
-                      onChanged: (v) => _settings.setPushEnabled(v),
-                    ),
-                  ],
+                padding: EdgeInsets.zero,
+                // SwitchListTile.adaptive: тап по всей строке переключает
+                // значение (а не только по «ушу» Switch), и на iOS рисуется
+                // нативный Cupertino-переключатель, на Android — Material.
+                child: SwitchListTile.adaptive(
+                  value: _settings.pushEnabled,
+                  onChanged: (v) => _settings.setPushEnabled(v),
+                  title: Text(
+                    'Получать push-уведомления',
+                    style: AppTextStyles.bodyLarge,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  secondary: const Icon(Icons.notifications_active_outlined,
+                      color: BrandColors.primary),
                 ),
               ),
             ],

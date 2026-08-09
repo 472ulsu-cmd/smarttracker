@@ -6,6 +6,7 @@ import '../theme/app_text_styles.dart';
 import '../theme/brand_colors.dart';
 import '../theme/brand_radius.dart';
 import '../utils/phone_utils.dart';
+import 'app_snack_bars.dart';
 
 /// Кликабельная строка с номером телефона: по тапу открывает dialer (`tel:`).
 ///
@@ -61,10 +62,7 @@ class _PhoneCallRowState extends State<PhoneCallRow> {
     }
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Не удалось позвонить. Попробуйте позже.')),
-      );
+      showErrorSnackBar(context, 'Не удалось позвонить. Попробуйте позже.');
     }
   }
 

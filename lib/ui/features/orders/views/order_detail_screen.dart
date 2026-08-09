@@ -115,7 +115,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           final order = _viewModel.order!;
           return RefreshIndicator(
             onRefresh: _viewModel.load,
-            color: BrandColors.primary,
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -171,65 +170,124 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 }
 
-class _Summary extends StatelessWidget {
+class _Summary extends StatefulWidget {
   const _Summary({required this.order});
   final OrderDetail order;
 
   @override
+  State<_Summary> createState() => _SummaryState();
+}
+
+class _SummaryState extends State<_Summary>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse;
+  late final Animation<double> _scale;
+  int? _lastStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    _lastStatus = widget.order.status;
+    _pulse = AnimationController(
+      vsync: this,
+      // Короткий settle-импульс: карточка «подтверждает» смену статуса.
+      duration: const Duration(milliseconds: 280),
+    );
+    // 1.0 → 1.012 → 1.0: едва заметный «вдох», затем возврат. easeOut на
+    // росте (уверенный), easeIn на возврате (мягкая посадка).
+    _scale = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.0, end: 1.012)
+            .chain(CurveTween(curve: Curves.easeOutCubic)),
+        weight: 1,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.012, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeInCubic)),
+        weight: 1,
+      ),
+    ]).animate(_pulse);
+  }
+
+  @override
+  void didUpdateWidget(covariant _Summary oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Триггер settle-импульса только при реальной смене статуса.
+    if (widget.order.status != _lastStatus) {
+      _lastStatus = widget.order.status;
+      final reduceMotion = MediaQuery.disableAnimationsOf(context);
+      if (!reduceMotion) {
+        _pulse.forward(from: 0);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BrandCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Semantics(
-                  header: true,
+    final order = widget.order;
+    // Reduce Motion: без импульса — ScaleTransition с always-1.0 нейтрален.
+    return ScaleTransition(
+      scale: _scale,
+      child: BrandCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      '№ ${order.num}',
+                      style: AppTextStyles.titleLarge,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+                StatusChip(statusId: order.status),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(Icons.route_rounded,
+                    color: BrandColors.primary,
+                    size: 20,
+                    semanticLabel: 'Маршрут'),
+                const SizedBox(width: 8),
+                Expanded(
                   child: Text(
-                    '№ ${order.num}',
-                    style: AppTextStyles.titleLarge,
-                    maxLines: 1,
+                    order.route,
+                    style: AppTextStyles.titleMedium,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              ),
-              StatusChip(statusId: order.status),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              const Icon(Icons.route_rounded,
-                  color: BrandColors.primary,
-                  size: 20,
-                  semanticLabel: 'Маршрут'),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  order.route,
-                  style: AppTextStyles.titleMedium,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 12,
-            runSpacing: 8,
-            children: [
-              if (order.cargoType.isNotEmpty)
-                _InfoItem(label: 'Груз', value: order.cargoType),
-              if (order.mass.isNotEmpty)
-                _InfoItem(label: 'Масса', value: '${order.mass} т'),
-              if (order.volume.isNotEmpty)
-                _InfoItem(label: 'Объём', value: '${order.volume} м³'),
-            ],
-          ),
-        ],
+              ],
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              children: [
+                if (order.cargoType.isNotEmpty)
+                  _InfoItem(label: 'Груз', value: order.cargoType),
+                if (order.mass.isNotEmpty)
+                  _InfoItem(label: 'Масса', value: '${order.mass} т'),
+                if (order.volume.isNotEmpty)
+                  _InfoItem(label: 'Объём', value: '${order.volume} м³'),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -405,7 +463,9 @@ class _RoutePoint extends StatelessWidget {
                   '${DateFormatUtil.time(point.timeTo)}',
                   style: AppTextStyles.bodySmall
                       .copyWith(color: BrandColors.grayDark, height: 1.2),
-                  maxLines: 1,
+                  // Окно времени погрузки/разгрузки не должно теряться при
+                  // крупном масштабе шрифта — поднимаем с 1 до 2 строк.
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
             ],
@@ -532,6 +592,10 @@ class _ActionButton extends StatelessWidget {
   }
 
   Future<void> _confirm(BuildContext context) async {
+    // Брендовый диалог: те же кнопки, что и во всём приложении —
+    // ElevatedButton/OutlinedButton во всю ширину (52dp, 12px radius).
+    // showDialog + Dialog работает идентично на обеих платформах без
+    // платформенных сюрпризов adaptive-вариантов.
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => Dialog(
@@ -545,8 +609,6 @@ class _ActionButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Заголовок вверху слева, крестик закрытия — вверху справа
-              // на той же строке.
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -574,6 +636,9 @@ class _ActionButton extends StatelessWidget {
                     .copyWith(color: BrandColors.grayDark),
               ),
               const SizedBox(height: 20),
+              // Кнопка подтверждения — во всю ширину, как во всём приложении.
+              // Деструктивное действие (отказ) — красный OutlinedButton,
+              // обычное — оранжевый ElevatedButton.
               if (isDestructive)
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
@@ -600,7 +665,12 @@ class _ActionButton extends StatelessWidget {
     if (confirmed == true && context.mounted) {
       final success = await viewModel.changeStatus(status);
       if (success && context.mounted) {
-        HapticFeedback.mediumImpact();
+        // Тактиль совпадает с моментом «посадки» статус-морфа (~середина
+        // анимации): чип+карточка меняются и одновременно подтверждается
+        // вибрацией — единое физическое событие, заметное даже не глядя.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          HapticFeedback.mediumImpact();
+        });
       }
     }
   }

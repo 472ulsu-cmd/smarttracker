@@ -6,6 +6,11 @@ import '../theme/brand_colors.dart';
 import '../theme/brand_radius.dart';
 
 /// Цветной «чип» статуса заявки.
+///
+/// При смене статуса чип морфится: фон и текст плавно перекрашиваются,
+/// а метка сменяется через AnimatedSwitcher с лёгкой spring-посадкой —
+/// переход ощущается как щелчок переключателя, а не как мгновенная замена.
+/// Reduce Motion honoured: при `disableAnimations` смена мгновенная.
 class StatusChip extends StatelessWidget {
   const StatusChip({super.key, required this.statusId});
 
@@ -14,27 +19,74 @@ class StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = _labelFor(statusId);
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final backgroundColor = _backgroundColorFor(statusId);
+    final foregroundColor = _foregroundColorFor(statusId);
+
     return Semantics(
       label: 'Статус заявки: $label',
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 48),
         child: Center(
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 32),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: _backgroundColorFor(statusId),
-              borderRadius: BorderRadius.circular(BrandRadius.pill),
-            ),
-            child: ExcludeSemantics(
-              child: Text(
-                label,
-                style: AppTextStyles.labelMedium.copyWith(
-                  color: _foregroundColorFor(statusId),
+          child: AnimatedSwitcher(
+            // easeOutBack даёт «приземление» с лёгким перелётом — физика
+            // переключателя. При reduceMotion Duration.zero → мгновенно.
+            duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 240),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, anim) {
+              if (reduceMotion) return child;
+              // Лёгкая вертикальная посадка + фейд: метка «опускается» на место.
+              return FadeTransition(
+                opacity: anim,
+                child: ScaleTransition(
+                  scale: Tween<double>(begin: 0.92, end: 1.0).animate(
+                    CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
+                  ),
+                  child: child,
                 ),
-              ),
+              );
+            },
+            // Key по статусу — триггер смены при переходе.
+            child: _ChipBody(
+              key: ValueKey(statusId),
+              label: label,
+              backgroundColor: backgroundColor,
+              foregroundColor: foregroundColor,
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Внутреннее тело чипа: плавный перекрос фона/текста при смене статуса.
+class _ChipBody extends StatelessWidget {
+  const _ChipBody({
+    super.key,
+    required this.label,
+    required this.backgroundColor,
+    required this.foregroundColor,
+  });
+
+  final String label;
+  final Color backgroundColor;
+  final Color foregroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 32),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(BrandRadius.pill),
+      ),
+      child: ExcludeSemantics(
+        child: Text(
+          label,
+          style: AppTextStyles.labelMedium.copyWith(color: foregroundColor),
         ),
       ),
     );

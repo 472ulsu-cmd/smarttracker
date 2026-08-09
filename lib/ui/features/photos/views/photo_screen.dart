@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../config/service_locator.dart';
@@ -12,6 +13,7 @@ import '../../../../domain/repositories/photo_repository.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
+import '../../../core/widgets/app_snack_bars.dart';
 import '../../../core/widgets/brand_card.dart';
 import '../../../core/widgets/photo_status_chip.dart';
 import '../view_models/photo_view_model.dart';
@@ -30,9 +32,19 @@ class PhotoScreen extends StatefulWidget {
   State<PhotoScreen> createState() => _PhotoScreenState();
 }
 
-class _PhotoScreenState extends State<PhotoScreen> {
+class _PhotoScreenState extends State<PhotoScreen>
+    with SingleTickerProviderStateMixin {
   late final PhotoViewModel _viewModel;
   String? _lastErrorMessage;
+
+  // Определение успешной загрузки: фиксируем число фото до начала аплоада
+  // и факт перехода isUploading true→false. Если фото стало больше — успех.
+  bool _wasUploading = false;
+  int _photoCountBeforeUpload = 0;
+
+  // Оверлей-вспышка подтверждения: короткая зелёная галочка поверх экрана.
+  late final AnimationController _successFlash;
+  bool _showSuccessFlash = false;
 
   @override
   void initState() {
@@ -44,6 +56,10 @@ class _PhotoScreenState extends State<PhotoScreen> {
       getIt<LocalPhotoStore>(),
     );
     _viewModel.addListener(_onChanged);
+    _successFlash = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
     _viewModel.load();
   }
 
@@ -51,11 +67,29 @@ class _PhotoScreenState extends State<PhotoScreen> {
   void dispose() {
     _viewModel.removeListener(_onChanged);
     _viewModel.dispose();
+    _successFlash.dispose();
     super.dispose();
   }
 
   void _onChanged() {
     if (!mounted) return;
+
+    // Детект успешной загрузки: фиксируем старт аплоада (true→true на первом
+    // notify) и его конец (true→false). Если за время аплоада фото прибавилось
+    // и это не офлайн-очередь — успех → вспышка.
+    final isUploading = _viewModel.isUploading;
+    if (isUploading && !_wasUploading) {
+      // Старт аплоада: запоминаем число фото.
+      _photoCountBeforeUpload = _totalPhotoCount();
+    } else if (!isUploading && _wasUploading) {
+      // Конец аплоада: чекаем, что фото прибавилось.
+      final grew = _totalPhotoCount() > _photoCountBeforeUpload;
+      if (grew && !_viewModel.queuedOffline) {
+        _triggerSuccessFlash();
+      }
+    }
+    _wasUploading = isUploading;
+
     setState(() {});
 
     final error = _viewModel.errorMessage;
@@ -63,26 +97,42 @@ class _PhotoScreenState extends State<PhotoScreen> {
         error != _lastErrorMessage &&
         _viewModel.groups.isNotEmpty) {
       _lastErrorMessage = error;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error),
-          behavior: SnackBarBehavior.floating,
-          action: _viewModel.accessDenied
-              ? SnackBarAction(
-                  label: 'Открыть настройки',
-                  onPressed: openAppSettings,
-                )
-              : _viewModel.queuedOffline
-              ? null // фото в очереди — повтор не нужен
-              : SnackBarAction(
-                  label: 'Повторить',
-                  onPressed: _viewModel.retryLastAction,
-                ),
-        ),
+      showErrorSnackBar(
+        context,
+        error,
+        action: _viewModel.accessDenied
+            ? SnackBarAction(
+                label: 'Открыть настройки',
+                onPressed: openAppSettings,
+              )
+            : _viewModel.queuedOffline
+            ? null // фото в очереди — повтор не нужен
+            : SnackBarAction(
+                label: 'Повторить',
+                onPressed: _viewModel.retryLastAction,
+              ),
       );
     } else if (error == null) {
       _lastErrorMessage = null;
     }
+  }
+
+  /// Суммарное число фото во всех группах.
+  int _totalPhotoCount() =>
+      _viewModel.groups.fold<int>(0, (sum, g) => sum + g.photos.length);
+
+  /// Осязаемое подтверждение успешной загрузки: зелёная вспышка-галочка
+  /// поверх экрана + тактиль. Водитель чувствует «доказательство зафиксировано»
+  /// даже не глядя на экран (полевые условия). Reduce Motion: вспышки нет,
+  /// тактиль остаётся.
+  void _triggerSuccessFlash() {
+    HapticFeedback.heavyImpact();
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    if (reduceMotion) return;
+    setState(() => _showSuccessFlash = true);
+    _successFlash.forward(from: 0).then((_) {
+      if (mounted) setState(() => _showSuccessFlash = false);
+    });
   }
 
   @override
@@ -133,6 +183,13 @@ class _PhotoScreenState extends State<PhotoScreen> {
                   left: 0,
                   right: 0,
                   child: Center(child: SafeArea(child: _UploadingBadge())),
+                ),
+              // Вспышка подтверждения успешной загрузки — поверх всего.
+              if (_showSuccessFlash)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: _SuccessFlash(animation: _successFlash),
+                  ),
                 ),
             ],
           );
@@ -334,22 +391,38 @@ class PhotoThumbnail extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Semantics(
-          button: true,
-          onTap: onTap,
-          label:
-              'Открыть фото ${index + 1} из $total, статус: ${photo.status.label}',
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(BrandRadius.sm),
-              child: SizedBox(
-                width: _thumbSize,
-                height: _thumbSize,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(BrandRadius.sm),
-                  child: ExcludeSemantics(child: _buildThumb(context)),
+        // Spring-посадка: новое фото «опускается» в Wrap с лёгким перелётом,
+        // а не просто появляется. Key по photo.id — триггер анимации при
+        // появлении. Reduce Motion: масштаб всегда 1.0 (мгновенно).
+        TweenAnimationBuilder<double>(
+          key: ValueKey('spring-${photo.id}'),
+          tween: Tween<double>(begin: _beginScale(context), end: 1.0),
+          curve: Curves.easeOutBack,
+          duration: MediaQuery.disableAnimationsOf(context)
+              ? Duration.zero
+              : const Duration(milliseconds: 280),
+          builder: (context, scale, child) => Transform.scale(
+            scale: scale,
+            alignment: Alignment.topCenter,
+            child: child,
+          ),
+          child: Semantics(
+            button: true,
+            onTap: onTap,
+            label:
+                'Открыть фото ${index + 1} из $total, статус: ${photo.status.label}',
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(BrandRadius.sm),
+                child: SizedBox(
+                  width: _thumbSize,
+                  height: _thumbSize,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(BrandRadius.sm),
+                    child: ExcludeSemantics(child: _buildThumb(context)),
+                  ),
                 ),
               ),
             ),
@@ -374,6 +447,74 @@ class PhotoThumbnail extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+
+  /// Начальный масштаб spring-посадки: 0.6 (видимая посадка) или 1.0
+  /// (мгновенно при reduce-motion — тогда duration уже Duration.zero, и
+  /// tween из 1.0→1.0 нейтрален).
+  double _beginScale(BuildContext context) {
+    return MediaQuery.disableAnimationsOf(context) ? 1.0 : 0.6;
+  }
+}
+
+/// Осязаемая вспышка подтверждения успешной загрузки фото.
+///
+/// Зелёный круг с галочкой появляется в центре (spring + fade), держится
+/// мгновение и растворяется. Семантически announces «Фото загружено».
+/// Триггерится из [_PhotoScreenState._triggerSuccessFlash].
+class _SuccessFlash extends StatelessWidget {
+  const _SuccessFlash({required this.animation});
+
+  final Animation<double> animation;
+
+  @override
+  Widget build(BuildContext context) {
+    // Две фазы: 0.0–0.5 появление (scale+fade in), 0.5–1.0 растворение.
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, _) {
+        final t = animation.value;
+        final opacity = t < 0.5 ? (t / 0.5) : (1.0 - (t - 0.5) / 0.5);
+        // Spring-посадка на появлении: easeOutBack к 1.0.
+        final scaleIn = t < 0.5
+            ? Curves.easeOutBack.transform(t / 0.5)
+            : 1.0;
+        return Semantics(
+          liveRegion: t < 0.5,
+          label: 'Фото загружено',
+          child: Container(
+            color: BrandColors.graphite.withValues(alpha: 0.32 * opacity.clamp(0.0, 1.0)),
+            alignment: Alignment.center,
+            child: Opacity(
+              opacity: opacity.clamp(0.0, 1.0),
+              child: Transform.scale(
+                scale: scaleIn,
+                child: Container(
+                  width: 88,
+                  height: 88,
+                  decoration: BoxDecoration(
+                    color: BrandColors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: BrandColors.graphite.withValues(alpha: 0.18 * opacity.clamp(0.0, 1.0)),
+                        blurRadius: 24,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.check_rounded,
+                    color: BrandColors.statusCompletedForeground,
+                    size: 48,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

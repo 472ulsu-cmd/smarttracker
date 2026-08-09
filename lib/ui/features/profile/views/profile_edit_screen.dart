@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../config/service_locator.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
+import '../../../core/widgets/app_snack_bars.dart';
 import '../view_models/profile_view_model.dart';
 import 'phone_confirm_dialog.dart';
 
@@ -82,13 +83,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     final sent = await _viewModel.requestPhoneCode(newPhone);
     if (!mounted) return;
     if (!sent) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _viewModel.errorMessage ??
-                'Не удалось отправить код. Проверьте номер и попробуйте ещё раз.',
-          ),
-        ),
+      showErrorSnackBar(
+        context,
+        _viewModel.errorMessage ??
+            'Не удалось отправить код. Проверьте номер и попробуйте ещё раз.',
       );
       return;
     }
@@ -106,9 +104,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     _viewModel.resetPhoneConfirmation();
     if (!mounted) return;
     if (confirmed == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Профиль сохранён')),
-      );
+      showSuccessSnackBar(context, 'Профиль сохранён');
       // go() вместо pop(): updateProfile() внутри зовёт
       // AuthViewModel.updateUser() → notifyListeners(), а AuthViewModel
       // входит в refreshListenable роутера. Из-за этого роутер пере-парсит
@@ -138,20 +134,15 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
     );
     if (!mounted) return;
     if (ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Профиль сохранён')),
-      );
+      showSuccessSnackBar(context, 'Профиль сохранён');
       // VM — singleton: updateProfile() уже обновил общий _user и позвал
       // notifyListeners(), поэтому экран профиля перерисуется сам.
       context.go('/main/profile');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _viewModel.errorMessage ??
-                'Не удалось сохранить профиль. Проверьте данные и попробуйте ещё раз.',
-          ),
-        ),
+      showErrorSnackBar(
+        context,
+        _viewModel.errorMessage ??
+            'Не удалось сохранить профиль. Проверьте данные и попробуйте ещё раз.',
       );
     }
   }
@@ -188,7 +179,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               : Form(
                   key: _formKey,
                   child: ListView(
-                    padding: const EdgeInsets.all(16),
+                    // Нижний safe-area: кнопка «Сохранить» не под home-indicator.
+                    padding: EdgeInsets.only(
+                      left: 16,
+                      right: 16,
+                      top: 16,
+                      bottom: 16 + MediaQuery.viewPaddingOf(context).bottom,
+                    ),
                     children: [
                       TextFormField(
                     controller: _passportController,

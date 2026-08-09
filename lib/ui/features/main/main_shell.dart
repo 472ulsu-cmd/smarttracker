@@ -22,18 +22,22 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
-    // Предзагрузка уведомлений и счётчика сразу после входа: ветка
-    // «Уведомления» строится лениво (IndexedStack), поэтому без явного
-    // вызова здесь список остался бы пустым до первого открытия вкладки,
-    // а бейдж не обновился бы. VM — singleton, данные переживут переходы.
+    // Предзагрузка уведомлений сразу после входа: ветка «Уведомления»
+    // строится лениво (IndexedStack), поэтому без явного вызова здесь список
+    // остался бы пустым до первого открытия вкладки. VM — singleton, данные
+    // переживут переходы.
     getIt<NotificationsViewModel>().load();
-    getIt<UnreadBadgeViewModel>().refresh();
+    // Подписываем бейдж на NotificationsViewModel и синхронизируем count.
+    // Бейдж — проекция VM, поэтому мгновенно реагирует на markAsRead/
+    // markAllRead, а не только на полный refresh при перезаходе на вкладку.
+    getIt<UnreadBadgeViewModel>().syncFromNotifications();
   }
 
   void _onDestinationSelected(int index) {
-    // При переходе на вкладку уведомлений — обновим счётчик.
+    // При переходе на вкладку уведомлений — подсосём свежие данные
+    // (бейдж обновится автоматически через подписку на VM).
     if (index == _notificationsTabIndex) {
-      getIt<UnreadBadgeViewModel>().refresh();
+      getIt<NotificationsViewModel>().load();
     }
     widget.navigationShell.goBranch(
       index,
