@@ -58,7 +58,7 @@ class _PhotoScreenState extends State<PhotoScreen>
     _viewModel.addListener(_onChanged);
     _successFlash = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 1100),
     );
     _viewModel.load();
   }
@@ -397,10 +397,11 @@ class PhotoThumbnail extends StatelessWidget {
         TweenAnimationBuilder<double>(
           key: ValueKey('spring-${photo.id}'),
           tween: Tween<double>(begin: _beginScale(context), end: 1.0),
-          curve: Curves.easeOutBack,
+          // easeOutCubic вместо easeOutBack: меньше перелёта, мягче посадка.
+          curve: Curves.easeOutCubic,
           duration: MediaQuery.disableAnimationsOf(context)
               ? Duration.zero
-              : const Duration(milliseconds: 280),
+              : const Duration(milliseconds: 420),
           builder: (context, scale, child) => Transform.scale(
             scale: scale,
             alignment: Alignment.topCenter,
@@ -470,18 +471,32 @@ class _SuccessFlash extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Две фазы: 0.0–0.5 появление (scale+fade in), 0.5–1.0 растворение.
+    // Три фазы: 0.0–0.4 появление (scale+fade in), 0.4–0.7 удержание,
+    // 0.7–1.0 растворение. Общая длительность — в AnimationController
+    // (~1100ms): появление ~440ms, удержание ~330ms, затухание ~330ms.
     return AnimatedBuilder(
       animation: animation,
       builder: (context, _) {
         final t = animation.value;
-        final opacity = t < 0.5 ? (t / 0.5) : (1.0 - (t - 0.5) / 0.5);
-        // Spring-посадка на появлении: easeOutBack к 1.0.
-        final scaleIn = t < 0.5
-            ? Curves.easeOutBack.transform(t / 0.5)
-            : 1.0;
+        final double opacity;
+        final double scaleIn;
+        if (t < 0.4) {
+          // Появление.
+          final p = t / 0.4;
+          opacity = p;
+          scaleIn = Curves.easeOutCubic.transform(p);
+        } else if (t < 0.7) {
+          // Удержание.
+          opacity = 1.0;
+          scaleIn = 1.0;
+        } else {
+          // Растворение.
+          final p = (t - 0.7) / 0.3;
+          opacity = 1.0 - p;
+          scaleIn = 1.0;
+        }
         return Semantics(
-          liveRegion: t < 0.5,
+          liveRegion: t < 0.4,
           label: 'Фото загружено',
           child: Container(
             color: BrandColors.graphite.withValues(alpha: 0.32 * opacity.clamp(0.0, 1.0)),

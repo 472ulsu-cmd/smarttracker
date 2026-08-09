@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../config/service_locator.dart';
@@ -39,6 +40,10 @@ class _MainShellState extends State<MainShell> {
     if (index == _notificationsTabIndex) {
       getIt<NotificationsViewModel>().load();
     }
+    // Тактиль подтверждает смену вкладки — заметно в поле, при тряске,
+    // не глядя на индикатор. selectionClick — мягче статуса/фото, чтобы
+    // не конкурировать с ними по «весу».
+    HapticFeedback.selectionClick();
     widget.navigationShell.goBranch(
       index,
       // Если вкладка уже активна — вернуться в начало стека.
@@ -67,18 +72,28 @@ class _MainShellState extends State<MainShell> {
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.assignment_outlined),
-            selectedIcon: Icon(Icons.assignment, color: colorScheme.primary),
+            // Spring-pop при активации вкладки: иконка «выпрыгивает»
+            // (scale 0.8→1.0, easeOutBack). Reduce Motion honoured.
+            selectedIcon: _PopIcon(
+              color: colorScheme.primary,
+              icon: Icons.assignment,
+            ),
             label: 'Заявки',
           ),
           NavigationDestination(
             icon: const _NotificationsIcon(),
-            selectedIcon:
-                Icon(Icons.notifications, color: colorScheme.primary),
+            selectedIcon: _PopIcon(
+              color: colorScheme.primary,
+              icon: Icons.notifications,
+            ),
             label: 'Уведомления',
           ),
           NavigationDestination(
             icon: const Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person, color: colorScheme.primary),
+            selectedIcon: _PopIcon(
+              color: colorScheme.primary,
+              icon: Icons.person,
+            ),
             label: 'Профиль',
           ),
         ],
@@ -108,6 +123,33 @@ class _NotificationsIcon extends StatelessWidget {
           child: const Icon(Icons.notifications_outlined),
         );
       },
+    );
+  }
+}
+
+/// Иконка активной вкладки с spring-pop при появлении.
+///
+/// `selectedIcon` в NavigationDestination монтируется заново, когда вкладка
+/// становится активной — это и есть триггер анимации: иконка «выпрыгивает»
+/// (scale 0.8→1.0 через easeOutBack), тактильно подтверждая выбор. Reduce
+/// Motion honoured: scale всегда 1.0 (мгновенно).
+class _PopIcon extends StatelessWidget {
+  const _PopIcon({required this.color, required this.icon});
+
+  final Color color;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: reduceMotion ? 1.0 : 0.8, end: 1.0),
+      curve: Curves.easeOutBack,
+      duration:
+          reduceMotion ? Duration.zero : const Duration(milliseconds: 220),
+      builder: (context, scale, child) =>
+          Transform.scale(scale: scale, child: child),
+      child: Icon(icon, color: color),
     );
   }
 }

@@ -36,6 +36,14 @@ class OrderDetailViewModel extends ChangeNotifier {
   String? _successMessage;
   String? get successMessage => _successMessage;
 
+  /// Сбросить сообщение об успехе (экран зовёт после авто-затухания баннера).
+  void clearSuccessMessage() {
+    if (_successMessage != null) {
+      _successMessage = null;
+      notifyListeners();
+    }
+  }
+
   Future<void> load() async {
     if (_isLoading) return;
     _isLoading = true;

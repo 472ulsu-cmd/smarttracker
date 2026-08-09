@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -62,6 +64,10 @@ class OrderDetailScreen extends StatefulWidget {
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   late final OrderDetailViewModel _viewModel;
 
+  /// Таймер авто-затухания баннера успеха: держим ~3.5с, затем чистим
+  /// successMessage → баннер slide-fade-out.
+  Timer? _successDismissTimer;
+
   @override
   void initState() {
     super.initState();
@@ -72,13 +78,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   @override
   void dispose() {
+    _successDismissTimer?.cancel();
     _viewModel.removeListener(_onChanged);
     _viewModel.dispose();
     super.dispose();
   }
 
   void _onChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    // При появлении сообщения об успехе — планируем авто-затухание.
+    if (_viewModel.successMessage != null) {
+      _successDismissTimer?.cancel();
+      _successDismissTimer = Timer(const Duration(milliseconds: 3500), () {
+        if (mounted) _viewModel.clearSuccessMessage();
+      });
+    } else {
+      _successDismissTimer?.cancel();
+    }
+    setState(() {});
   }
 
   @override
@@ -119,24 +136,59 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 if (_viewModel.loadErrorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: ErrorBanner(
-                      message: _viewModel.loadErrorMessage!,
-                      onRetry: _viewModel.isLoading
-                          ? null
-                          : _viewModel.load,
+                  // AnimatedSize: появление/исчезновение баннера плавно
+                  // сдвигает контент, а не скачком — без этого вставка
+                  // баннера дёргает _Summary (с чипом) и статус-морф.
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeInOut,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: ErrorBanner(
+                        message: _viewModel.loadErrorMessage!,
+                        onRetry: _viewModel.isLoading
+                            ? null
+                            : _viewModel.load,
+                      ),
                     ),
                   ),
-                if (_viewModel.successMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _SuccessBanner(
-                      message: _viewModel.successMessage!,
-                      isRejection: _viewModel.lastAttemptedStatus ==
-                          OrderStatus.rejected,
-                    ),
+                // Баннер успеха: всплывает (slide-up + fade), держится ~3.5с,
+                // затем растворяется и авто-скрывается (таймер в _onChanged →
+                // clearSuccessMessage). AnimatedSwitcher даёт вход/выход,
+                // AnimatedSize — плавный сдвиг контента под высоту баннера.
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeInOut,
+                  child: AnimatedSwitcher(
+                    duration: MediaQuery.disableAnimationsOf(context)
+                        ? Duration.zero
+                        : const Duration(milliseconds: 280),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, anim) {
+                      if (MediaQuery.disableAnimationsOf(context)) return child;
+                      // Slide-up + fade: баннер «подъезжает» снизу.
+                      return SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0, 0.4),
+                          end: Offset.zero,
+                        ).animate(anim),
+                        child: FadeTransition(opacity: anim, child: child),
+                      );
+                    },
+                    child: _viewModel.successMessage != null
+                        ? Padding(
+                            key: const ValueKey('success-banner'),
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _SuccessBanner(
+                              message: _viewModel.successMessage!,
+                              isRejection: _viewModel.lastAttemptedStatus ==
+                                  OrderStatus.rejected,
+                            ),
+                          )
+                        : const SizedBox.shrink(),
                   ),
+                ),
                 _Summary(order: order),
                 const SizedBox(height: 16),
                 _ClientCard(order: order),
@@ -663,15 +715,13 @@ class _ActionButton extends StatelessWidget {
       ),
     );
     if (confirmed == true && context.mounted) {
-      final success = await viewModel.changeStatus(status);
-      if (success && context.mounted) {
-        // Тактиль совпадает с моментом «посадки» статус-морфа (~середина
-        // анимации): чип+карточка меняются и одновременно подтверждается
-        // вибрацией — единое физическое событие, заметное даже не глядя.
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          HapticFeedback.mediumImpact();
-        });
-      }
+      // Тактиль — НЕ после ответа бэкенда (там сетевой round-trip 0.5–2 с,
+      // водитель уже не связывает вибрацию со своим тапом), а мгновенно
+      // при подтверждении действия. Визуальное подтверждение результата
+      // (морф чипа при смене статуса) играет отдельно — это два разных
+      // события: «действие принято» и «стус изменился».
+      HapticFeedback.mediumImpact();
+      await viewModel.changeStatus(status);
     }
   }
 }
