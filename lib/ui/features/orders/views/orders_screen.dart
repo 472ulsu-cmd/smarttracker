@@ -163,7 +163,14 @@ class _OrdersTabBodyState extends State<_OrdersTabBody> {
   /// При pull-to-refresh и последующих перестройках карточки появляются
   /// мгновенно: анимация показа на каждом refresh была бы шумом и
   /// конфликтовала с самим смыслом «обновить и увидеть свежие данные».
+  ///
+  /// Исключение: смена направления сортировки — каскад перезапускается,
+  /// чтобы водитель увидел переупорядочивание как тактильное событие,
+  /// а не мгновенную смену позиций.
   bool _didCascade = false;
+
+  /// Текущий режим сортировки — для отслеживания смены направления.
+  OrdersSortMode? _lastSortMode;
 
   /// Обработчик свайп-действия: смена статуса заявки со snack-баром.
   ///
@@ -258,8 +265,13 @@ class _OrdersTabBodyState extends State<_OrdersTabBody> {
           );
         }
         // Каскад — только при первом показе непустого списка.
-        final shouldCascade = !_didCascade;
+        // Исключение: смена направления сортировки перезапускает каскад,
+        // чтобы переупорядочивание карточек было видно как событие.
+        final currentSort = viewModel.sortMode;
+        final sortChanged = _lastSortMode != null && _lastSortMode != currentSort;
+        final shouldCascade = !_didCascade || sortChanged;
         _didCascade = true;
+        _lastSortMode = currentSort;
         return Column(
           children: [
             if (error != null)
@@ -278,6 +290,7 @@ class _OrdersTabBodyState extends State<_OrdersTabBody> {
                   itemBuilder: (context, index) {
                     final order = orders[index];
                     return _CascadeTile(
+                      key: ValueKey('cascade-${order.id}'),
                       index: index,
                       animate: shouldCascade,
                       child: SwipeableOrderTile(
@@ -317,6 +330,7 @@ class _OrdersTabBodyState extends State<_OrdersTabBody> {
 /// Reduce Motion honoured: при disableAnimations — мгновенно.
 class _CascadeTile extends StatefulWidget {
   const _CascadeTile({
+    super.key,
     required this.index,
     required this.animate,
     required this.child,
@@ -354,10 +368,34 @@ class _CascadeTileState extends State<_CascadeTile>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_controller.value > 0) return; // уже запущен/завершён.
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    // Перезапуск каскада при смене сортировки: animate пришёл true,
+    // хотя контроллер уже в 1.0 (предыдущий показ закончился).
+    if (widget.animate &&
+        _controller.value == 1.0 &&
+        _lastAnimateSeen == false &&
+        !reduceMotion) {
+      _controller.value = 0.0;
+      _scheduleCascade(reduceMotion);
+      _lastAnimateSeen = widget.animate;
+      return;
+    }
+    if (_controller.value > 0 && _lastAnimateSeen == widget.animate) {
+      return; // уже запущен/завершён, состояние не поменялось.
+    }
+    _lastAnimateSeen = widget.animate;
     if (!widget.animate || reduceMotion) {
       // Без анимации — сразу в конечной позиции (refresh, reduce-motion).
+      _controller.value = 1.0;
+      return;
+    }
+    _scheduleCascade(reduceMotion);
+  }
+
+  bool _lastAnimateSeen = false;
+
+  void _scheduleCascade(bool reduceMotion) {
+    if (reduceMotion) {
       _controller.value = 1.0;
       return;
     }
@@ -401,7 +439,7 @@ class _SortMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<OrdersSortMode>(
-      tooltip: 'Сортировка',
+      tooltip: 'Сортировать по дате погрузки',
       icon: const Icon(Icons.sort_rounded),
       // Дефолтный padding PopupMenuButton уже даёт touch target ≥48dp
       // по Material/HIG — критично в поле и в перчатках.
@@ -411,17 +449,17 @@ class _SortMenu extends StatelessWidget {
       },
       itemBuilder: (context) => [
         PopupMenuItem(
-          value: OrdersSortMode.newestFirst,
+          value: OrdersSortMode.loadingSoonest,
           child: _SortMenuLabel(
-            label: 'Сначала новые',
-            selected: viewModel.sortMode == OrdersSortMode.newestFirst,
+            label: '▲ Дата погрузки',
+            selected: viewModel.sortMode == OrdersSortMode.loadingSoonest,
           ),
         ),
         PopupMenuItem(
-          value: OrdersSortMode.oldestFirst,
+          value: OrdersSortMode.loadingLatest,
           child: _SortMenuLabel(
-            label: 'Сначала старые',
-            selected: viewModel.sortMode == OrdersSortMode.oldestFirst,
+            label: '▼ Дата погрузки',
+            selected: viewModel.sortMode == OrdersSortMode.loadingLatest,
           ),
         ),
       ],
@@ -429,7 +467,7 @@ class _SortMenu extends StatelessWidget {
   }
 }
 
-/// Строка пункта меню сортировки: текст + галочка у активного.
+/// Строка пункта меню сортировки: активный отмечен только цветом.
 class _SortMenuLabel extends StatelessWidget {
   const _SortMenuLabel({required this.label, required this.selected});
 
@@ -438,27 +476,12 @@ class _SortMenuLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        // Зарезервированное место под галочку — чтобы тексты обоих пунктов
-        // стояли по одной вертикали независимо от выбранного.
-        SizedBox(
-          width: 24,
-          child: selected
-              ? const Icon(Icons.check_rounded,
-                  size: 20, color: BrandColors.primary)
-              : const SizedBox.shrink(),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          label,
-          style: AppTextStyles.bodyLarge.copyWith(
-            color:
-                selected ? BrandColors.primary : BrandColors.graphite,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-          ),
-        ),
-      ],
+    return Text(
+      label,
+      style: AppTextStyles.bodyLarge.copyWith(
+        color: selected ? BrandColors.primary : BrandColors.graphite,
+        fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+      ),
     );
   }
 }

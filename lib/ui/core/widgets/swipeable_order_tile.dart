@@ -5,6 +5,7 @@ import '../../../domain/models/order.dart';
 import '../../../domain/models/order_status.dart';
 import '../../core/theme/brand_colors.dart';
 import '../../core/theme/brand_radius.dart';
+import '../../core/theme/app_text_styles.dart';
 import '../../features/orders/views/order_list_tile.dart';
 
 /// Карточка заявки со свайп-действиями для новых заявок.
@@ -69,12 +70,20 @@ class SwipeableOrderTile extends StatelessWidget {
       ),
       // ПодтверждениеDismiss: свайп срабатывает только при движении по
       // направлению — не при вертикальном скролле.
-      confirmDismiss: (direction) {
+      // Показывает диалог подтверждения (как на экране деталей заявки),
+      // чтобы водитель не мог случайно сменить статус жестом.
+      confirmDismiss: (direction) async {
         // Тактильное подтверждение намерения — водитель «чувствует» порог.
         HapticFeedback.mediumImpact();
-        return Future.value(direction == DismissDirection.startToEnd
-            ? onAccept != null
-            : onReject != null);
+
+        final isAccept = direction == DismissDirection.startToEnd;
+        final callback = isAccept ? onAccept : onReject;
+        if (callback == null) return false;
+
+        return _showConfirmDialog(
+          context,
+          isAccept: isAccept,
+        );
       },
       onDismissed: (direction) {
         if (direction == DismissDirection.startToEnd) {
@@ -85,6 +94,81 @@ class SwipeableOrderTile extends StatelessWidget {
       },
       child: OrderListTile(order: order, onTap: onTap),
     );
+  }
+
+  /// Диалог подтверждения смены статуса при свайпе.
+  ///
+  /// Зеркально повторяет диалог из [_ActionButton._confirm] на экране
+  /// деталей заявки: тот же layout, те же кнопки, тот же tone.
+  Future<bool> _showConfirmDialog(BuildContext context, {
+    required bool isAccept,
+  }) async {
+    final label = isAccept ? 'Принять в работу' : 'Отказаться от заявки';
+    final consequence = isAccept
+        ? 'Статус заявки будет изменен на "В работе".'
+        : 'Заявка будет отменена и перемещена в архив. Это действие нельзя отменить.';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: BrandColors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(BrandRadius.md),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Text(label, style: AppTextStyles.titleMedium),
+                  ),
+                  IconButton(
+                    tooltip: 'Закрыть',
+                    icon: const Icon(Icons.close_rounded),
+                    style: IconButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () => Navigator.pop(ctx, false),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                consequence,
+                style: AppTextStyles.bodyMedium
+                    .copyWith(color: BrandColors.grayDark),
+              ),
+              const SizedBox(height: 20),
+              if (isAccept)
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Подтвердить'),
+                )
+              else
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: BrandColors.error,
+                    side: const BorderSide(color: BrandColors.error),
+                    minimumSize: const Size.fromHeight(52),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Отказаться'),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    return confirmed == true;
   }
 }
 
