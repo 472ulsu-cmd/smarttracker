@@ -44,7 +44,7 @@ class SkeletonOrderTile extends StatelessWidget {
                         width: 64,
                         height: 24,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFDAE0E5),
+                          color: BrandColors.grayLighter,
                           borderRadius: BorderRadius.circular(BrandRadius.pill),
                         ),
                       ),
@@ -59,7 +59,7 @@ class SkeletonOrderTile extends StatelessWidget {
                         width: 22,
                         height: 22,
                         decoration: const BoxDecoration(
-                          color: Color(0xFFDAE0E5),
+                          color: BrandColors.grayLighter,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -85,7 +85,7 @@ class SkeletonOrderTile extends StatelessWidget {
                         width: 18,
                         height: 18,
                         decoration: const BoxDecoration(
-                          color: Color(0xFFDAE0E5),
+                          color: BrandColors.grayLighter,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -109,7 +109,7 @@ class SkeletonOrderTile extends StatelessWidget {
                     width: 20,
                     height: 20,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFDAE0E5),
+                      color: BrandColors.grayLighter,
                       shape: BoxShape.circle,
                     ),
                   ),

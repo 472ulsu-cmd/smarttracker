@@ -222,9 +222,7 @@ class _FieldRow extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label,
-                style: AppTextStyles.caption
-                    .copyWith(color: BrandColors.grayDark)),
+            Text(label, style: AppTextStyles.labelMedium),
             Text(
               value,
               style: AppTextStyles.bodyLarge,

@@ -44,10 +44,20 @@ class OrderListTile extends StatelessWidget {
         : order.route;
     final statusLabel = OrderStatus.listLabelForId(order.status);
 
+    // Тонкая статус-полоса на левом крае карточки — тот же оттенок, что у
+    // чипа статуса. В смешанном списке водитель сканирует статусы взглядом
+    // без чтения чипов. 4px слева, остальные стороны — стандартная серая рамка.
+    final statusAccent = statusBackgroundColorFor(order.status);
+
     return Container(
       decoration: BoxDecoration(
         color: BrandColors.white,
-        border: Border.all(color: BrandColors.grayLighter),
+        border: Border(
+          left: BorderSide(width: 4, color: statusAccent),
+          top: const BorderSide(color: BrandColors.grayLighter),
+          right: const BorderSide(color: BrandColors.grayLighter),
+          bottom: const BorderSide(color: BrandColors.grayLighter),
+        ),
         borderRadius: BorderRadius.circular(BrandRadius.md),
       ),
       child: InkWell(

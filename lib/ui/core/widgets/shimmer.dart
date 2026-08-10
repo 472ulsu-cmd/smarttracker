@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/brand_colors.dart';
+
 /// Градиентный shimmer-эффект для skeleton-загрузки.
 ///
 /// Не требует внешних пакетов — реализован на [ShaderMask] с линейным
@@ -76,7 +78,7 @@ class _ShimmerState extends State<Shimmer>
       builder: (context, _) {
         return ShaderMask(
           shaderCallback: (bounds) {
-            final base = widget.baseColor ?? const Color(0xFFDAE0E5);
+            final base = widget.baseColor ?? BrandColors.grayLighter;
             final highlight = widget.highlightColor ?? const Color(0xFFFFFFFF);
             return LinearGradient(
               begin: Alignment.centerLeft,
@@ -124,7 +126,7 @@ class SkeletonLine extends StatelessWidget {
       child: Container(
         height: height,
         decoration: BoxDecoration(
-          color: const Color(0xFFDAE0E5),
+          color: BrandColors.grayLighter,
           borderRadius: BorderRadius.circular(4),
         ),
       ),

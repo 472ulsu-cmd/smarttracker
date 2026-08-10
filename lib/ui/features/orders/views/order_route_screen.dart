@@ -83,7 +83,8 @@ class _OrderRouteScreenState extends State<OrderRouteScreen> {
                           ? Icons.error_outline_rounded
                           : Icons.route_outlined,
                       size: 56,
-                      color: BrandColors.grayMid,
+                      color:
+                          hasError ? BrandColors.error : BrandColors.grayMid,
                     ),
                     const SizedBox(height: 12),
                     Text(

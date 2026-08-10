@@ -134,6 +134,31 @@ ThemeData appTheme() {
       type: BottomNavigationBarType.fixed,
       elevation: 8,
     ),
+    // M3 NavigationBar (используется в MainShell) — отдельная тема от
+    // legacy BottomNavigationBar. Без неё unselected-цвет неуправляем
+    // (Material default), а selected/indicator заданы вручную в виджете.
+    // Здесь фиксируем brand-токены на уровне темы.
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: BrandColors.white,
+      indicatorColor: BrandColors.primary.withValues(alpha: 0.12),
+      // M3 surfaceTintColor по умолчанию даёт subtle elevation-тинт —
+      // убираем, фон остаётся чисто белым.
+      surfaceTintColor: Colors.transparent,
+      elevation: 8,
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return AppTextStyles.labelMedium.copyWith(
+          color: selected ? BrandColors.primary : BrandColors.grayMid,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+        );
+      }),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return IconThemeData(
+          color: selected ? BrandColors.primary : BrandColors.grayMid,
+        );
+      }),
+    ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: BrandColors.primary,
     ),

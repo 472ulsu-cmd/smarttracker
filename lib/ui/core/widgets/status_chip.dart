@@ -20,7 +20,7 @@ class StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final label = _labelFor(statusId);
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
-    final backgroundColor = _backgroundColorFor(statusId);
+    final backgroundColor = statusBackgroundColorFor(statusId);
     final foregroundColor = _foregroundColorFor(statusId);
 
     return Semantics(
@@ -112,13 +112,17 @@ String _labelFor(int statusId) {
 }
 
 /// Фон чипа статуса — светлый оттенок статусного цвета, доступный для текста.
-Color _backgroundColorFor(int statusId) {
+///
+/// Публичная, чтобы карточка заявки ([OrderListTile]) использовала тот же
+/// маппинг для тонкой статус-полосы на левом крае — единый источник статусов.
+Color statusBackgroundColorFor(int statusId) {
   switch (OrderStatus.fromId(statusId)) {
     case OrderStatus.newRequest:
       return BrandColors.statusNewBackground;
     case OrderStatus.inProgress:
-    case OrderStatus.loaded:
       return BrandColors.statusInProgressBackground;
+    case OrderStatus.loaded:
+      return BrandColors.statusLoadedBackground;
     case OrderStatus.rejected:
       return BrandColors.statusRejectedBackground;
     case OrderStatus.completed:
@@ -134,8 +138,9 @@ Color _foregroundColorFor(int statusId) {
     case OrderStatus.newRequest:
       return BrandColors.statusNewForeground;
     case OrderStatus.inProgress:
-    case OrderStatus.loaded:
       return BrandColors.statusInProgressForeground;
+    case OrderStatus.loaded:
+      return BrandColors.statusLoadedForeground;
     case OrderStatus.rejected:
       return BrandColors.statusRejectedForeground;
     case OrderStatus.completed:

@@ -115,7 +115,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: BrandColors.white,
+                      ),
                     )
                   : const Text('Отправить'),
             ),

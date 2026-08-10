@@ -5,12 +5,17 @@ import '../theme/brand_colors.dart';
 
 /// Центрированное состояние пустого списка/экрана:
 /// иконка, текст, опциональная подсказка и кнопка действия.
+///
+/// Иконка по умолчанию — тёплая: оранжевая в круге primary@0.12, как на
+/// экране геолокации. Так «пустой список» не читается как «всё сломалось».
+/// Для ошибок caller передаёт [iconColor] = [BrandColors.error] — круг
+/// подкрашивается тем же цветом, чтобы не спорить с иконкой.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,
     required this.text,
     this.icon,
-    this.iconColor = BrandColors.grayMid,
+    this.iconColor = BrandColors.primary,
     this.hint,
     this.actionLabel,
     this.onAction,
@@ -19,7 +24,7 @@ class EmptyState extends StatelessWidget {
   /// Иконка сверху; null — без иконки.
   final IconData? icon;
 
-  /// Цвет иконки.
+  /// Цвет иконки и её фонового круга.
   final Color iconColor;
 
   /// Основной текст состояния.
@@ -43,8 +48,16 @@ class EmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 56, color: iconColor),
-              const SizedBox(height: 12),
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 48, color: iconColor),
+              ),
+              const SizedBox(height: 16),
             ],
             Text(
               text,
@@ -60,7 +73,7 @@ class EmptyState extends StatelessWidget {
                 hint!,
                 textAlign: TextAlign.center,
                 style: AppTextStyles.bodySmall
-                    .copyWith(color: BrandColors.grayDark),
+                    .copyWith(color: BrandColors.grayMid),
               ),
             ],
             if (actionLabel != null && onAction != null) ...[

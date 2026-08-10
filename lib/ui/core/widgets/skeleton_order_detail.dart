@@ -57,7 +57,7 @@ class _SkeletonSummary extends StatelessWidget {
                 width: 72,
                 height: 26,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDAE0E5),
+                  color: BrandColors.grayLighter,
                   borderRadius: BorderRadius.circular(BrandRadius.pill),
                 ),
               ),
@@ -71,7 +71,7 @@ class _SkeletonSummary extends StatelessWidget {
                 width: 20,
                 height: 20,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFDAE0E5),
+                  color: BrandColors.grayLighter,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -132,7 +132,7 @@ class _SkeletonClientCard extends StatelessWidget {
                 width: 18,
                 height: 18,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFDAE0E5),
+                  color: BrandColors.grayLighter,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -148,7 +148,7 @@ class _SkeletonClientCard extends StatelessWidget {
                 width: 18,
                 height: 18,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFDAE0E5),
+                  color: BrandColors.grayLighter,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -164,7 +164,7 @@ class _SkeletonClientCard extends StatelessWidget {
                 width: 18,
                 height: 18,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFDAE0E5),
+                  color: BrandColors.grayLighter,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -204,7 +204,7 @@ class _SkeletonRouteCard extends StatelessWidget {
                 width: 80,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDAE0E5),
+                  color: BrandColors.grayLighter,
                   borderRadius: BorderRadius.circular(BrandRadius.sm),
                 ),
               ),
@@ -234,7 +234,7 @@ class _SkeletonRouteCard extends StatelessWidget {
               width: 12,
               height: 12,
               decoration: const BoxDecoration(
-                color: Color(0xFFDAE0E5),
+                color: BrandColors.grayLighter,
                 shape: BoxShape.circle,
               ),
             ),
@@ -269,7 +269,7 @@ class _SkeletonPhotoRow extends StatelessWidget {
           width: 24,
           height: 24,
           decoration: const BoxDecoration(
-            color: Color(0xFFDAE0E5),
+            color: BrandColors.grayLighter,
             shape: BoxShape.circle,
           ),
         ),
@@ -280,7 +280,7 @@ class _SkeletonPhotoRow extends StatelessWidget {
           width: 24,
           height: 24,
           decoration: const BoxDecoration(
-            color: Color(0xFFDAE0E5),
+            color: BrandColors.grayLighter,
             shape: BoxShape.circle,
           ),
         ),

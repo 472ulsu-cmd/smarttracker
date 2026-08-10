@@ -125,6 +125,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           if (_viewModel.order == null) {
             return EmptyState(
               icon: Icons.error_outline_rounded,
+              iconColor: BrandColors.error,
               text: _viewModel.loadErrorMessage ??
                   'Не удалось загрузить заявку. Проверьте соединение и повторите.',
               actionLabel: 'Повторить',
@@ -360,8 +361,7 @@ class _InfoItem extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: AppTextStyles.caption.copyWith(color: BrandColors.grayDark)),
+        Text(label, style: AppTextStyles.labelMedium),
         Text(
           value,
           style: AppTextStyles.bodyMedium,
