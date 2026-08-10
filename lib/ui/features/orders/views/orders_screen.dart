@@ -4,12 +4,15 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/refresh_bus.dart';
 import '../../../../config/service_locator.dart';
+import '../../../../domain/models/order_status.dart';
+import '../../../../domain/repositories/orders_repository.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
+import '../../../core/widgets/skeleton_order_tile.dart';
+import '../../../core/widgets/swipeable_order_tile.dart';
 import '../view_models/orders_view_model.dart';
-import 'order_list_tile.dart';
 
 /// Экран списка заявок с вкладками: Новые / В работе / Архив.
 class OrdersScreen extends StatefulWidget {
@@ -162,6 +165,65 @@ class _OrdersTabBodyState extends State<_OrdersTabBody> {
   /// конфликтовала с самим смыслом «обновить и увидеть свежие данные».
   bool _didCascade = false;
 
+  /// Обработчик свайп-действия: смена статуса заявки со snack-баром.
+  ///
+  /// Вызывается из [SwipeableOrderTile.onAccept] / [onReject].
+  /// Меняет статус через репозиторий, обновляет список через шину и
+  /// показывает snack-бар с результатом. Ошибки показываются как snack-бар
+  /// с кнопкой «Повторить» — UI списка при этом не дёргается.
+  void _onSwipeStatusChange({
+    required BuildContext context,
+    required int orderId,
+    required OrderStatus nextStatus,
+  }) {
+    final repository = getIt<OrdersRepository>();
+    final label = nextStatus == OrderStatus.inProgress
+        ? 'Заявка принята в работу'
+        : 'Заявка отклонена';
+
+    // Optimistic: сразу обновляем список — водитель видит мгновенный отклик.
+    getIt<OrdersRefreshBus>().notifyChanged();
+
+    // Фоновый вызов API. При ошибке — показываем snack-бар с возможностью
+    // повторить и перезагружаем список (статус на бэкенде не поменялся).
+    repository.changeStatus(orderId, nextStatus.id).then((_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(label),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }).catchError((_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Не удалось изменить статус. Проверьте соединение.',
+          ),
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Повторить',
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              _onSwipeStatusChange(
+                context: context,
+                orderId: orderId,
+                nextStatus: nextStatus,
+              );
+            },
+          ),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      // Перезагружаем список — статус на сервере не изменился.
+      widget.viewModel.loadAll();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final viewModel = widget.viewModel;
@@ -170,7 +232,15 @@ class _OrdersTabBodyState extends State<_OrdersTabBody> {
       listenable: viewModel,
       builder: (context, _) {
         if (viewModel.isLoadingOf(tab) && viewModel.ordersOf(tab).isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+          return ListView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            itemCount: 4,
+            itemBuilder: (_, __) => const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: SkeletonOrderTile(),
+            ),
+          );
         }
         final error = viewModel.errorOf(tab);
         if (error != null && viewModel.ordersOf(tab).isEmpty) {
@@ -210,10 +280,24 @@ class _OrdersTabBodyState extends State<_OrdersTabBody> {
                     return _CascadeTile(
                       index: index,
                       animate: shouldCascade,
-                      child: OrderListTile(
+                      child: SwipeableOrderTile(
                         order: order,
                         onTap: () =>
                             context.push('/main/orders/${order.id}'),
+                        onAccept: order.status == OrderStatus.newRequest.id
+                            ? () => _onSwipeStatusChange(
+                                  context: context,
+                                  orderId: order.id,
+                                  nextStatus: OrderStatus.inProgress,
+                                )
+                            : null,
+                        onReject: order.status == OrderStatus.newRequest.id
+                            ? () => _onSwipeStatusChange(
+                                  context: context,
+                                  orderId: order.id,
+                                  nextStatus: OrderStatus.rejected,
+                                )
+                            : null,
                       ),
                     );
                   },

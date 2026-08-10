@@ -9,6 +9,7 @@ import '../../../../domain/models/order.dart';
 import '../../../../domain/models/order_status.dart';
 import '../../../../domain/repositories/orders_repository.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/transitions/app_transitions.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
 import '../../../core/utils/date_format.dart';
@@ -16,6 +17,7 @@ import '../../../core/widgets/brand_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_banner.dart';
 import '../../../core/widgets/phone_call_row.dart';
+import '../../../core/widgets/skeleton_order_detail.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../view_models/order_detail_view_model.dart';
 
@@ -118,7 +120,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         listenable: _viewModel,
         builder: (context, _) {
           if (_viewModel.isLoading && _viewModel.order == null) {
-            return const Center(child: CircularProgressIndicator());
+            return const SkeletonOrderDetail();
           }
           if (_viewModel.order == null) {
             return EmptyState(
@@ -296,15 +298,18 @@ class _SummaryState extends State<_Summary>
                 Expanded(
                   child: Semantics(
                     header: true,
-                    child: Text(
-                      '№ ${order.num}',
+                    child: AppTransitions.heroOrderNumber(
+                      orderId: order.id,
+                      orderNum: order.num,
                       style: AppTextStyles.titleLarge,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
-                StatusChip(statusId: order.status),
+                AppTransitions.heroStatusChip(
+                  orderId: order.id,
+                  statusId: order.status,
+                  chip: StatusChip(statusId: order.status),
+                ),
               ],
             ),
             const SizedBox(height: 12),
