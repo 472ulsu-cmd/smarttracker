@@ -25,6 +25,19 @@ class BrandColors {
   /// Зелёный — только для экранов (web/app).
   static const Color greenWeb = Color(0xFF00F55F);
 
+  /// Action-зелёный для позитивных действий (свайп «Принять», успех).
+  /// #2E7D32: уверенный зелёный с контрастом к белому ~5.1:1 (WCAG AA),
+  /// заметно светлее [statusCompletedForeground] (#0A6B2F) и читаемее
+  /// [greenWeb] (#00F55F, ~1.5:1 с белым).
+  static const Color success = Color(0xFF2E7D32);
+
+  /// Action-красный для destructive-поверхностей (свайп «Отказаться»).
+  /// #E53935: заметно светлее [error] (#D32F2F), контраст с белым ~4.2:1 —
+  /// AA для крупной иконки (22px) и bold-лейбла. Симметричен [success]
+  /// (оба из шкалы Material). Не заменяет [error]: тот остаётся
+  /// семантическим цветом границ/текста/иконок ошибок.
+  static const Color destructive = Color(0xFFE53935);
+
   // Серая шкала — образована от основных цветов.
   static const Color grayDark = Color(0xFF57575C);
   static const Color grayMid = Color(0xFF888B8F);

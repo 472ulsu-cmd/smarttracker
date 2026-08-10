@@ -509,7 +509,7 @@ class _RoutePoint extends StatelessWidget {
             children: [
               Text(
                 '${point.isLoading ? "Погрузка" : "Разгрузка"} — ${point.city}',
-                style: AppTextStyles.bodyMedium.copyWith(fontSize: 15, height: 1.2),
+                style: AppTextStyles.labelLarge.copyWith(height: 1.2),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -769,10 +769,8 @@ class _SuccessBanner extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: BrandColors.graphite,
-                fontWeight: FontWeight.w500,
-              ),
+              style: AppTextStyles.bodyMedium
+                  .copyWith(fontWeight: FontWeight.w500),
             ),
           ),
         ],

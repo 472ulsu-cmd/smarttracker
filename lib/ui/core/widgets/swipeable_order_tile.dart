@@ -53,17 +53,22 @@ class SwipeableOrderTile extends StatelessWidget {
         DismissDirection.startToEnd: 0.4,
       },
       // Бэкграунд при свайпе вправо — «Принять».
+      // Зелёный: устоявшаяся конвенция «accept = зелёный / reject = красный».
+      // success (#2E7D32): AA-контраст с белым (~5.1:1), заметно светлее
+      // statusCompletedForeground и читаемее greenWeb.
       background: _SwipeBackground(
         alignment: Alignment.centerLeft,
-        color: BrandColors.primary,
+        color: BrandColors.success,
         icon: Icons.check_rounded,
         label: 'Принять',
         padding: const EdgeInsets.only(left: 24),
       ),
       // Бэкграунд при свайпе влево — «Отказаться».
+      // destructive (#E53935): светлее error, AA-контраст для иконки/лейбла.
+      // Симметричен success (свайп «Принять») — оба из action-палитры.
       secondaryBackground: _SwipeBackground(
         alignment: Alignment.centerRight,
-        color: BrandColors.error,
+        color: BrandColors.destructive,
         icon: Icons.close_rounded,
         label: 'Отказаться',
         padding: const EdgeInsets.only(right: 24),
@@ -208,11 +213,8 @@ class _SwipeBackground extends StatelessWidget {
           const SizedBox(width: 10),
           Text(
             label,
-            style: const TextStyle(
-              color: BrandColors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 15,
-            ),
+            style: AppTextStyles.labelLarge
+                .copyWith(color: BrandColors.white),
           ),
         ],
       ),

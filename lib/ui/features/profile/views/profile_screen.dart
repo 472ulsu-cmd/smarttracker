@@ -249,7 +249,7 @@ class _LogoutButton extends StatelessWidget {
       onPressed: () => _confirmLogout(context),
       icon: const Icon(Icons.logout_rounded, color: BrandColors.error),
       label: Text('Выйти из аккаунта',
-          style: AppTextStyles.titleMedium.copyWith(color: BrandColors.error)),
+          style: AppTextStyles.titleMedium.copyWith(color: BrandColors.errorText)),
     );
   }
 

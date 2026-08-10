@@ -88,6 +88,17 @@ class AppTextStyles {
         color: BrandColors.grayDark,
       );
 
+  /// Контролы-ссылки, подписи действий, бейджи.
+  /// Промежуточный шаг между [bodyMedium] (14) и [titleMedium] (16):
+  /// возвращает в шкалу ранее «плавающий» размер 15.
+  static TextStyle get labelLarge => const TextStyle(
+        fontFamily: 'Montserrat',
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+        height: 1.35,
+        color: BrandColors.graphite,
+      );
+
   static TextStyle get caption => const TextStyle(
         fontFamily: 'Montserrat',
         fontSize: 11,
