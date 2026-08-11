@@ -2,7 +2,7 @@ name: smarttracker
 description: "Умный Водитель — рабочий инструмент водителя логистической платформы «Умная логистика»."
 publish_to: 'none'
 
-version: 2.0.0+2
+version: 2.0.0+3
 
 environment:
   sdk: '>=3.8.0 <4.0.0'
