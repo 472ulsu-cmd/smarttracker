@@ -37,7 +37,7 @@ ThemeData appTheme() {
       bodyLarge: AppTextStyles.bodyLarge,
       bodyMedium: AppTextStyles.bodyMedium,
       bodySmall: AppTextStyles.bodySmall,
-      labelLarge: AppTextStyles.button,
+      labelLarge: AppTextStyles.labelLarge,
       labelMedium: AppTextStyles.labelMedium,
     ),
     appBarTheme: AppBarTheme(
@@ -65,7 +65,7 @@ ThemeData appTheme() {
       style: TextButton.styleFrom(
         // primaryText — WCAG AA для текста на белом (4.7:1), primary даёт 3.46:1.
         foregroundColor: BrandColors.primaryText,
-        textStyle: AppTextStyles.titleMedium.copyWith(fontSize: 15),
+        textStyle: AppTextStyles.labelLarge,
         // Touch-target ≥48dp (Material) / ≥44pt (iOS): без явного minimumSize
         // при сжатом padding вертикали хит-зона ссылок падала до ~32px.
         // ВАЖНО: Size(0, 48), а НЕ Size.fromHeight(48) — последний задаёт
@@ -96,7 +96,7 @@ ThemeData appTheme() {
       // Лейблы/плейсхолдеры — это текст, читаемый при каждом вводе; WCAG AA = 4.5:1.
       labelStyle: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayDark),
       hintStyle: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayDark),
-      errorStyle: AppTextStyles.bodySmall.copyWith(color: BrandColors.error),
+      errorStyle: AppTextStyles.bodySmall.copyWith(color: BrandColors.errorText),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(BrandRadius.md),
         borderSide: const BorderSide(color: BrandColors.grayLight),
@@ -133,6 +133,31 @@ ThemeData appTheme() {
       unselectedItemColor: BrandColors.grayMid,
       type: BottomNavigationBarType.fixed,
       elevation: 8,
+    ),
+    // M3 NavigationBar (используется в MainShell) — отдельная тема от
+    // legacy BottomNavigationBar. Без неё unselected-цвет неуправляем
+    // (Material default), а selected/indicator заданы вручную в виджете.
+    // Здесь фиксируем brand-токены на уровне темы.
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: BrandColors.white,
+      indicatorColor: BrandColors.primary.withValues(alpha: 0.12),
+      // M3 surfaceTintColor по умолчанию даёт subtle elevation-тинт —
+      // убираем, фон остаётся чисто белым.
+      surfaceTintColor: Colors.transparent,
+      elevation: 8,
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return AppTextStyles.labelMedium.copyWith(
+          color: selected ? BrandColors.primary : BrandColors.grayMid,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+        );
+      }),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return IconThemeData(
+          color: selected ? BrandColors.primary : BrandColors.grayMid,
+        );
+      }),
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: BrandColors.primary,

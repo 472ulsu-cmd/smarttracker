@@ -8,12 +8,12 @@ import '../../../../domain/repositories/orders_repository.dart';
 /// Индекс вкладки списка заявок.
 enum OrdersTab { newOrders, inProgress, archive }
 
-/// Направление сортировки списка заявок.
+/// Направление сортировки списка заявок по дате погрузки.
 enum OrdersSortMode {
-  /// Сначала новые (по дате погрузки по убыванию).
-  newestFirst,
-  /// Сначала старые (по дате погрузки по возрастанию).
-  oldestFirst,
+  /// Ближайшая погрузка наверху (ранняя дата по возрастанию).
+  loadingSoonest,
+  /// Отдалённая погрузка наверху (поздняя дата по убыванию).
+  loadingLatest,
 }
 
 /// ViewModel списка заявок с тремя вкладками.
@@ -42,7 +42,7 @@ class OrdersViewModel extends ChangeNotifier {
   String _searchQuery = '';
   String get searchQuery => _searchQuery;
 
-  OrdersSortMode _sortMode = OrdersSortMode.newestFirst;
+  OrdersSortMode _sortMode = OrdersSortMode.loadingSoonest;
   OrdersSortMode get sortMode => _sortMode;
 
   List<OrderListItem> ordersOf(OrdersTab tab) {
@@ -61,28 +61,31 @@ class OrdersViewModel extends ChangeNotifier {
             ].join(' ').toLowerCase();
             return hay.contains(_searchQuery);
           });
-    // Сортировка по дате погрузки. Заявки без даты уходят в конец списка.
+    // Сортировка по дате погрузки. Заявки без даты всегда уходят в конец
+    // списка — независимо от направления.
+    //   loadingSoonest — по возрастанию: самая ранняя из имеющихся вверху.
+    //   loadingLatest  — по убыванию:   самая поздняя из имеющихся вверху.
+    final asc = _sortMode == OrdersSortMode.loadingSoonest;
     final sorted = filtered.toList()
-      ..sort((a, b) {
-        final cmp = _compareByLoadingDate(a, b);
-        return _sortMode == OrdersSortMode.newestFirst
-            ? -cmp // новые (позже) — первыми
-            : cmp; // старые (раньше) — первыми
-      });
+      ..sort((a, b) => _compareByLoadingDate(a, b, asc));
     return sorted;
   }
 
-  /// Сравнение заявок по дате погрузки для сортировки.
-  /// Возвращает отрицательное/0/положительное как [DateTime.compare].
-  /// Заявки без даты считаются «самыми старыми» — уходят в конец при
-  /// возрастающей сортировке.
-  int _compareByLoadingDate(OrderListItem a, OrderListItem b) {
+  /// Сравнение заявок по дате погрузки.
+  ///
+  /// При [asc] = true — по возрастанию (раньше — первыми),
+  /// при false — по убыванию (позже — первыми).
+  /// Заявки без даты всегда считаются «больше» и уходят в конец списка
+  /// независимо от направления; между собой сравниваются как равные.
+  int _compareByLoadingDate(OrderListItem a, OrderListItem b, bool asc) {
     final ta = _tryParseDate(a.loadingDate);
     final tb = _tryParseDate(b.loadingDate);
     if (ta == null && tb == null) return 0;
-    if (ta == null) return 1;
-    if (tb == null) return -1;
-    return ta.compareTo(tb);
+    if (ta == null) return 1; // a без даты → в конец
+    if (tb == null) return -1; // b без даты → в конец
+    return asc
+        ? ta.compareTo(tb) // возрастание: раньше — первыми
+        : tb.compareTo(ta); // убывание: позже — первыми
   }
 
   DateTime? _tryParseDate(String input) {

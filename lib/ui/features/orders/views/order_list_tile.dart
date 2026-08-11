@@ -6,6 +6,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/date_format.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
+import '../../../core/transitions/app_transitions.dart';
 import '../../../core/widgets/status_chip.dart';
 
 /// Карточка одной заявки в списке.
@@ -43,10 +44,20 @@ class OrderListTile extends StatelessWidget {
         : order.route;
     final statusLabel = OrderStatus.listLabelForId(order.status);
 
+    // Тонкая статус-полоса на левом крае карточки — тот же оттенок, что у
+    // чипа статуса. В смешанном списке водитель сканирует статусы взглядом
+    // без чтения чипов. 4px слева, остальные стороны — стандартная серая рамка.
+    final statusAccent = statusBackgroundColorFor(order.status);
+
     return Container(
       decoration: BoxDecoration(
         color: BrandColors.white,
-        border: Border.all(color: BrandColors.grayLighter),
+        border: Border(
+          left: BorderSide(width: 4, color: statusAccent),
+          top: const BorderSide(color: BrandColors.grayLighter),
+          right: const BorderSide(color: BrandColors.grayLighter),
+          bottom: const BorderSide(color: BrandColors.grayLighter),
+        ),
         borderRadius: BorderRadius.circular(BrandRadius.md),
       ),
       child: InkWell(
@@ -65,15 +76,18 @@ class OrderListTile extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                        child: Text(
-                          '№ ${order.num}',
+                        child: AppTransitions.heroOrderNumber(
+                          orderId: order.id,
+                          orderNum: order.num,
                           style: AppTextStyles.titleMedium,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (statusLabel != null)
-                        StatusChip(statusId: order.status),
+                        AppTransitions.heroStatusChip(
+                          orderId: order.id,
+                          statusId: order.status,
+                          chip: StatusChip(statusId: order.status),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 8),

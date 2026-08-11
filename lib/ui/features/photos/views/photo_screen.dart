@@ -441,7 +441,7 @@ class PhotoThumbnail extends StatelessWidget {
             padding: const EdgeInsets.only(top: 4),
             child: Text(
               reason,
-              style: AppTextStyles.bodySmall.copyWith(color: BrandColors.error),
+              style: AppTextStyles.bodySmall.copyWith(color: BrandColors.errorText),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               softWrap: true,

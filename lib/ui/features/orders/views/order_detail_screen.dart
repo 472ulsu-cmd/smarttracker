@@ -9,6 +9,7 @@ import '../../../../domain/models/order.dart';
 import '../../../../domain/models/order_status.dart';
 import '../../../../domain/repositories/orders_repository.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/transitions/app_transitions.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
 import '../../../core/utils/date_format.dart';
@@ -16,6 +17,7 @@ import '../../../core/widgets/brand_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_banner.dart';
 import '../../../core/widgets/phone_call_row.dart';
+import '../../../core/widgets/skeleton_order_detail.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../view_models/order_detail_view_model.dart';
 
@@ -117,24 +119,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {
+          final reduceMotion = MediaQuery.disableAnimationsOf(context);
+          final Widget body;
+          final String phase;
           if (_viewModel.isLoading && _viewModel.order == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (_viewModel.order == null) {
-            return EmptyState(
+            phase = 'loading';
+            body = const SkeletonOrderDetail();
+          } else if (_viewModel.order == null) {
+            phase = 'error';
+            body = EmptyState(
               icon: Icons.error_outline_rounded,
+              iconColor: BrandColors.error,
               text: _viewModel.loadErrorMessage ??
                   'Не удалось загрузить заявку. Проверьте соединение и повторите.',
               actionLabel: 'Повторить',
               onAction: _viewModel.load,
             );
-          }
-          final order = _viewModel.order!;
-          return RefreshIndicator(
-            onRefresh: _viewModel.load,
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
+          } else {
+            phase = 'content';
+            final order = _viewModel.order!;
+            body = RefreshIndicator(
+              onRefresh: _viewModel.load,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
                 if (_viewModel.loadErrorMessage != null)
                   // AnimatedSize: появление/исчезновение баннера плавно
                   // сдвигает контент, а не скачком — без этого вставка
@@ -211,6 +219,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   const SizedBox(height: 8),
                 ],
               ],
+            ),
+          );
+          }
+          // Crossfade skeleton→content: 150мс fade-only, Reduce Motion → мгновенно.
+          return AnimatedSwitcher(
+            duration: reduceMotion
+                ? Duration.zero
+                : const Duration(milliseconds: 150),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, anim) =>
+                FadeTransition(opacity: anim, child: child),
+            child: KeyedSubtree(
+              key: ValueKey(phase),
+              child: body,
             ),
           );
         },
@@ -296,15 +319,18 @@ class _SummaryState extends State<_Summary>
                 Expanded(
                   child: Semantics(
                     header: true,
-                    child: Text(
-                      '№ ${order.num}',
+                    child: AppTransitions.heroOrderNumber(
+                      orderId: order.id,
+                      orderNum: order.num,
                       style: AppTextStyles.titleLarge,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
-                StatusChip(statusId: order.status),
+                AppTransitions.heroStatusChip(
+                  orderId: order.id,
+                  statusId: order.status,
+                  chip: StatusChip(statusId: order.status),
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -355,8 +381,7 @@ class _InfoItem extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: AppTextStyles.caption.copyWith(color: BrandColors.grayDark)),
+        Text(label, style: AppTextStyles.labelMedium),
         Text(
           value,
           style: AppTextStyles.bodyMedium,
@@ -504,7 +529,7 @@ class _RoutePoint extends StatelessWidget {
             children: [
               Text(
                 '${point.isLoading ? "Погрузка" : "Разгрузка"} — ${point.city}',
-                style: AppTextStyles.bodyMedium.copyWith(fontSize: 15, height: 1.2),
+                style: AppTextStyles.labelLarge.copyWith(height: 1.2),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -764,10 +789,8 @@ class _SuccessBanner extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: BrandColors.graphite,
-                fontWeight: FontWeight.w500,
-              ),
+              style: AppTextStyles.bodyMedium
+                  .copyWith(fontWeight: FontWeight.w500),
             ),
           ),
         ],

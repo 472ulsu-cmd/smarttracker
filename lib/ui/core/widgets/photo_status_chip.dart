@@ -10,6 +10,10 @@ import '../theme/brand_radius.dart';
 /// Использует те же контрастные пары токенов, что и [StatusChip]
 /// статуса заявки: текст никогда не бывает цветом статуса (≥4.5:1),
 /// статус не зависит только от цвета.
+///
+/// При смене статуса фон плавно перекрашивается ([AnimatedContainer]),
+/// а метка сменяется через [AnimatedSwitcher] с лёгкой spring-посадкой —
+/// симметрично с [StatusChip]. Reduce Motion honoured.
 class PhotoStatusChip extends StatelessWidget {
   const PhotoStatusChip({super.key, required this.status});
 
@@ -31,17 +35,42 @@ class PhotoStatusChip extends StatelessWidget {
           BrandColors.grayDark,
         ),
     };
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
     return Semantics(
       label: 'Статус: ${status.label}',
-      child: Container(
+      child: AnimatedContainer(
+        duration: reduceMotion
+            ? Duration.zero
+            : const Duration(milliseconds: 240),
+        curve: Curves.easeOutCubic,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(BrandRadius.pill),
         ),
-        child: Text(
-          status.label,
-          style: AppTextStyles.labelMedium.copyWith(color: fg),
+        child: AnimatedSwitcher(
+          duration: reduceMotion
+              ? Duration.zero
+              : const Duration(milliseconds: 240),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, anim) {
+            if (reduceMotion) return child;
+            return FadeTransition(
+              opacity: anim,
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.92, end: 1.0).animate(
+                  CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
+                ),
+                child: child,
+              ),
+            );
+          },
+          child: Text(
+            key: ValueKey(status),
+            status.label,
+            style: AppTextStyles.labelMedium.copyWith(color: fg),
+          ),
         ),
       ),
     );

@@ -140,7 +140,11 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
                               ? Icons.location_disabled_rounded
                               : Icons.location_on_rounded,
                           size: 48,
-                          color: BrandColors.primary,
+                          // Disabled-состояние — это статус, не действие:
+                          // не носит action-accent (One Accent Rule).
+                          color: serviceDisabled
+                              ? BrandColors.error
+                              : BrandColors.primary,
                         ),
                       ),
                       const SizedBox(height: 24),

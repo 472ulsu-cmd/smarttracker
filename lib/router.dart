@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'config/service_locator.dart';
 import 'domain/repositories/auth_repository.dart';
+import 'ui/core/transitions/app_transitions.dart';
 import 'ui/features/auth/view_models/auth_view_model.dart';
 import 'ui/features/auth/views/auth_stepper_screen.dart';
 import 'ui/features/auth/views/login_screen.dart';
@@ -86,28 +87,38 @@ GoRouter createRouter() {
       // --- Аутентификация ---
       GoRoute(
         path: AppRoutes.login,
-        builder: (context, state) => const LoginScreen(),
+        pageBuilder: (context, state) => AppTransitions.fadeThrough(
+          child: const LoginScreen(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.register,
-        builder: (context, state) => const AuthStepperScreen(
-            mode: AuthFlowMode.registration),
+        pageBuilder: (context, state) => AppTransitions.fadeThrough(
+          child: const AuthStepperScreen(
+              mode: AuthFlowMode.registration),
+        ),
       ),
       GoRoute(
         path: AppRoutes.recovery,
-        builder: (context, state) => const AuthStepperScreen(
-            mode: AuthFlowMode.recovery),
+        pageBuilder: (context, state) => AppTransitions.fadeThrough(
+          child: const AuthStepperScreen(
+              mode: AuthFlowMode.recovery),
+        ),
       ),
       // Соглашение из флоу регистрации (пользователь ещё не вошёл).
       GoRoute(
         path: AppRoutes.authAgreement,
-        builder: (context, state) => const AgreementScreen(),
+        pageBuilder: (context, state) => AppTransitions.fadeThrough(
+          child: const AgreementScreen(),
+        ),
       ),
 
       // --- Разрешение геолокации ---
       GoRoute(
         path: AppRoutes.locationPermission,
-        builder: (context, state) => const LocationPermissionScreen(),
+        pageBuilder: (context, state) => AppTransitions.fadeThrough(
+          child: const LocationPermissionScreen(),
+        ),
       ),
 
       // --- Основная часть (нижняя навигация) ---
@@ -122,29 +133,35 @@ GoRouter createRouter() {
               routes: [
                 GoRoute(
                   path: ':id',
-                  builder: (context, state) {
+                  pageBuilder: (context, state) {
                     final id = int.tryParse(
                             state.pathParameters['id'] ?? '') ??
                         0;
-                    return OrderDetailScreen(orderId: id);
+                    return AppTransitions.slide(
+                      child: OrderDetailScreen(orderId: id),
+                    );
                   },
                   routes: [
                     GoRoute(
                       path: 'route',
-                      builder: (context, state) {
+                      pageBuilder: (context, state) {
                         final id = int.tryParse(
                                 state.pathParameters['id'] ?? '') ??
                             0;
-                        return OrderRouteScreen(orderId: id);
+                        return AppTransitions.slide(
+                          child: OrderRouteScreen(orderId: id),
+                        );
                       },
                     ),
                     GoRoute(
                       path: 'photos',
-                      builder: (context, state) {
+                      pageBuilder: (context, state) {
                         final id = int.tryParse(
                                 state.pathParameters['id'] ?? '') ??
                             0;
-                        return PhotoScreen(orderId: id);
+                        return AppTransitions.slide(
+                          child: PhotoScreen(orderId: id),
+                        );
                       },
                     ),
                   ],
@@ -165,22 +182,29 @@ GoRouter createRouter() {
               routes: [
                 GoRoute(
                   path: 'edit',
-                  builder: (context, state) => const ProfileEditScreen(),
+                  pageBuilder: (context, state) => AppTransitions.slide(
+                    child: const ProfileEditScreen(),
+                  ),
                 ),
                 GoRoute(
                   path: 'password',
-                  builder: (context, state) =>
-                      const ChangePasswordScreen(),
+                  pageBuilder: (context, state) => AppTransitions.slide(
+                    child: const ChangePasswordScreen(),
+                  ),
                 ),
                 GoRoute(
                   path: 'feedback',
-                  builder: (context, state) => const FeedbackScreen(),
+                  pageBuilder: (context, state) => AppTransitions.slide(
+                    child: const FeedbackScreen(),
+                  ),
                 ),
                 // Соглашение из профиля (пользователь авторизован:
                 // /auth/agreement для него перехватит редирект).
                 GoRoute(
                   path: 'agreement',
-                  builder: (context, state) => const AgreementScreen(),
+                  pageBuilder: (context, state) => AppTransitions.slide(
+                    child: const AgreementScreen(),
+                  ),
                 ),
               ],
             ),

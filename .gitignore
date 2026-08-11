@@ -68,6 +68,7 @@ google-services.json
 # AI agent generated state and system skills.
 .impeccable/
 .zcode/
+.codex/
 docs/superpowers/
 .agents/skills/impeccable/
 .agents/skills/ponytail/

@@ -13,6 +13,9 @@ class BrandColors {
   /// Светлый оранжевый для инфографики/акцентов.
   static const Color primaryLight1 = Color(0xFFFE6A33);
 
+  /// Самый светлый оранжевый — инфографика, лёгкие оранжевые тона.
+  static const Color primaryLight2 = Color(0xFFFE8F66);
+
   /// Тёмно-оранжевый для текста ссылок на светлом фоне (WCAG AA).
   static const Color primaryText = Color(0xFFD63A00);
 
@@ -24,6 +27,19 @@ class BrandColors {
 
   /// Зелёный — только для экранов (web/app).
   static const Color greenWeb = Color(0xFF00F55F);
+
+  /// Action-зелёный для позитивных действий (свайп «Принять», успех).
+  /// #2E7D32: уверенный зелёный с контрастом к белому ~5.1:1 (WCAG AA),
+  /// заметно светлее [statusCompletedForeground] (#0A6B2F) и читаемее
+  /// [greenWeb] (#00F55F, ~1.5:1 с белым).
+  static const Color success = Color(0xFF2E7D32);
+
+  /// Action-красный для destructive-поверхностей (свайп «Отказаться»).
+  /// #E53935: заметно светлее [error] (#D32F2F), контраст с белым ~4.2:1 —
+  /// AA для крупной иконки (22px) и bold-лейбла. Симметричен [success]
+  /// (оба из шкалы Material). Не заменяет [error]: тот остаётся
+  /// семантическим цветом границ/текста/иконок ошибок.
+  static const Color destructive = Color(0xFFE53935);
 
   // Серая шкала — образована от основных цветов.
   static const Color grayDark = Color(0xFF57575C);
@@ -51,6 +67,12 @@ class BrandColors {
 
   static const Color statusInProgressBackground = Color(0xFFFFF0E8);
   static const Color statusInProgressForeground = Color(0xFFC43000);
+
+  /// Статус «Погружен» — отдельная пара от «В работе», чтобы два соседних
+  /// оранжевых статуса различались взглядом. background глубже (#FFE6D9 vs
+  /// #FFF0E8), foreground — #B83A00 (≈6.4:1 на фоне, AA).
+  static const Color statusLoadedBackground = Color(0xFFFFE6D9);
+  static const Color statusLoadedForeground = Color(0xFFB83A00);
 
   static const Color statusRejectedBackground = Color(0xFFFFEBEE);
   static const Color statusRejectedForeground = Color(0xFFB71C1C);

@@ -222,9 +222,7 @@ class _FieldRow extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label,
-                style: AppTextStyles.caption
-                    .copyWith(color: BrandColors.grayDark)),
+            Text(label, style: AppTextStyles.labelMedium),
             Text(
               value,
               style: AppTextStyles.bodyLarge,
@@ -249,7 +247,7 @@ class _LogoutButton extends StatelessWidget {
       onPressed: () => _confirmLogout(context),
       icon: const Icon(Icons.logout_rounded, color: BrandColors.error),
       label: Text('Выйти из аккаунта',
-          style: AppTextStyles.titleMedium.copyWith(color: BrandColors.error)),
+          style: AppTextStyles.titleMedium.copyWith(color: BrandColors.errorText)),
     );
   }
 

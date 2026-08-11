@@ -43,6 +43,11 @@ typography:
     fontSize: "12px"
     fontWeight: 500
     lineHeight: 1.4
+  action:
+    fontFamily: "Montserrat, sans-serif"
+    fontSize: "15px"
+    fontWeight: 600
+    lineHeight: 1.35
 rounded:
   sm: "8px"
   md: "12px"

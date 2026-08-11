@@ -65,6 +65,12 @@ class AuthStepperViewModel extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    // Успех: очищаем ошибку от предыдущей неудачной попытки, иначе баннер
+    // остаётся висеть на следующем шаге.
+    if (_errorMessage != null) {
+      _errorMessage = null;
+      notifyListeners();
+    }
     return true;
   }
 
@@ -211,6 +217,8 @@ class AuthStepperViewModel extends ChangeNotifier {
 
   void goToStep(AuthStep s) {
     _step = s;
+    // Переход на новый шаг сбрасывает ошибку предыдущего — как back().
+    _errorMessage = null;
     notifyListeners();
   }
 
