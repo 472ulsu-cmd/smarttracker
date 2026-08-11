@@ -35,13 +35,34 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Камера нужна, чтобы фотографировать груз и документы по заявке.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Приложению нужно отслеживать местоположение в фоне для работы диспетчера.</string>
+	<string>Пока заявка в работе, приложение передаёт ваше местоположение диспетчеру в фоне — чтобы отслеживать движение груза. Геолокацию можно отключить в настройках.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Приложению нужно отслеживать местоположение в фоне для работы диспетчера.</string>
+	<string>Пока заявка в работе, приложение передаёт ваше местоположение диспетчеру в фоне — чтобы отслеживать движение груза. Геолокацию можно отключить в настройках.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Приложению нужно знать ваше местоположение, чтобы показывать его диспетчеру.</string>
+	<string>Местоположение нужно, чтобы диспетчер видел водителя на карте по активным заявкам.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Доступ к фото нужен, чтобы прикреплять снимки груза из галереи.</string>
+	<!--
+	  ATS: production (st.b2b-logist.com) работает по HTTPS и подпадает под
+	  строгие правила по умолчанию. Исключение добавлено ТОЛЬКО для dev-сервера
+	  st-dev.b2b-logist.com, к которому ходят dev-сборки (dart-define
+	  API_BASE_URL=http://...). Домен-scoped, с поддоменами; TLS-минимум для
+	  остальных хостов остаётся 1.2. Production-сборка этот домен не использует,
+	  поэтому исключение для неё бездействует.
+	-->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>st-dev.b2b-logist.com</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -52,7 +73,7 @@
 			<array>
 				<dict>
 					<key>UISceneClassName</key>
-					<string>UIWindowScene</string>
+					<string>UIWindow</string>
 					<key>UISceneConfigurationName</key>
 					<string>flutter</string>
 					<key>UISceneDelegateClassName</key>
