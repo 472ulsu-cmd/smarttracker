@@ -62,5 +62,26 @@
 		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>
+	<!--
+	  ATS: production (st.b2b-logist.com) работает по HTTPS и подпадает под
+	  строгие правила по умолчанию. Исключение добавлено ТОЛЬКО для dev-сервера
+	  st-dev.b2b-logist.com, к которому ходят dev-сборки (dart-define
+	  API_BASE_URL=http://...). Домен-scoped, с поддоменами; TLS-минимум для
+	  остальных хостов остаётся 1.2. Production-сборка этот домен не использует,
+	  поэтому исключение для неё бездействует.
+	-->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>st-dev.b2b-logist.com</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
 </dict>
 </plist>
