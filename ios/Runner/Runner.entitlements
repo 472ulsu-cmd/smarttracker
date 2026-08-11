@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Runner.entitlements — capabilities приложения «Умный Водитель».
+
+  aps-environment = development — это значение по умолчанию, которое Xcode
+  создаёт при включении capability «Push Notifications». При подписании сборки
+  codesign берёт итоговое значение из provisioning profile: для development-сборки
+  остаётся development, для App Store (distribution profile) подменяется на
+  production. Поэтому один файл работает и для debug, и для релиза — отдельно
+  настраивать release-вариант не нужно.
+
+  Background Modes (location / fetch / remote-notification) объявлены в Info.plist
+  через UIBackgroundModes — для iOS этого достаточно, entitlement-запись не нужна.
+
+  flutter_secure_storage использует keychain приложения по умолчанию (per-app
+  group = bundle id), без расширений — keychain-access-groups здесь не требуется.
+-->
+<plist version="1.0">
+<dict>
+	<key>aps-environment</key>
+	<string>development</string>
+</dict>
+</plist>

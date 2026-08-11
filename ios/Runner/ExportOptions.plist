@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  ExportOptions.plist — параметры экспорта архива для загрузки в App Store.
+
+  Используется командой:
+    xcodebuild -exportArchive -archivePath build/ios/archive/Runner.xcarchive \
+      -exportOptionsPlist ios/Runner/ExportOptions.plist \
+      -exportPath build/ios/ipa
+
+  Метод app-store подписывает архив distribution-identity и делает IPA готовым
+  к загрузке через App Store Connect (xcrun altool / Transporter / Xcode Organizer).
+
+  signingStyle = automatic — codesign сам подберёт distribution provision profile
+  по Team ID UT5J665DV8 (зеркалит настройку проекта). Когда появится собственный
+  distribution-сертификат и manual-профиль, можно переключить signingStyle на
+  manual и явно указать provisioningProfiles + signingCertificate.
+
+  Bitcode выключен (compileBitcode=false, uploadBitcode=false): приложение уже
+  не использует bitcode (ENABLE_BITCODE=NO в проекте), а Apple полностью убрала
+  поддержку bitcode ещё в Xcode 14.
+-->
+<plist version="1.0">
+<dict>
+	<key>method</key>
+	<string>app-store</string>
+	<key>teamID</key>
+	<string>UT5J665DV8</string>
+	<key>signingStyle</key>
+	<string>automatic</string>
+	<key>uploadBitcode</key>
+	<false/>
+	<key>uploadSymbols</key>
+	<true/>
+	<key>compileBitcode</key>
+	<false/>
+</dict>
+</plist>

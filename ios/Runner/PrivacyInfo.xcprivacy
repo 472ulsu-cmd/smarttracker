@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  PrivacyInfo.xcprivacy — Apple Privacy Manifest для «Умный Водитель».
+
+  Декларирует собираемые типы данных и Required Reason API в соответствии с
+  https://developer.apple.com/documentation/bundleresources/privacy-manifest-files.
+
+  Назначение данных — только App Functionality (функциональность приложения):
+  трекинг пользователей не ведётся (NSPrivacyTracking = false), рекламных и
+  аналитических SDK нет. Xcode при архивации мержит этот манифест с манифестами
+  сторонних SDK (Firebase и др.), поэтому здесь описаны только те данные и API,
+  которые затрагиваются кодом самого приложения и используемых плагинов.
+-->
+<plist version="1.0">
+<dict>
+
+    <!-- Приложение не отслеживает пользователей в смысле AppTrackingTransparency. -->
+    <key>NSPrivacyTracking</key>
+    <false/>
+
+    <!-- Домены для трекинга отсутствуют (трекинг выключен). -->
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+
+    <!--
+      Собираемые типы данных.
+      Все данные привязаны к аккаунту водителя (Linked = true) — приложение
+      требует входа. Ни один тип не используется для трекинга (Tracking = false).
+      Назначение для всех — AppFunctionality.
+    -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array>
+
+        <!-- Точное местоположение: передаётся на backend для диспетчера,
+             включая работу в фоне при активной заявке (foreground-сервис). -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypePreciseLocation</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+
+        <!-- Фото груза и документов по заявкам (image_picker + PhotoRepository). -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypePhotosorVideos</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+
+        <!-- Номер телефона: идентификация водителя при регистрации/входе. -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypePhoneNumber</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+
+        <!-- Идентификатор пользователя / сессии: токен авторизации,
+             хранится в flutter_secure_storage, передаётся как Bearer. -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeUserID</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+
+        <!-- Идентификатор устройства: FCM-токен для доставки push-уведомлений
+             (PUT /user/notification). -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeDeviceID</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+
+    </array>
+
+    <!--
+      Required Reason API: декларируем категории, к которым обращается код
+      приложения и плагинов (shared_preferences, sqflite, path_provider,
+      flutter_secure_storage, permission_handler). Firebase и иные SDK с
+      собственными манифестами учитываются при сборке отдельно.
+    -->
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+
+        <!-- UserDefaults: shared_preferences, permission_handler.
+             CA92.1 — доступ к настройкам, выставленным тем же приложением/SDK. -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>CA92.1</string>
+            </array>
+        </dict>
+
+        <!-- FileTimestamp: sqflite, path_provider, image_picker.
+             C617.1 — доступ к временным меткам файлов внутри контейнера
+             приложения (документы/БД/фото). -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>C617.1</string>
+            </array>
+        </dict>
+
+    </array>
+
+</dict>
+</plist>
