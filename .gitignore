@@ -5,9 +5,11 @@
 *.swp
 .DS_Store
 .atom/
+.build/
 .buildlog/
 .history
 .svn/
+.swiftpm/
 migrate_working_dir/
 
 # IntelliJ related
@@ -55,6 +57,7 @@ app.*.map.json
 /google-services-dev.json
 /android/key.properties
 ios/Runner/GoogleService-Info.plist
+/GoogleService-Info.plist
 google-services.json
 
 # Release signing — keystore и пароли к нему не коммитим.

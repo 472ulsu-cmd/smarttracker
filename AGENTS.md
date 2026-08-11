@@ -8,6 +8,7 @@
 - **Продукт:** «Умный Водитель» — рабочий инструмент водителя логистической платформы «Умная логистика».
 - **Платформы:** Flutter-приложение для Android и iOS.
 - **Android applicationId:** `com.b2blogist.smarttracker`.
+- **iOS Bundle ID:** `com.b2blogist.smarttracker.prod` (отличается от Android — старый Bundle ID `com.b2blogist.smarttracker` занят в App Store чужой командой).
 - **Android label:** `Умный Водитель`.
 - **Язык интерфейса и комментариев:** русский, фиксированная локаль `Locale('ru', 'RU')`.
 - **Базовый URL API:** `https://st.b2b-logist.com/api/`.
@@ -249,7 +250,7 @@ flutter analyze
 - При ответе 401/403 `AuthInterceptor` очищает токен; роутер перенаправляет на экран входа.
 - Разрешение на геолокацию должно быть «Всегда» для работы foreground-сервиса.
 - `google-services.json` содержит Firebase-ключи; файлы есть в корне проекта и в `android/app/`. Они не должны коммититься в публичный репозиторий — проверьте `.gitignore` перед публикацией.
-- `ios/Runner/GoogleService-Info.plist` также содержит Firebase-ключи и исключён из git. Для сборки iOS файл нужно добавить локально или на CI.
+- `ios/Runner/GoogleService-Info.plist` также содержит Firebase-ключи и исключён из git. Для сборки iOS файл нужно добавить локально или на CI. Важно: `BUNDLE_ID` внутри plist **должен совпадать** с iOS Bundle ID (`com.b2blogist.smarttracker.prod`) — отдельный файл создаётся в Firebase Console под этим Bundle ID (проект `smarttracker-8130a`). Файл в корне репозитория (`GoogleService-Info.plist`) также игнорируется.
 - FCM-токен отправляется на backend через `PUT /user/notification`.
 
 ## 11. Деплой
@@ -260,6 +261,21 @@ flutter analyze
 - Минимальная Android-версия: `minSdk 24` (`flutter.minSdkVersion`; исторический комментарий про 23 устарел — `firebase_messaging` 16 требует ≥23, фактически выставлено 24).
 - Минимальная iOS-версия: deployment target `16.0` (выровнено в `project.pbxproj`, `AppFrameworkInfo.plist` и `Podfile`; требование App Store для новых сабмишенов).
 - Сборочный стек: Flutter 3.44.6 (закреплён в `.fvmrc`), Dart 3.12.2, AGP 8.11.2, Gradle 8.14, Kotlin 2.2.21, Java / Kotlin JVM target 17.
+
+### Сборка и публикация iOS (TestFlight / App Store)
+
+- **Team ID:** `UT5J665DV8` (UMNAYA LOGISTIKA, OOO). Прописан в `DEVELOPMENT_TEAM` в `ios/Runner.xcodeproj/project.pbxproj`.
+- **Bundle ID iOS:** `com.b2blogist.smarttracker.prod` (см. раздел 1). App Record создан в App Store Connect под именем «Умный Водитель».
+- **Подпись:** automatic signing. Аккаунт Apple ID (Olga Popova) должен быть добавлен в Xcode → Settings → Accounts; Distribution-сертификат и App Store profile создаются Xcode автоматически при первой загрузке.
+- **`UIRequiresFullScreen = true`** в `ios/Runner/Info.plist` — обязателен: приложение Portrait-only, и без этого ключа Apple требует все 4 ориентации для iPad multitasking (ошибка валидации `Invalid bundle ... UISupportedInterfaceOrientations`).
+- **Команда сборки TestFlight:**
+  ```bash
+  fvm flutter build ipa --release --no-tree-shake-icons
+  # Затем: Xcode → Window → Organizer → Distribute App → App Store Connect → Upload
+  ```
+  Прямой `--export-options-export-plist` во Flutter 3.44.6 не работает; экспорт `.ipa` падает на Distribution-сертификате — это нормально, загрузка идёт через Organizer, который сам создаст сертификат.
+- **Build number:** TestFlight отвергает повторяющиеся номера — увеличивайте build suffix в `pubspec.yaml` (`version: 2.0.0+N`) перед каждой новой загрузкой.
+- **Export Compliance:** для TestFlight нужно один раз ответить на вопрос про шифрование (обычно «No» — приложение использует только стандартный HTTPS).
 
 ## 12. Что стоит помнить при изменениях
 
