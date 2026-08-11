@@ -119,11 +119,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       body: ListenableBuilder(
         listenable: _viewModel,
         builder: (context, _) {
+          final reduceMotion = MediaQuery.disableAnimationsOf(context);
+          final Widget body;
+          final String phase;
           if (_viewModel.isLoading && _viewModel.order == null) {
-            return const SkeletonOrderDetail();
-          }
-          if (_viewModel.order == null) {
-            return EmptyState(
+            phase = 'loading';
+            body = const SkeletonOrderDetail();
+          } else if (_viewModel.order == null) {
+            phase = 'error';
+            body = EmptyState(
               icon: Icons.error_outline_rounded,
               iconColor: BrandColors.error,
               text: _viewModel.loadErrorMessage ??
@@ -131,13 +135,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               actionLabel: 'Повторить',
               onAction: _viewModel.load,
             );
-          }
-          final order = _viewModel.order!;
-          return RefreshIndicator(
-            onRefresh: _viewModel.load,
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
+          } else {
+            phase = 'content';
+            final order = _viewModel.order!;
+            body = RefreshIndicator(
+              onRefresh: _viewModel.load,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
                 if (_viewModel.loadErrorMessage != null)
                   // AnimatedSize: появление/исчезновение баннера плавно
                   // сдвигает контент, а не скачком — без этого вставка
@@ -214,6 +219,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   const SizedBox(height: 8),
                 ],
               ],
+            ),
+          );
+          }
+          // Crossfade skeleton→content: 150мс fade-only, Reduce Motion → мгновенно.
+          return AnimatedSwitcher(
+            duration: reduceMotion
+                ? Duration.zero
+                : const Duration(milliseconds: 150),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, anim) =>
+                FadeTransition(opacity: anim, child: child),
+            child: KeyedSubtree(
+              key: ValueKey(phase),
+              child: body,
             ),
           );
         },

@@ -235,11 +235,19 @@ class _OrdersTabBodyState extends State<_OrdersTabBody> {
   Widget build(BuildContext context) {
     final viewModel = widget.viewModel;
     final tab = widget.tab;
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
     return ListenableBuilder(
       listenable: viewModel,
       builder: (context, _) {
+        // Состояние экрана определяется в один проход, затем оборачивается в
+        // AnimatedSwitcher: skeleton → content меняются мягким crossfade,
+        // а не мгновенным hard-cut. Ключ — по «фазе» (loading/error/empty/
+        // content), чтобы переключение сработало только при реальной смене.
+        final Widget body;
+        final String phase;
         if (viewModel.isLoadingOf(tab) && viewModel.ordersOf(tab).isEmpty) {
-          return ListView.builder(
+          phase = 'loading';
+          body = ListView.builder(
             physics: const NeverScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
             itemCount: 4,
@@ -248,45 +256,48 @@ class _OrdersTabBodyState extends State<_OrdersTabBody> {
               child: SkeletonOrderTile(),
             ),
           );
-        }
-        final error = viewModel.errorOf(tab);
-        if (error != null && viewModel.ordersOf(tab).isEmpty) {
-          return ErrorState(
-              message: error, onRetry: () => viewModel.loadTab(tab));
-        }
-        final orders = viewModel.ordersOf(tab);
-        if (orders.isEmpty) {
-          return EmptyState(
-            icon: Icons.local_shipping_outlined,
-            text: widget.emptyText,
-            hint: widget.emptyHint,
-            actionLabel: 'Обновить',
-            onAction: () => viewModel.loadTab(tab),
-          );
-        }
-        // Каскад — только при первом показе непустого списка.
-        // Исключение: смена направления сортировки перезапускает каскад,
-        // чтобы переупорядочивание карточек было видно как событие.
-        final currentSort = viewModel.sortMode;
-        final sortChanged = _lastSortMode != null && _lastSortMode != currentSort;
-        final shouldCascade = !_didCascade || sortChanged;
-        _didCascade = true;
-        _lastSortMode = currentSort;
-        return Column(
-          children: [
-            if (error != null)
-              _UpdateErrorBanner(
-                message: error,
-                onRetry: () => viewModel.loadTab(tab),
-              ),
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: () => viewModel.loadTab(tab),
-                child: ListView.separated(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  itemCount: orders.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+        } else {
+          final error = viewModel.errorOf(tab);
+          final orders = viewModel.ordersOf(tab);
+          if (error != null && orders.isEmpty) {
+            phase = 'error';
+            body = ErrorState(
+                message: error, onRetry: () => viewModel.loadTab(tab));
+          } else if (orders.isEmpty) {
+            phase = 'empty';
+            body = EmptyState(
+              icon: Icons.local_shipping_outlined,
+              text: widget.emptyText,
+              hint: widget.emptyHint,
+              actionLabel: 'Обновить',
+              onAction: () => viewModel.loadTab(tab),
+            );
+          } else {
+            phase = 'content';
+            // Каскад — только при первом показе непустого списка.
+            // Исключение: смена направления сортировки перезапускает каскад,
+            // чтобы переупорядочивание карточек было видно как событие.
+            final currentSort = viewModel.sortMode;
+            final sortChanged =
+                _lastSortMode != null && _lastSortMode != currentSort;
+            final shouldCascade = !_didCascade || sortChanged;
+            _didCascade = true;
+            _lastSortMode = currentSort;
+            body = Column(
+              children: [
+                if (error != null)
+                  _UpdateErrorBanner(
+                    message: error,
+                    onRetry: () => viewModel.loadTab(tab),
+                  ),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () => viewModel.loadTab(tab),
+                    child: ListView.separated(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(16),
+                      itemCount: orders.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final order = orders[index];
                     return _CascadeTile(
@@ -318,6 +329,23 @@ class _OrdersTabBodyState extends State<_OrdersTabBody> {
               ),
             ),
           ],
+        );
+          }
+        }
+        // Crossfade skeleton→content: 150мс fade-only, Reduce Motion → мгновенно.
+        // Каскад играет поверх — crossfade только смягчает handoff.
+        return AnimatedSwitcher(
+          duration: reduceMotion
+              ? Duration.zero
+              : const Duration(milliseconds: 150),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, anim) =>
+              FadeTransition(opacity: anim, child: child),
+          child: KeyedSubtree(
+            key: ValueKey(phase),
+            child: body,
+          ),
         );
       },
     );
