@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,6 +18,11 @@ import 'ui/features/location/view_models/location_permission_view_model.dart';
 /// Архитектура: MVVM (skills flutter-apply-architecture-best-practices).
 /// DI: get_it. Навигация: go_router.
 void main() async {
+  // Инициализация канала связи между главным изолятом и TaskHandler
+  // flutter_foreground_task. Без этого на iOS фоновый изолят не сможет
+  // обмениваться данными с UI — координаты не будут отправляться.
+  FlutterForegroundTask.initCommunicationPort();
+
   WidgetsFlutterBinding.ensureInitialized();
 
   // Приложение работает только в вертикальной (портретной) ориентации.

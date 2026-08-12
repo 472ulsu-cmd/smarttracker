@@ -72,8 +72,6 @@
 			<key>UIWindowSceneSessionRoleApplication</key>
 			<array>
 				<dict>
-					<key>UISceneClassName</key>
-					<string>UIWindow</string>
 					<key>UISceneConfigurationName</key>
 					<string>flutter</string>
 					<key>UISceneDelegateClassName</key>
@@ -91,6 +89,15 @@
 		<string>location</string>
 		<string>fetch</string>
 		<string>remote-notification</string>
+	</array>
+	<!--
+	  Идентификатор для BGTaskScheduler: flutter_foreground_task планирует
+	  фоновую отправку координат через BGAppRefreshTask. Без этого ключа iOS
+	  не разрешает регистрировать задачу и onStart/onRepeatEvent не вызовутся.
+	-->
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.pravera.flutter_foreground_task.refresh</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

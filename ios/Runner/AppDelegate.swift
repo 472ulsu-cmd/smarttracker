@@ -21,6 +21,14 @@ import UserNotifications
     // достаточно назначить self делегатом и переопределить willPresent.
     UNUserNotificationCenter.current().delegate = self
 
+    // Регистрируем callback для flutter_foreground_task: без этого плагин не
+    // сможет запустить TaskHandler в фоновом изоляте на iOS (через
+    // BGTaskScheduler) — onStart/onRepeatEvent не вызовутся, координаты не
+    // будут отправляться. На Android это не требуется (там foreground service).
+    SwiftFlutterForegroundTaskPlugin.setPluginRegistrantCallback { registry in
+      GeneratedPluginRegistrant.register(with: registry)
+    }
+
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

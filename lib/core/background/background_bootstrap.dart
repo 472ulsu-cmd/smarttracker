@@ -25,19 +25,24 @@ class BackgroundBootstrap {
     try {
       await Firebase.initializeApp();
       _firebaseReady = true;
-    } catch (_) {
-      // google-services.json может отсутствовать в debug — не блокируем приложение.
+    } catch (e, st) {
+      // google-services.json / GoogleService-Info.plist могут отсутствовать
+      // в debug или быть некорректными — не блокируем приложение, но логируем:
+      // без этой диагностики «не работают пуши» превращается в чёрный ящик.
+      debugPrint('background: Firebase.initializeApp failed: $e\n$st');
       _firebaseReady = false;
     }
     try {
       await SyncService.instance.init();
-    } catch (_) {
+    } catch (e, st) {
       // workmanager может быть недоступен на десктопе — игнорируем.
+      debugPrint('background: SyncService.init failed: $e\n$st');
     }
     try {
       LocationService.instance.init();
-    } catch (_) {
+    } catch (e, st) {
       // На платформах без foreground — игнорируем.
+      debugPrint('background: LocationService.init failed: $e\n$st');
     }
   }
 
@@ -78,7 +83,11 @@ class BackgroundBootstrap {
           getIt<SettingsService>(),
         );
         await _pushService!.init();
-      } catch (_) {}
+      } catch (e, st) {
+        debugPrint('background: PushService.init failed: $e\n$st');
+      }
+    } else {
+      debugPrint('background: Push-сервис пропущен — Firebase не инициализирован');
     }
   }
 

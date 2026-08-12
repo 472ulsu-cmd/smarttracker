@@ -1,12 +1,15 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../../config/refresh_bus.dart';
 import '../../config/service_locator.dart';
 import '../../data/services/local_photo_store.dart';
 import '../../data/services/settings_service.dart';
+import '../../domain/models/app_exception.dart';
 import '../../domain/models/order_photo.dart';
 import '../../domain/repositories/notifications_repository.dart';
 import '../../ui/features/notifications/view_models/notifications_view_model.dart';
@@ -115,11 +118,24 @@ class PushService {
 
     // FCM: запрос разрешения, получение токена.
     await FirebaseMessaging.instance.requestPermission();
+    // iOS: разрешаем показ баннера/бейджа/звука пока приложение на переднем
+    // плане. Дополняет нативный willPresent в AppDelegate.swift — стандартный
+    // путь firebase_messaging для foreground-презентации на iOS 10+.
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
     final token = await FirebaseMessaging.instance.getToken();
     if (token != null && token.isNotEmpty) {
-      await _sendToken(token);
+      _sendTokenWithRetry(token);
     }
-    FirebaseMessaging.instance.onTokenRefresh.listen(_sendToken);
+    FirebaseMessaging.instance.onTokenRefresh.listen(_sendTokenWithRetry);
+
+    // Top-level фоновый обработчик для data-only сообщений в terminated-режиме
+    // (отдельный изолят). Регистрируется на каждый init — безопасно, подписка
+    // идемпотентна внутри firebase_messaging.
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
     // Foreground-сообщения → локальное уведомление (если push включён).
     _onMessageSub = FirebaseMessaging.onMessage.listen(_handleForeground);
@@ -144,11 +160,33 @@ class PushService {
     _onMessageOpenedSub?.cancel();
   }
 
-  Future<void> _sendToken(String token) async {
-    try {
-      await _notificationsRepo.sendFcmToken(token);
-    } catch (_) {
-      // Токен отправим повторно при следующей возможности.
+  /// Отправляет FCM-токен на бэкенд с ретраем.
+  ///
+  /// До 3 попыток с экспоненциальной задержкой (2с / 8с / 30с). Без ретрая
+  /// единичный сетевой сбой приводил к тому, что бэкенд не знал токен до
+  /// следующего onTokenRefresh (а это может не произойти неделями).
+  /// UnauthorizedException (401) не ретраим — сессия протухла, токен всё равно
+  /// не привяжется; его отправит следующий успешный вход.
+  Future<void> _sendTokenWithRetry(String token) async {
+    const delays = [Duration(seconds: 2), Duration(seconds: 8), Duration(seconds: 30)];
+    for (var attempt = 0; attempt <= delays.length; attempt++) {
+      try {
+        await _notificationsRepo.sendFcmToken(token);
+        return;
+      } on UnauthorizedException {
+        // Сессия протухла — ретраить бессмысленно.
+        debugPrint('push: sendFcmToken пропущен — сессия не авторизована (401)');
+        return;
+      } catch (e) {
+        if (attempt >= delays.length) {
+          debugPrint('push: sendFcmToken окончательно не отправлен после '
+              '${attempt + 1} попыток: $e');
+          return;
+        }
+        debugPrint('push: sendFcmToken попытка ${attempt + 1} не удалась ($e), '
+            'реритай через ${delays[attempt].inSeconds}с');
+        await Future<void>.delayed(delays[attempt]);
+      }
     }
   }
 
@@ -239,4 +277,22 @@ class PushService {
       payload: PushService.pathFor(n),
     );
   }
+}
+
+/// Top-level обработчик data-only FCM-сообщений в фоне/terminated.
+///
+/// Запускается в отдельном изоляте — здесь недоступен getIt и любой UI.
+/// Поэтому внутри только инициализация Firebase: само сообщение для data-only
+/// пейлоадов достаточно «доставить» системе, а обновление списков и навигация
+/// произойдут при тапе через getInitialMessage / onMessageOpenedApp в основном
+/// изоляте. Аннотация @pragma('vm:entry-point') обязательна — иначе tree-shaking
+/// удалит функцию и firebase_messaging не найдет её в release-сборке.
+///
+/// Для сообщений с notification-блоком (как шлёт наш бэкенд) системный трей
+/// показывает уведомление сам, этот обработчик для них не нужен — но его
+/// наличие не мешает.
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint('push: background message received, id=${message.messageId}');
 }
