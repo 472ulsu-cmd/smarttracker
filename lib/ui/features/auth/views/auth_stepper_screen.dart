@@ -12,6 +12,7 @@ import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
 import '../../../core/widgets/app_snack_bars.dart';
 import '../../../core/widgets/error_banner.dart';
+import '../../../core/widgets/passport_field.dart';
 import '../../legal/agreement_content.dart';
 import '../view_models/auth_stepper_view_model.dart';
 
@@ -197,18 +198,14 @@ class _AuthStepperScreenState extends State<AuthStepperScreen> {
             style: AppTextStyles.bodyMedium.copyWith(color: BrandColors.grayDark),
           ),
           const SizedBox(height: 16),
-          _DigitsField(
+          PassportField(
             controller: _passportCtrl,
-            label: 'Серия и номер паспорта',
-            length: 10,
             onChanged: (v) => _vm.passport = v,
           ),
           if (widget.mode == AuthFlowMode.registration) ...[
             const SizedBox(height: 12),
-            _DigitsField(
+            PassportField(
               controller: _passportConfirmCtrl,
-              label: 'Подтвердите паспорт',
-              length: 10,
               onChanged: (v) => _vm.passportConfirm = v,
             ),
           ],
@@ -608,9 +605,11 @@ class _ProgressSegmentState extends State<_ProgressSegment>
 
 /// N-ячеечный ввод OTP-кода.
 ///
-/// Каждая ячейка — отдельный TextFormField (maxLength: 1). Авто-переход к
-/// следующей при вводе, backspace на пустой ячейке возвращает к предыдущей,
-/// pop-анимация масштаба + тактильная отдача по каждой цифре.
+/// Каждая ячейка — отдельный TextFormField. Авто-переход к следующей при
+/// вводе, backspace на пустой ячейке возвращает к предыдущей, pop-анимация
+/// масштаба + тактильная отдача по каждой цифре. Ячейки не имеют жёсткого
+/// ограничения длины: это необходимо для автозаполнения SMS-кода ОС, когда
+/// весь код попадает в первую ячейку и распределяется по остальным.
 ///
 /// Автозаполнение SMS-кода ОС: ячейки обёрнуты в AutofillGroup, первая
 /// ячейка несёт AutofillHints.oneTimeCode. Так как автозаполнение/вставка
@@ -872,10 +871,14 @@ class _OtpCellState extends State<_OtpCell> {
           textAlign: TextAlign.center,
           textAlignVertical: TextAlignVertical.center,
           style: AppTextStyles.headlineMedium,
-          maxLength: 1,
+          // Намеренно без maxLength/LengthLimitingTextInputFormatter:
+          // жёсткое усечение до 1 символа обрезает автозаполнение SMS-кода
+          // (AutofillHints.oneTimeCode подставляет весь код целиком) ещё до
+          // onChanged, из-за чего распределялась только первая цифра.
+          // _onCellChanged сам нормализует ячейку к одной цифре и распределяет
+          // вставку/автозаполнение по остальным ячейкам через _distribute.
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(1),
           ],
           decoration: InputDecoration(
             counterText: '',

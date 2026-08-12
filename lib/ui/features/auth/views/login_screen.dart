@@ -8,6 +8,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/theme/brand_radius.dart';
 import '../../../core/widgets/error_banner.dart';
+import '../../../core/widgets/passport_field.dart';
 import '../view_models/auth_view_model.dart';
 
 /// Экран входа по паспорту и паролю.
@@ -128,7 +129,15 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  _PassportField(controller: _loginController),
+                                  PassportField(
+                                    controller: _loginController,
+                                    autofillHints: const [AutofillHints.username],
+                                    textInputAction: TextInputAction.next,
+                                    // Отключаем вставку/копирование из буфера обмена (ТЗ).
+                                    enableInteractiveSelection: false,
+                                    contextMenuBuilder: (_, __) =>
+                                        const SizedBox.shrink(),
+                                  ),
                                   const SizedBox(height: 16),
                                   _PasswordField(
                                     controller: _passwordController,
@@ -264,71 +273,6 @@ class _BrandHeader extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
       ],
-    );
-  }
-}
-
-/// Форматтер поля паспорта: группирует «серия 4 цифры» + «номер 6 цифр»
-/// пробелом — `4510 712345`. Хранит логику на сырых цифрах: при любой правке
-/// берёт из значения только цифры и заново расставляет один пробел после 4-й.
-/// Так серия и номер опознаются с одного взгляда (критика P1) — водитель не
-/// пересчитывает 10 цифр вслепую.
-class _PassportMaskFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
-    // Жёсткий лимит 10 цифр — серия (4) + номер (6).
-    final capped = digits.length > 10 ? digits.substring(0, 10) : digits;
-    final buffer = StringBuffer();
-    for (var i = 0; i < capped.length; i++) {
-      if (i == 4) buffer.write(' ');
-      buffer.write(capped[i]);
-    }
-    final formatted = buffer.toString();
-    return TextEditingValue(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
-    );
-  }
-}
-
-class _PassportField extends StatelessWidget {
-  const _PassportField({required this.controller});
-
-  final TextEditingController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: TextInputType.number,
-      textInputAction: TextInputAction.next,
-      autofillHints: const [AutofillHints.username],
-      // Отключаем вставку/копирование из буфера обмена (ТЗ).
-      enableInteractiveSelection: false,
-      contextMenuBuilder: (_, __) => const SizedBox.shrink(),
-      inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(11), // 10 цифр + пробел маски
-        _PassportMaskFormatter(),
-      ],
-      maxLength: 11,
-      decoration: const InputDecoration(
-        labelText: 'Серия и номер паспорта',
-        hintText: '4510 712345',
-        counterText: '',
-        prefixIcon: Icon(Icons.badge_outlined),
-      ),
-      validator: (value) {
-        final v = (value ?? '').replaceAll(RegExp(r'\D'), '');
-        if (v.length != 10) {
-          return 'Введите 10 цифр серии и номера паспорта';
-        }
-        return null;
-      },
     );
   }
 }

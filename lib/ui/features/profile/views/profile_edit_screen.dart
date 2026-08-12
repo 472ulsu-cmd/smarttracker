@@ -6,6 +6,7 @@ import '../../../../config/service_locator.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/widgets/app_snack_bars.dart';
+import '../../../core/widgets/passport_field.dart';
 import '../view_models/profile_view_model.dart';
 import 'phone_confirm_dialog.dart';
 
@@ -41,7 +42,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       if (!_initialized && _viewModel.user != null) {
         _initialized = true;
         final u = _viewModel.user!;
-        _passportController.text = u.login;
+        // Форматируем стартовое значение в маску «4510 712345»: при
+        // программном присваивании PassportMaskFormatter не срабатывает
+        // (он применяется только к пользовательскому вводу).
+        _passportController.text = PassportMaskFormatter.formatStatic(u.login);
         _nameController.text = u.name;
         _secondNameController.text = u.secondName;
         _surnameController.text = u.surname;
@@ -64,7 +68,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    final login = _passportController.text.trim();
+    // Поле паспорта хранит маску «4510 712345» с пробелом — для сервера
+    // нужен ряд из 10 цифр без разделителей.
+    final login = _passportController.text.replaceAll(RegExp(r'\D'), '');
     final name = _nameController.text.trim();
     final secondName = _secondNameController.text.trim();
     final surname = _surnameController.text.trim();
@@ -187,28 +193,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                       bottom: 16 + MediaQuery.viewPaddingOf(context).bottom,
                     ),
                     children: [
-                      TextFormField(
+                      PassportField(
                     controller: _passportController,
-                    keyboardType: TextInputType.number,
+                    // Отключаем вставку/копирование из буфера обмена (ТЗ).
                     enableInteractiveSelection: false,
                     contextMenuBuilder: (_, __) => const SizedBox.shrink(),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(10),
-                    ],
-                    decoration: const InputDecoration(
-                      labelText: 'Серия и номер паспорта',
-                      hintText: '1234567890',
-                      counterText: '',
-                      prefixIcon: Icon(Icons.badge_outlined),
-                    ),
-                    validator: (value) {
-                      final v = (value ?? '').trim();
-                      if (v.length != 10) {
-                        return 'Введите 10 цифр серии и номера паспорта';
-                      }
-                      return null;
-                    },
                   ),
                   const SizedBox(height: 12),
                   _Field(
