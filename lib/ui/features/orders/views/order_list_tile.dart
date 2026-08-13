@@ -39,16 +39,21 @@ class OrderListTile extends StatelessWidget {
               : '${order.routeFrom} → ${order.routeTo}')
         : order.route;
     final statusLabel = OrderStatus.listLabelForId(order.status);
+    final statusAccent = statusBackgroundColorFor(order.status);
 
     return Container(
+      key: ValueKey('order-tile-surface-${order.id}'),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: BrandColors.white,
         border: Border.all(color: BrandColors.grayLighter),
         borderRadius: BorderRadius.circular(BrandRadius.md),
       ),
+      foregroundDecoration: BoxDecoration(
+        border: Border(left: BorderSide(width: 4, color: statusAccent)),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(BrandRadius.md),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

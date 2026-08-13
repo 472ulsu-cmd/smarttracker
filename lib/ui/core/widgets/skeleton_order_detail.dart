@@ -5,7 +5,7 @@ import '../theme/brand_radius.dart';
 import 'shimmer.dart';
 
 /// Skeleton-экран деталей заявки, зеркально повторяющий структуру
-/// [_Summary], [_ClientCard], [_RouteCard] на экране [OrderDetailScreen].
+/// информационной карточки, маршрута и фото на экране [OrderDetailScreen].
 ///
 /// Вместо одного [CircularProgressIndicator] показывается реалистичный
 /// layout-скелет, чтобы водитель видит «форму» будущих данных.
@@ -18,9 +18,7 @@ class SkeletonOrderDetail extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: const [
-          _SkeletonSummary(),
-          SizedBox(height: 16),
-          _SkeletonClientCard(),
+          _SkeletonOrderDetailsCard(),
           SizedBox(height: 16),
           _SkeletonRouteCard(),
           SizedBox(height: 16),
@@ -31,9 +29,9 @@ class SkeletonOrderDetail extends StatelessWidget {
   }
 }
 
-/// Skeleton для [_Summary]: номер, чип, маршрут, info-поля.
-class _SkeletonSummary extends StatelessWidget {
-  const _SkeletonSummary();
+/// Skeleton общей карточки: груз со статусом и заказчик.
+class _SkeletonOrderDetailsCard extends StatelessWidget {
+  const _SkeletonOrderDetailsCard();
 
   @override
   Widget build(BuildContext context) {
@@ -48,87 +46,45 @@ class _SkeletonSummary extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Номер (titleLarge ~20px) + status chip
+          // Заголовок груза и статус используют одну строку без пустой шапки.
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Expanded(
-                child: SkeletonLine(height: 20, widthFraction: 0.4),
+                child: SkeletonLine(height: 11, widthFraction: 0.2),
               ),
               const SizedBox(width: 12),
-              Container(
-                width: 72,
-                height: 26,
-                decoration: BoxDecoration(
-                  color: BrandColors.grayLighter,
-                  borderRadius: BorderRadius.circular(BrandRadius.pill),
+              SizedBox(
+                height: 48,
+                child: Center(
+                  child: Container(
+                    width: 96,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: BrandColors.grayLighter,
+                      borderRadius: BorderRadius.circular(BrandRadius.pill),
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          // Маршрут — route icon + 2 строки
+          // Наименование и характеристики груза.
+          const SkeletonLine(height: 15, widthFraction: 0.7),
+          const SizedBox(height: 10),
           Row(
             children: [
-              Container(
-                width: 20,
-                height: 20,
-                decoration: const BoxDecoration(
-                  color: BrandColors.grayLighter,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SkeletonLine(height: 16),
-                    SizedBox(height: 4),
-                    SkeletonLine(height: 16),
-                  ],
-                ),
-              ),
+              const Expanded(child: SkeletonLine(height: 13)),
+              const SizedBox(width: 20),
+              const Expanded(child: SkeletonLine(height: 13)),
             ],
           ),
-          const SizedBox(height: 12),
-          // Info items: Груз / Масса / Объём
-          Row(
-            children: [
-              const Expanded(child: SkeletonLine(height: 11)),
-              const SizedBox(width: 12),
-              const Expanded(child: SkeletonLine(height: 15)),
-              const SizedBox(width: 12),
-              const Expanded(child: SkeletonLine(height: 15)),
-            ],
+          const Padding(
+            padding: EdgeInsets.only(top: 20, bottom: 16),
+            child: Divider(height: 1, color: BrandColors.grayLighter),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Skeleton для [_ClientCard]: заголовок + строки org/manager/phone.
-class _SkeletonClientCard extends StatelessWidget {
-  const _SkeletonClientCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: BrandColors.white,
-        border: Border.all(color: BrandColors.grayLighter),
-        borderRadius: BorderRadius.circular(BrandRadius.md),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Заголовок «Заказчик» — titleMedium ~16px
-          const SkeletonLine(height: 16, widthFraction: 0.25),
+          // Заказчик — последняя, более спокойная группа.
+          const SkeletonLine(height: 14, widthFraction: 0.25),
           const SizedBox(height: 8),
-          // Org row
           Row(
             children: [
               Container(
@@ -144,7 +100,6 @@ class _SkeletonClientCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
-          // Manager row
           Row(
             children: [
               Container(
@@ -160,7 +115,6 @@ class _SkeletonClientCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
-          // Phone row
           Row(
             children: [
               Container(

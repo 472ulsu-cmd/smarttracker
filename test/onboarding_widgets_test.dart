@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smarttracker/domain/models/order.dart';
+import 'package:smarttracker/ui/core/widgets/status_chip.dart';
 import 'package:smarttracker/ui/core/widgets/swipeable_order_tile.dart';
 
 const _newOrder = OrderListItem(
@@ -22,6 +23,21 @@ Widget _app(Widget child, {bool disableAnimations = false}) {
 }
 
 void main() {
+  testWidgets('плитка сохраняет цветную полосу статуса на левой грани', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app(const SwipeableOrderTile(order: _newOrder)));
+
+    final surface = tester.widget<Container>(
+      find.byKey(const ValueKey('order-tile-surface-1')),
+    );
+    final decoration = surface.foregroundDecoration! as BoxDecoration;
+    final border = decoration.border! as Border;
+
+    expect(border.left.width, 4);
+    expect(border.left.color, statusBackgroundColorFor(_newOrder.status));
+  });
+
   testWidgets('preview свайпа не меняет статус заявки', (tester) async {
     var accepted = 0;
     var rejected = 0;

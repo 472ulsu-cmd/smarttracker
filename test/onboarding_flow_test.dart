@@ -126,6 +126,12 @@ void main() {
       findsNothing,
     );
     expect(find.text('Понятно'), findsOneWidget);
+    expect(find.text('Москва → Казань'), findsNothing);
+    expect(find.text('Погрузка — Москва'), findsOneWidget);
+    expect(find.text('Разгрузка — Казань'), findsOneWidget);
+    expect(find.textContaining('Владимир'), findsNothing);
+    expect(find.textContaining('Нижний Новгород'), findsNothing);
+    expect(find.text('Промежуточные точки: 2'), findsOneWidget);
 
     // Целевой контрол остаётся активным внутри spotlight-выреза.
     await tester.tap(find.text('Подробнее'));
@@ -192,6 +198,13 @@ void main() {
     await tester.tap(find.text('Подтвердить'));
     await tester.pumpAndSettle();
 
+    expect(find.widgetWithText(ListTile, 'Фото по заявке'), findsOneWidget);
+    expect(
+      getIt<SettingsService>().hasSeenOnboardingHint(
+        OnboardingHint.orderPhotoEntry,
+      ),
+      isTrue,
+    );
     expect(
       find.text('Нажмите «Фото по заявке», чтобы добавить снимки'),
       findsOneWidget,

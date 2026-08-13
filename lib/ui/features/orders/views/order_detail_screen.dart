@@ -176,7 +176,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
 
     if (!reduceMotion && _viewModel.successMessage != null) {
-      await Future<void>.delayed(const Duration(milliseconds: 320));
+      // Совпадает с длительностью появления success-баннера: после его
+      // раскладки цель уже стабильна, дополнительная пауза не нужна.
+      await Future<void>.delayed(const Duration(milliseconds: 280));
       await WidgetsBinding.instance.endOfFrame;
       targetContext = _photoTargetKey.currentContext;
     }
@@ -367,9 +369,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             : const SizedBox.shrink(),
                       ),
                     ),
-                    _Summary(order: order),
-                    const SizedBox(height: 16),
-                    _ClientCard(order: order),
+                    _OrderDetailsCard(order: order),
                     const SizedBox(height: 16),
                     _RouteCard(
                       order: order,
@@ -424,133 +424,141 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 }
 
-class _Summary extends StatefulWidget {
-  const _Summary({required this.order});
+class _OrderDetailsCard extends StatelessWidget {
+  const _OrderDetailsCard({required this.order});
   final OrderDetail order;
 
   @override
-  State<_Summary> createState() => _SummaryState();
-}
-
-class _SummaryState extends State<_Summary>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pulse;
-  late final Animation<double> _scale;
-  int? _lastStatus;
-
-  @override
-  void initState() {
-    super.initState();
-    _lastStatus = widget.order.status;
-    _pulse = AnimationController(
-      vsync: this,
-      // Короткий settle-импульс: карточка «подтверждает» смену статуса.
-      duration: const Duration(milliseconds: 280),
-    );
-    // 1.0 → 1.012 → 1.0: едва заметный «вдох», затем возврат. easeOut на
-    // росте (уверенный), easeIn на возврате (мягкая посадка).
-    _scale = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(
-          begin: 1.0,
-          end: 1.012,
-        ).chain(CurveTween(curve: Curves.easeOutCubic)),
-        weight: 1,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(
-          begin: 1.012,
-          end: 1.0,
-        ).chain(CurveTween(curve: Curves.easeInCubic)),
-        weight: 1,
-      ),
-    ]).animate(_pulse);
-  }
-
-  @override
-  void didUpdateWidget(covariant _Summary oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Триггер settle-импульса только при реальной смене статуса.
-    if (widget.order.status != _lastStatus) {
-      _lastStatus = widget.order.status;
-      final reduceMotion = MediaQuery.disableAnimationsOf(context);
-      if (!reduceMotion) {
-        _pulse.forward(from: 0);
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _pulse.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final order = widget.order;
-    // Reduce Motion: без импульса — ScaleTransition с always-1.0 нейтрален.
-    return ScaleTransition(
-      scale: _scale,
-      child: BrandCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    final client = order.client;
+    final hasCargo =
+        order.cargoType.isNotEmpty ||
+        order.mass.isNotEmpty ||
+        order.volume.isNotEmpty;
+    final hasClient =
+        client.org.isNotEmpty ||
+        client.manager.isNotEmpty ||
+        client.phone.isNotEmpty;
+
+    return BrandCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (hasCargo)
+            Semantics(
+              key: const ValueKey('order-detail-cargo'),
+              container: true,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Semantics(
+                          header: true,
+                          child: Text('Груз', style: AppTextStyles.labelMedium),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      KeyedSubtree(
+                        key: const ValueKey('order-detail-status'),
+                        child: AppTransitions.heroStatusChip(
+                          orderId: order.id,
+                          statusId: order.status,
+                          chip: StatusChip(statusId: order.status),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (order.cargoType.isNotEmpty) ...[
+                    Text(
+                      order.cargoType,
+                      style: AppTextStyles.labelLarge,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  if (order.mass.isNotEmpty || order.volume.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 20,
+                      runSpacing: 8,
+                      children: [
+                        if (order.mass.isNotEmpty)
+                          _InfoItem(label: 'Масса', value: '${order.mass} т'),
+                        if (order.volume.isNotEmpty)
+                          _InfoItem(
+                            label: 'Объём',
+                            value: '${order.volume} м³',
+                          ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            )
+          else
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Semantics(
+                KeyedSubtree(
+                  key: const ValueKey('order-detail-status'),
+                  child: AppTransitions.heroStatusChip(
+                    orderId: order.id,
+                    statusId: order.status,
+                    chip: StatusChip(statusId: order.status),
+                  ),
+                ),
+              ],
+            ),
+          if (hasClient) ...[
+            const Padding(
+              padding: EdgeInsets.only(top: 20, bottom: 16),
+              child: Divider(height: 1),
+            ),
+            Semantics(
+              key: const ValueKey('order-detail-client'),
+              container: true,
+              explicitChildNodes: true,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Semantics(
                     header: true,
-                    child: AppTransitions.heroOrderNumber(
-                      orderId: order.id,
-                      orderNum: order.num,
-                      style: AppTextStyles.titleLarge,
+                    child: Text(
+                      'Заказчик',
+                      style: AppTextStyles.labelLarge.copyWith(
+                        color: BrandColors.grayDark,
+                      ),
                     ),
                   ),
-                ),
-                AppTransitions.heroStatusChip(
-                  orderId: order.id,
-                  statusId: order.status,
-                  chip: StatusChip(statusId: order.status),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                const Icon(
-                  Icons.route_rounded,
-                  color: BrandColors.primary,
-                  size: 20,
-                  semanticLabel: 'Маршрут',
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    order.route,
-                    style: AppTextStyles.titleMedium,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              children: [
-                if (order.cargoType.isNotEmpty)
-                  _InfoItem(label: 'Груз', value: order.cargoType),
-                if (order.mass.isNotEmpty)
-                  _InfoItem(label: 'Масса', value: '${order.mass} т'),
-                if (order.volume.isNotEmpty)
-                  _InfoItem(label: 'Объём', value: '${order.volume} м³'),
-              ],
+                  const SizedBox(height: 8),
+                  if (client.org.isNotEmpty)
+                    _Row(
+                      icon: Icons.business_outlined,
+                      text: client.org,
+                      semanticLabel: 'Организация',
+                      textStyle: AppTextStyles.labelLarge,
+                    ),
+                  if (client.manager.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: _Row(
+                        icon: Icons.person_outline,
+                        text: client.manager,
+                        semanticLabel: 'Контактное лицо',
+                      ),
+                    ),
+                  if (client.phone.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: PhoneCallRow(phone: client.phone),
+                    ),
+                ],
+              ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -578,56 +586,17 @@ class _InfoItem extends StatelessWidget {
   }
 }
 
-class _ClientCard extends StatelessWidget {
-  const _ClientCard({required this.order});
-  final OrderDetail order;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = order.client;
-    if (c.org.isEmpty && c.manager.isEmpty && c.phone.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    return BrandCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Semantics(
-            header: true,
-            child: Text('Заказчик', style: AppTextStyles.titleMedium),
-          ),
-          const SizedBox(height: 8),
-          if (c.org.isNotEmpty)
-            _Row(
-              icon: Icons.business_outlined,
-              text: c.org,
-              semanticLabel: 'Организация',
-            ),
-          if (c.manager.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: _Row(
-                icon: Icons.person_outline,
-                text: c.manager,
-                semanticLabel: 'Контактное лицо',
-              ),
-            ),
-          if (c.phone.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: PhoneCallRow(phone: c.phone),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
 class _Row extends StatelessWidget {
-  const _Row({required this.icon, required this.text, this.semanticLabel});
+  const _Row({
+    required this.icon,
+    required this.text,
+    this.semanticLabel,
+    this.textStyle,
+  });
   final IconData icon;
   final String text;
   final String? semanticLabel;
+  final TextStyle? textStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -643,7 +612,7 @@ class _Row extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            style: AppTextStyles.bodyMedium,
+            style: textStyle ?? AppTextStyles.bodyMedium,
             maxLines: 3,
             overflow: TextOverflow.ellipsis,
           ),
@@ -667,6 +636,11 @@ class _RouteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (order.routeDetails.isEmpty) return const SizedBox.shrink();
+    final points = order.routeDetails;
+    final visiblePoints = points.length <= 2
+        ? points
+        : [points.first, points.last];
+    final hiddenPointCount = points.length - visiblePoints.length;
     return BrandCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -687,14 +661,24 @@ class _RouteCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          for (final point in order.routeDetails) ...[
+          for (final point in visiblePoints) ...[
             _RoutePoint(point: point),
-            if (point != order.routeDetails.last)
+            if (point != visiblePoints.last)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 4),
                 child: Divider(height: 1),
               ),
           ],
+          if (hiddenPointCount > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(
+                'Промежуточные точки: $hiddenPointCount',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: BrandColors.grayDark,
+                ),
+              ),
+            ),
         ],
       ),
     );
