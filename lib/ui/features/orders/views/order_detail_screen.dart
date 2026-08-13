@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/service_locator.dart';
+import '../../../../data/services/settings_service.dart';
 import '../../../../domain/models/order.dart';
 import '../../../../domain/models/order_status.dart';
 import '../../../../domain/repositories/orders_repository.dart';
@@ -16,6 +17,7 @@ import '../../../core/utils/date_format.dart';
 import '../../../core/widgets/brand_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_banner.dart';
+import '../../../core/widgets/onboarding_hint.dart';
 import '../../../core/widgets/phone_call_row.dart';
 import '../../../core/widgets/skeleton_order_detail.dart';
 import '../../../core/widgets/status_chip.dart';
@@ -65,6 +67,17 @@ class OrderDetailScreen extends StatefulWidget {
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   late final OrderDetailViewModel _viewModel;
+  late final SettingsService _settings;
+  late final bool _routeHintPending;
+  late final bool _photoHintPending;
+  late bool _routeHintResolved;
+  late bool _photoHintResolved;
+  final GlobalKey _routeTargetKey = GlobalKey();
+  final GlobalKey _photoTargetKey = GlobalKey();
+  bool _routeHintVisible = false;
+  bool _photoHintVisible = false;
+  bool _photoHintScheduled = false;
+  bool _routeScreenOpen = false;
 
   /// Таймер авто-затухания баннера успеха: держим ~3.5с, затем чистим
   /// successMessage → баннер slide-fade-out.
@@ -73,7 +86,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _viewModel = OrderDetailViewModel(widget.orderId, getIt<OrdersRepository>());
+    _viewModel = OrderDetailViewModel(
+      widget.orderId,
+      getIt<OrdersRepository>(),
+    );
+    _settings = getIt<SettingsService>();
+    _routeHintPending = !_settings.hasSeenOnboardingHint(
+      OnboardingHint.orderRouteEntry,
+    );
+    _photoHintPending = !_settings.hasSeenOnboardingHint(
+      OnboardingHint.orderPhotoEntry,
+    );
+    _routeHintResolved = !_routeHintPending;
+    _photoHintResolved = !_photoHintPending;
     _viewModel.addListener(_onChanged);
     _viewModel.load();
   }
@@ -97,150 +122,304 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     } else {
       _successDismissTimer?.cancel();
     }
+    _activateNextHint();
     setState(() {});
+  }
+
+  void _activateNextHint() {
+    final order = _viewModel.order;
+    if (order == null) return;
+
+    if (_routeHintPending &&
+        !_routeHintResolved &&
+        !_routeHintVisible &&
+        order.routeDetails.isNotEmpty) {
+      _routeHintVisible = true;
+      unawaited(
+        _settings.markOnboardingHintSeen(OnboardingHint.orderRouteEntry),
+      );
+      return;
+    }
+
+    final routeBlocksPhoto =
+        _routeHintPending &&
+        !_routeHintResolved &&
+        order.routeDetails.isNotEmpty;
+    final photosAvailable =
+        order.status != OrderStatus.newRequest.id &&
+        order.status != OrderStatus.rejected.id;
+    if (_photoHintPending &&
+        !_photoHintResolved &&
+        !_photoHintVisible &&
+        !_photoHintScheduled &&
+        !_routeScreenOpen &&
+        !routeBlocksPhoto &&
+        photosAvailable) {
+      _photoHintScheduled = true;
+      unawaited(_revealPhotoHintAfterScroll());
+    }
+  }
+
+  Future<void> _revealPhotoHintAfterScroll() async {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    BuildContext? targetContext;
+    // После возврата с маршрута Navigator сначала восстанавливает экран, а
+    // после принятия заявки одновременно раскрывается баннер успеха. Ждём
+    // готовую раскладку, иначе ссылка успевает сместиться уже после прокрутки.
+    for (var attempt = 0; attempt < 3 && targetContext == null; attempt++) {
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted || _photoHintResolved || _routeScreenOpen) {
+        _photoHintScheduled = false;
+        return;
+      }
+      targetContext = _photoTargetKey.currentContext;
+    }
+
+    if (!reduceMotion && _viewModel.successMessage != null) {
+      await Future<void>.delayed(const Duration(milliseconds: 320));
+      await WidgetsBinding.instance.endOfFrame;
+      targetContext = _photoTargetKey.currentContext;
+    }
+
+    if (!mounted || targetContext == null || !targetContext.mounted) {
+      _photoHintScheduled = false;
+      return;
+    }
+
+    await Scrollable.ensureVisible(
+      targetContext,
+      duration: reduceMotion
+          ? Duration.zero
+          : const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+      // Оставляем под ссылкой место для реплики spotlight и не прижимаем её
+      // к нижней панели действий.
+      alignment: 0.38,
+    );
+    await WidgetsBinding.instance.endOfFrame;
+    targetContext = _photoTargetKey.currentContext;
+    if (mounted && targetContext != null && targetContext.mounted) {
+      // Финальная коррекция нужна для динамического сценария принятия:
+      // первый проход анимирует список, второй фиксирует точное положение.
+      await Scrollable.ensureVisible(
+        targetContext,
+        duration: Duration.zero,
+        alignment: 0.38,
+      );
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    if (!mounted || _photoHintResolved || _routeScreenOpen) {
+      _photoHintScheduled = false;
+      return;
+    }
+
+    setState(() {
+      _photoHintScheduled = false;
+      _photoHintVisible = true;
+    });
+    unawaited(_settings.markOnboardingHintSeen(OnboardingHint.orderPhotoEntry));
+  }
+
+  void _resolveRouteHint() {
+    _completeRouteHint(activateNext: true);
+  }
+
+  void _completeRouteHint({required bool activateNext}) {
+    if (_routeHintResolved) return;
+    setState(() {
+      _routeHintVisible = false;
+      _routeHintResolved = true;
+    });
+    if (activateNext) _activateNextHint();
+  }
+
+  void _dismissPhotoHint() {
+    if (_photoHintResolved) return;
+    setState(() {
+      _photoHintVisible = false;
+      _photoHintResolved = true;
+    });
+  }
+
+  Future<void> _openRoute(OrderDetail order) async {
+    _routeScreenOpen = true;
+    // Фото не показываем на странице, которая прямо сейчас уходит назад.
+    _completeRouteHint(activateNext: false);
+    await context.push('/main/orders/${order.id}/route');
+    if (!mounted) return;
+    _routeScreenOpen = false;
+    _activateNextHint();
+  }
+
+  void _openPhotos(OrderDetail order) {
+    _dismissPhotoHint();
+    context.push('/main/orders/${order.id}/photos');
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: ListenableBuilder(
+    final showCoach = _routeHintVisible || _photoHintVisible;
+    final targetKey = _routeHintVisible ? _routeTargetKey : _photoTargetKey;
+    final message = _routeHintVisible
+        ? 'Нажмите «Подробнее», чтобы открыть весь маршрут'
+        : 'Нажмите «Фото по заявке», чтобы добавить снимки';
+    return SpotlightCoach(
+      visible: showCoach,
+      targetKey: targetKey,
+      message: message,
+      onDismiss: _routeHintVisible ? _resolveRouteHint : _dismissPhotoHint,
+      child: Scaffold(
+        appBar: AppBar(
+          title: ListenableBuilder(
+            listenable: _viewModel,
+            builder: (context, _) {
+              final order = _viewModel.order;
+              return Text(
+                order == null ? 'Заявка' : 'Заявка №${order.num}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              );
+            },
+          ),
+        ),
+        body: ListenableBuilder(
           listenable: _viewModel,
           builder: (context, _) {
-            final order = _viewModel.order;
-            return Text(
-              order == null ? 'Заявка' : 'Заявка №${order.num}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            final reduceMotion = MediaQuery.disableAnimationsOf(context);
+            final Widget body;
+            final String phase;
+            if (_viewModel.isLoading && _viewModel.order == null) {
+              phase = 'loading';
+              body = const SkeletonOrderDetail();
+            } else if (_viewModel.order == null) {
+              phase = 'error';
+              body = EmptyState(
+                icon: Icons.error_outline_rounded,
+                iconColor: BrandColors.error,
+                text:
+                    _viewModel.loadErrorMessage ??
+                    'Не удалось загрузить заявку. Проверьте соединение и повторите.',
+                actionLabel: 'Повторить',
+                onAction: _viewModel.load,
+              );
+            } else {
+              phase = 'content';
+              final order = _viewModel.order!;
+              body = RefreshIndicator(
+                onRefresh: _viewModel.load,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    if (_viewModel.loadErrorMessage != null)
+                      // AnimatedSize: появление/исчезновение баннера плавно
+                      // сдвигает контент, а не скачком — без этого вставка
+                      // баннера дёргает _Summary (с чипом) и статус-морф.
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeInOut,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: ErrorBanner(
+                            message: _viewModel.loadErrorMessage!,
+                            onRetry: _viewModel.isLoading
+                                ? null
+                                : _viewModel.load,
+                          ),
+                        ),
+                      ),
+                    // Баннер успеха: всплывает (slide-up + fade), держится ~3.5с,
+                    // затем растворяется и авто-скрывается (таймер в _onChanged →
+                    // clearSuccessMessage). AnimatedSwitcher даёт вход/выход,
+                    // AnimatedSize — плавный сдвиг контента под высоту баннера.
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 280),
+                      curve: Curves.easeInOut,
+                      child: AnimatedSwitcher(
+                        duration: MediaQuery.disableAnimationsOf(context)
+                            ? Duration.zero
+                            : const Duration(milliseconds: 280),
+                        switchInCurve: Curves.easeOutCubic,
+                        switchOutCurve: Curves.easeInCubic,
+                        transitionBuilder: (child, anim) {
+                          if (MediaQuery.disableAnimationsOf(context)) {
+                            return child;
+                          }
+                          // Slide-up + fade: баннер «подъезжает» снизу.
+                          return SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.4),
+                              end: Offset.zero,
+                            ).animate(anim),
+                            child: FadeTransition(opacity: anim, child: child),
+                          );
+                        },
+                        child: _viewModel.successMessage != null
+                            ? Padding(
+                                key: const ValueKey('success-banner'),
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: _SuccessBanner(
+                                  message: _viewModel.successMessage!,
+                                  isRejection:
+                                      _viewModel.lastAttemptedStatus ==
+                                      OrderStatus.rejected,
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    ),
+                    _Summary(order: order),
+                    const SizedBox(height: 16),
+                    _ClientCard(order: order),
+                    const SizedBox(height: 16),
+                    _RouteCard(
+                      order: order,
+                      targetKey: _routeTargetKey,
+                      onOpen: () => _openRoute(order),
+                    ),
+                    const SizedBox(height: 16),
+                    // Фото доступно для заявок, принятых в работу.
+                    // Скрыто для «Новой заявки» (ещё не принято) и «Отказа».
+                    if (order.status != OrderStatus.newRequest.id &&
+                        order.status != OrderStatus.rejected.id)
+                      Column(
+                        children: [
+                          ListTile(
+                            key: _photoTargetKey,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                            ),
+                            leading: const Icon(
+                              Icons.photo_camera_outlined,
+                              color: BrandColors.primary,
+                            ),
+                            title: const Text('Фото по заявке'),
+                            trailing: const Icon(Icons.chevron_right_rounded),
+                            onTap: () => _openPhotos(order),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      ),
+                  ],
+                ),
+              );
+            }
+            // Crossfade skeleton→content: 150мс fade-only, Reduce Motion → мгновенно.
+            return AnimatedSwitcher(
+              duration: reduceMotion
+                  ? Duration.zero
+                  : const Duration(milliseconds: 150),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, anim) =>
+                  FadeTransition(opacity: anim, child: child),
+              child: KeyedSubtree(key: ValueKey(phase), child: body),
             );
           },
         ),
+        bottomNavigationBar: _viewModel.order == null
+            ? null
+            : _ActionsBar(viewModel: _viewModel),
       ),
-      body: ListenableBuilder(
-        listenable: _viewModel,
-        builder: (context, _) {
-          final reduceMotion = MediaQuery.disableAnimationsOf(context);
-          final Widget body;
-          final String phase;
-          if (_viewModel.isLoading && _viewModel.order == null) {
-            phase = 'loading';
-            body = const SkeletonOrderDetail();
-          } else if (_viewModel.order == null) {
-            phase = 'error';
-            body = EmptyState(
-              icon: Icons.error_outline_rounded,
-              iconColor: BrandColors.error,
-              text: _viewModel.loadErrorMessage ??
-                  'Не удалось загрузить заявку. Проверьте соединение и повторите.',
-              actionLabel: 'Повторить',
-              onAction: _viewModel.load,
-            );
-          } else {
-            phase = 'content';
-            final order = _viewModel.order!;
-            body = RefreshIndicator(
-              onRefresh: _viewModel.load,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                if (_viewModel.loadErrorMessage != null)
-                  // AnimatedSize: появление/исчезновение баннера плавно
-                  // сдвигает контент, а не скачком — без этого вставка
-                  // баннера дёргает _Summary (с чипом) и статус-морф.
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeInOut,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: ErrorBanner(
-                        message: _viewModel.loadErrorMessage!,
-                        onRetry: _viewModel.isLoading
-                            ? null
-                            : _viewModel.load,
-                      ),
-                    ),
-                  ),
-                // Баннер успеха: всплывает (slide-up + fade), держится ~3.5с,
-                // затем растворяется и авто-скрывается (таймер в _onChanged →
-                // clearSuccessMessage). AnimatedSwitcher даёт вход/выход,
-                // AnimatedSize — плавный сдвиг контента под высоту баннера.
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 280),
-                  curve: Curves.easeInOut,
-                  child: AnimatedSwitcher(
-                    duration: MediaQuery.disableAnimationsOf(context)
-                        ? Duration.zero
-                        : const Duration(milliseconds: 280),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (child, anim) {
-                      if (MediaQuery.disableAnimationsOf(context)) return child;
-                      // Slide-up + fade: баннер «подъезжает» снизу.
-                      return SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0, 0.4),
-                          end: Offset.zero,
-                        ).animate(anim),
-                        child: FadeTransition(opacity: anim, child: child),
-                      );
-                    },
-                    child: _viewModel.successMessage != null
-                        ? Padding(
-                            key: const ValueKey('success-banner'),
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: _SuccessBanner(
-                              message: _viewModel.successMessage!,
-                              isRejection: _viewModel.lastAttemptedStatus ==
-                                  OrderStatus.rejected,
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ),
-                _Summary(order: order),
-                const SizedBox(height: 16),
-                _ClientCard(order: order),
-                const SizedBox(height: 16),
-                _RouteCard(order: order),
-                const SizedBox(height: 16),
-                // Фото доступно для заявок, принятых в работу.
-                // Скрыто для «Новой заявки» (ещё не принято) и «Отказа».
-                if (order.status != OrderStatus.newRequest.id &&
-                    order.status != OrderStatus.rejected.id) ...[
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.photo_camera_outlined,
-                        color: BrandColors.primary),
-                    title: const Text('Фото по заявке'),
-                    trailing: const Icon(Icons.chevron_right_rounded),
-                    onTap: () =>
-                        context.push('/main/orders/${order.id}/photos'),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-              ],
-            ),
-          );
-          }
-          // Crossfade skeleton→content: 150мс fade-only, Reduce Motion → мгновенно.
-          return AnimatedSwitcher(
-            duration: reduceMotion
-                ? Duration.zero
-                : const Duration(milliseconds: 150),
-            switchInCurve: Curves.easeOutCubic,
-            switchOutCurve: Curves.easeInCubic,
-            transitionBuilder: (child, anim) =>
-                FadeTransition(opacity: anim, child: child),
-            child: KeyedSubtree(
-              key: ValueKey(phase),
-              child: body,
-            ),
-          );
-        },
-      ),
-      bottomNavigationBar: _viewModel.order == null
-          ? null
-          : _ActionsBar(viewModel: _viewModel),
     );
   }
 }
@@ -272,13 +451,17 @@ class _SummaryState extends State<_Summary>
     // росте (уверенный), easeIn на возврате (мягкая посадка).
     _scale = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.012)
-            .chain(CurveTween(curve: Curves.easeOutCubic)),
+        tween: Tween<double>(
+          begin: 1.0,
+          end: 1.012,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)),
         weight: 1,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.012, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeInCubic)),
+        tween: Tween<double>(
+          begin: 1.012,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeInCubic)),
         weight: 1,
       ),
     ]).animate(_pulse);
@@ -336,10 +519,12 @@ class _SummaryState extends State<_Summary>
             const SizedBox(height: 12),
             Row(
               children: [
-                const Icon(Icons.route_rounded,
-                    color: BrandColors.primary,
-                    size: 20,
-                    semanticLabel: 'Маршрут'),
+                const Icon(
+                  Icons.route_rounded,
+                  color: BrandColors.primary,
+                  size: 20,
+                  semanticLabel: 'Маршрут',
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -408,22 +593,24 @@ class _ClientCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Semantics(
-              header: true,
-              child: Text('Заказчик', style: AppTextStyles.titleMedium),
-            ),
+            header: true,
+            child: Text('Заказчик', style: AppTextStyles.titleMedium),
+          ),
           const SizedBox(height: 8),
           if (c.org.isNotEmpty)
             _Row(
-                icon: Icons.business_outlined,
-                text: c.org,
-                semanticLabel: 'Организация'),
+              icon: Icons.business_outlined,
+              text: c.org,
+              semanticLabel: 'Организация',
+            ),
           if (c.manager.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: _Row(
-                  icon: Icons.person_outline,
-                  text: c.manager,
-                  semanticLabel: 'Контактное лицо'),
+                icon: Icons.person_outline,
+                text: c.manager,
+                semanticLabel: 'Контактное лицо',
+              ),
             ),
           if (c.phone.isNotEmpty)
             Padding(
@@ -446,8 +633,12 @@ class _Row extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon,
-            size: 18, color: BrandColors.grayMid, semanticLabel: semanticLabel),
+        Icon(
+          icon,
+          size: 18,
+          color: BrandColors.grayMid,
+          semanticLabel: semanticLabel,
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -463,8 +654,15 @@ class _Row extends StatelessWidget {
 }
 
 class _RouteCard extends StatelessWidget {
-  const _RouteCard({required this.order});
+  const _RouteCard({
+    required this.order,
+    required this.targetKey,
+    required this.onOpen,
+  });
+
   final OrderDetail order;
+  final GlobalKey targetKey;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -476,16 +674,14 @@ class _RouteCard extends StatelessWidget {
           Row(
             children: [
               Semantics(
-              header: true,
-              child: Text('Маршрут', style: AppTextStyles.titleMedium),
-            ),
+                header: true,
+                child: Text('Маршрут', style: AppTextStyles.titleMedium),
+              ),
               const Spacer(),
               TextButton(
-                style: TextButton.styleFrom(
-                  minimumSize: const Size(48, 48),
-                ),
-                onPressed: () =>
-                    context.push('/main/orders/${order.id}/route'),
+                key: targetKey,
+                style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+                onPressed: onOpen,
                 child: const Text('Подробнее'),
               ),
             ],
@@ -511,8 +707,9 @@ class _RoutePoint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dotColor =
-        point.isLoading ? BrandColors.primary : BrandColors.grayMid;
+    final dotColor = point.isLoading
+        ? BrandColors.primary
+        : BrandColors.grayMid;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -538,8 +735,10 @@ class _RoutePoint extends StatelessWidget {
                   '${DateFormatUtil.date(point.date)}  '
                   '${DateFormatUtil.time(point.timeFrom)}–'
                   '${DateFormatUtil.time(point.timeTo)}',
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: BrandColors.grayDark, height: 1.2),
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: BrandColors.grayDark,
+                    height: 1.2,
+                  ),
                   // Окно времени погрузки/разгрузки не должно теряться при
                   // крупном масштабе шрифта — поднимаем с 1 до 2 строк.
                   maxLines: 2,
@@ -562,8 +761,12 @@ class _ActionsBar extends StatelessWidget {
     final actions = viewModel.availableActions;
     if (actions.isEmpty) return const SizedBox.shrink();
 
-    final progressActions = actions.where((s) => s != OrderStatus.rejected).toList();
-    final destructiveActions = actions.where((s) => s == OrderStatus.rejected).toList();
+    final progressActions = actions
+        .where((s) => s != OrderStatus.rejected)
+        .toList();
+    final destructiveActions = actions
+        .where((s) => s == OrderStatus.rejected)
+        .toList();
 
     return SafeArea(
       child: Container(
@@ -585,10 +788,7 @@ class _ActionsBar extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2.5),
                   ),
                   const SizedBox(width: 12),
-                  Text(
-                    'Отправляем статус…',
-                    style: AppTextStyles.bodyMedium,
-                  ),
+                  Text('Отправляем статус…', style: AppTextStyles.bodyMedium),
                 ],
               );
             }
@@ -660,9 +860,7 @@ class _ActionButton extends StatelessWidget {
       );
     }
     return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size.fromHeight(52),
-      ),
+      style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(52)),
       onPressed: () => _confirm(context),
       child: Text(label),
     );
@@ -709,8 +907,9 @@ class _ActionButton extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 _statusActionConsequence(status),
-                style: AppTextStyles.bodyMedium
-                    .copyWith(color: BrandColors.grayDark),
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: BrandColors.grayDark,
+                ),
               ),
               const SizedBox(height: 20),
               // Кнопка подтверждения — во всю ширину, как во всём приложении.
@@ -763,8 +962,9 @@ class _SuccessBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accentColor =
-        isRejection ? BrandColors.statusRejectedForeground : BrandColors.greenWeb;
+    final accentColor = isRejection
+        ? BrandColors.statusRejectedForeground
+        : BrandColors.greenWeb;
     final backgroundColor = isRejection
         ? BrandColors.statusRejectedBackground
         : BrandColors.successBackground;
@@ -789,8 +989,9 @@ class _SuccessBanner extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: AppTextStyles.bodyMedium
-                  .copyWith(fontWeight: FontWeight.w500),
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

@@ -17,13 +17,15 @@ import '../../features/orders/views/order_list_tile.dart';
 /// При свайпе за порог вызывается [onAccept] или [onReject] с [order].
 /// Карточка исчезает с анимацией, а haptic подтверждает действие.
 /// Reduce Motion: карточка мгновенно исчезает без анимации.
-class SwipeableOrderTile extends StatelessWidget {
+class SwipeableOrderTile extends StatefulWidget {
   const SwipeableOrderTile({
     super.key,
     required this.order,
     this.onTap,
     this.onAccept,
     this.onReject,
+    this.previewSwipe = false,
+    this.onFirstInteraction,
   });
 
   final OrderListItem order;
@@ -31,18 +33,179 @@ class SwipeableOrderTile extends StatelessWidget {
   final VoidCallback? onAccept;
   final VoidCallback? onReject;
 
+  /// Один безопасный показ направлений: карточка возвращается на место,
+  /// callbacks смены статуса не вызываются.
+  final bool previewSwipe;
+
+  /// Первый тап/ручной свайп по карточке — подсказку можно убрать.
+  final VoidCallback? onFirstInteraction;
+
+  @override
+  State<SwipeableOrderTile> createState() => _SwipeableOrderTileState();
+}
+
+class _SwipeableOrderTileState extends State<SwipeableOrderTile>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _previewController;
+  late final Animation<double> _previewOffset;
+  bool _previewScheduled = false;
+  bool _interactionReported = false;
+
   /// Можно ли свайпать эту заявку: только «Новые» (status 1).
   bool get _isSwipeable =>
-      OrderStatus.fromId(order.status) == OrderStatus.newRequest;
+      OrderStatus.fromId(widget.order.status) == OrderStatus.newRequest;
+
+  @override
+  void initState() {
+    super.initState();
+    _previewController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
+    _previewOffset = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 0.0,
+          end: 0.13,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)),
+        weight: 18,
+      ),
+      TweenSequenceItem(tween: ConstantTween(0.13), weight: 10),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 0.13,
+          end: 0.0,
+        ).chain(CurveTween(curve: Curves.easeInOutCubic)),
+        weight: 18,
+      ),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 0.0,
+          end: -0.13,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)),
+        weight: 18,
+      ),
+      TweenSequenceItem(tween: ConstantTween(-0.13), weight: 10),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: -0.13,
+          end: 0.0,
+        ).chain(CurveTween(curve: Curves.easeInOutCubic)),
+        weight: 18,
+      ),
+    ]).animate(_previewController);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _schedulePreviewIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(covariant SwipeableOrderTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.previewSwipe && oldWidget.previewSwipe) {
+      _previewController.stop();
+      _previewController.value = 0;
+    } else if (widget.previewSwipe && !oldWidget.previewSwipe) {
+      _previewScheduled = false;
+      _schedulePreviewIfNeeded();
+    }
+  }
+
+  void _schedulePreviewIfNeeded() {
+    if (_previewScheduled || !widget.previewSwipe || !_isSwipeable) return;
+    _previewScheduled = true;
+    if (MediaQuery.disableAnimationsOf(context)) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future<void>.delayed(const Duration(milliseconds: 450));
+      if (!mounted || !widget.previewSwipe || _interactionReported) return;
+      await _previewController.forward(from: 0);
+    });
+  }
+
+  void _stopPreview() {
+    _previewController.stop();
+    _previewController.value = 0;
+  }
+
+  void _reportInteraction() {
+    _stopPreview();
+    if (_interactionReported) return;
+    _interactionReported = true;
+    widget.onFirstInteraction?.call();
+  }
+
+  void _handleTap() {
+    _reportInteraction();
+    widget.onTap?.call();
+  }
+
+  @override
+  void dispose() {
+    _previewController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     if (!_isSwipeable) {
-      return OrderListTile(order: order, onTap: onTap);
+      return OrderListTile(order: widget.order, onTap: _handleTap);
     }
 
+    return Listener(
+      // На pointerDown только останавливаем автодемонстрацию. Spotlight
+      // закрываем после распознанного тапа или достижения порога свайпа,
+      // чтобы не перестраивать карточку посреди жеста.
+      onPointerDown: (_) => _stopPreview(),
+      child: AnimatedBuilder(
+        animation: _previewOffset,
+        builder: (context, child) {
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final offset = _previewOffset.value;
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(BrandRadius.md),
+                child: Stack(
+                  children: [
+                    if (offset != 0)
+                      Positioned.fill(
+                        child: offset > 0
+                            ? const _SwipeBackground(
+                                alignment: Alignment.centerLeft,
+                                color: BrandColors.success,
+                                icon: Icons.check_rounded,
+                                label: 'Принять',
+                                padding: EdgeInsets.only(left: 24),
+                              )
+                            : const _SwipeBackground(
+                                alignment: Alignment.centerRight,
+                                color: BrandColors.destructive,
+                                icon: Icons.close_rounded,
+                                label: 'Отказаться',
+                                padding: EdgeInsets.only(right: 24),
+                              ),
+                      ),
+                    Transform.translate(
+                      key: ValueKey('swipe-preview-${widget.order.id}'),
+                      offset: Offset(constraints.maxWidth * offset, 0),
+                      child: child,
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+        child: _buildDismissible(context),
+      ),
+    );
+  }
+
+  Widget _buildDismissible(BuildContext context) {
     return Dismissible(
-      key: ValueKey('order-${order.id}'),
+      key: ValueKey('order-${widget.order.id}'),
       // Направления: вправо = принять, влево = отказаться.
       direction: DismissDirection.horizontal,
       // Порог срабатывания — 40% ширины карточки: достаточно лёгкого свайпа
@@ -80,24 +243,22 @@ class SwipeableOrderTile extends StatelessWidget {
       confirmDismiss: (direction) async {
         // Тактильное подтверждение намерения — водитель «чувствует» порог.
         HapticFeedback.mediumImpact();
+        _reportInteraction();
 
         final isAccept = direction == DismissDirection.startToEnd;
-        final callback = isAccept ? onAccept : onReject;
+        final callback = isAccept ? widget.onAccept : widget.onReject;
         if (callback == null) return false;
 
-        return _showConfirmDialog(
-          context,
-          isAccept: isAccept,
-        );
+        return _showConfirmDialog(context, isAccept: isAccept);
       },
       onDismissed: (direction) {
         if (direction == DismissDirection.startToEnd) {
-          onAccept?.call();
+          widget.onAccept?.call();
         } else {
-          onReject?.call();
+          widget.onReject?.call();
         }
       },
-      child: OrderListTile(order: order, onTap: onTap),
+      child: OrderListTile(order: widget.order, onTap: _handleTap),
     );
   }
 
@@ -105,7 +266,8 @@ class SwipeableOrderTile extends StatelessWidget {
   ///
   /// Зеркально повторяет диалог из [_ActionButton._confirm] на экране
   /// деталей заявки: тот же layout, те же кнопки, тот же tone.
-  Future<bool> _showConfirmDialog(BuildContext context, {
+  Future<bool> _showConfirmDialog(
+    BuildContext context, {
     required bool isAccept,
   }) async {
     final label = isAccept ? 'Принять в работу' : 'Отказаться от заявки';
@@ -146,8 +308,9 @@ class SwipeableOrderTile extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 consequence,
-                style: AppTextStyles.bodyMedium
-                    .copyWith(color: BrandColors.grayDark),
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: BrandColors.grayDark,
+                ),
               ),
               const SizedBox(height: 20),
               if (isAccept)
@@ -213,8 +376,7 @@ class _SwipeBackground extends StatelessWidget {
           const SizedBox(width: 10),
           Text(
             label,
-            style: AppTextStyles.labelLarge
-                .copyWith(color: BrandColors.white),
+            style: AppTextStyles.labelLarge.copyWith(color: BrandColors.white),
           ),
         ],
       ),

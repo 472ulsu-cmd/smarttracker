@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../config/service_locator.dart';
+import '../../../../data/services/settings_service.dart';
 import '../../../../domain/models/order.dart';
 import '../../../../domain/repositories/orders_repository.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -11,6 +14,7 @@ import '../../../core/theme/brand_radius.dart';
 import '../../../core/utils/date_format.dart';
 import '../../../core/widgets/app_snack_bars.dart';
 import '../../../core/widgets/brand_card.dart';
+import '../../../core/widgets/onboarding_hint.dart';
 import '../../../core/widgets/phone_call_row.dart';
 import '../view_models/order_detail_view_model.dart';
 
@@ -26,11 +30,24 @@ class OrderRouteScreen extends StatefulWidget {
 
 class _OrderRouteScreenState extends State<OrderRouteScreen> {
   late final OrderDetailViewModel _viewModel;
+  late final SettingsService _settings;
+  late final bool _mapHintPending;
+  late bool _mapHintResolved;
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _mapHintKey = GlobalKey();
+  bool _mapHintVisible = false;
+  bool _mapHintScheduled = false;
 
   @override
   void initState() {
     super.initState();
-    _viewModel = OrderDetailViewModel(widget.orderId, getIt<OrdersRepository>());
+    _viewModel = OrderDetailViewModel(
+      widget.orderId,
+      getIt<OrdersRepository>(),
+    );
+    _settings = getIt<SettingsService>();
+    _mapHintPending = !_settings.hasSeenOnboardingHint(OnboardingHint.routeMap);
+    _mapHintResolved = !_mapHintPending;
     // Отдельный listener не нужен: заголовок и тело перестраиваются
     // собственными ListenableBuilder.
     _viewModel.load();
@@ -38,118 +55,187 @@ class _OrderRouteScreenState extends State<OrderRouteScreen> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _viewModel.dispose();
     super.dispose();
   }
 
+  void _scheduleMapHint(int firstMappableIndex) {
+    if (_mapHintScheduled ||
+        _mapHintResolved ||
+        !_mapHintPending ||
+        firstMappableIndex < 0) {
+      return;
+    }
+    _mapHintScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _mapHintVisible = true);
+      unawaited(_settings.markOnboardingHintSeen(OnboardingHint.routeMap));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final hintContext = _mapHintKey.currentContext;
+        if (!mounted || hintContext == null) return;
+        Scrollable.ensureVisible(
+          hintContext,
+          duration: MediaQuery.disableAnimationsOf(context)
+              ? Duration.zero
+              : const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+          alignment: 0.18,
+        );
+      });
+    });
+  }
+
+  void _dismissMapHint() {
+    if (_mapHintResolved) return;
+    setState(() {
+      _mapHintVisible = false;
+      _mapHintResolved = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: ListenableBuilder(
+    return SpotlightCoach(
+      visible: _mapHintVisible,
+      targetKey: _mapHintKey,
+      message: 'Нажмите «На карте», чтобы открыть точку в навигаторе',
+      onDismiss: _dismissMapHint,
+      child: Scaffold(
+        appBar: AppBar(
+          title: ListenableBuilder(
+            listenable: _viewModel,
+            builder: (context, _) {
+              final order = _viewModel.order;
+              return Text(
+                order == null ? 'Маршрут' : 'Маршрут №${order.num}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              );
+            },
+          ),
+        ),
+        body: ListenableBuilder(
           listenable: _viewModel,
           builder: (context, _) {
+            if (_viewModel.isLoading && _viewModel.order == null) {
+              return const Center(child: CircularProgressIndicator());
+            }
             final order = _viewModel.order;
-            return Text(
-              order == null ? 'Маршрут' : 'Маршрут №${order.num}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            if (order == null || order.routeDetails.isEmpty) {
+              final hasError = _viewModel.loadErrorMessage != null;
+              final message = hasError
+                  ? _viewModel.loadErrorMessage!
+                  : order == null
+                  ? 'Не удалось загрузить маршрут'
+                  : 'Для этой заявки не указаны точки маршрута';
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        hasError
+                            ? Icons.error_outline_rounded
+                            : Icons.route_outlined,
+                        size: 56,
+                        color: hasError
+                            ? BrandColors.error
+                            : BrandColors.grayMid,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: BrandColors.grayDark,
+                        ),
+                      ),
+                      if (!hasError && order == null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Проверьте соединение и попробуйте снова.',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: BrandColors.grayDark,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      if (hasError || order == null)
+                        OutlinedButton(
+                          onPressed: _viewModel.isLoading
+                              ? null
+                              : _viewModel.load,
+                          child: const Text('Повторить'),
+                        ),
+                      const SizedBox(height: 8),
+                      OutlinedButton(
+                        onPressed: () => Navigator.of(context).maybePop(),
+                        child: const Text('Назад'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            final firstMappableIndex = order.routeDetails.indexWhere(
+              (point) =>
+                  point.address.isNotEmpty &&
+                  point.lat != null &&
+                  point.lon != null,
+            );
+            _scheduleMapHint(firstMappableIndex);
+            return RefreshIndicator(
+              onRefresh: _viewModel.load,
+              // На планшете контент не растягивается во всю ширину.
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: ListView(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      for (
+                        var index = 0;
+                        index < order.routeDetails.length;
+                        index++
+                      )
+                        _RouteTimelineTile(
+                          point: order.routeDetails[index],
+                          isLast: index == order.routeDetails.length - 1,
+                          mapButtonKey: index == firstMappableIndex
+                              ? _mapHintKey
+                              : null,
+                          onMapOpened: _dismissMapHint,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
             );
           },
         ),
-      ),
-      body: ListenableBuilder(
-        listenable: _viewModel,
-        builder: (context, _) {
-          if (_viewModel.isLoading && _viewModel.order == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final order = _viewModel.order;
-          if (order == null || order.routeDetails.isEmpty) {
-            final hasError = _viewModel.loadErrorMessage != null;
-            final message = hasError
-                ? _viewModel.loadErrorMessage!
-                : order == null
-                    ? 'Не удалось загрузить маршрут'
-                    : 'Для этой заявки не указаны точки маршрута';
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      hasError
-                          ? Icons.error_outline_rounded
-                          : Icons.route_outlined,
-                      size: 56,
-                      color:
-                          hasError ? BrandColors.error : BrandColors.grayMid,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      message,
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.bodyMedium
-                          .copyWith(color: BrandColors.grayDark),
-                    ),
-                    if (!hasError && order == null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        'Проверьте соединение и попробуйте снова.',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.bodySmall
-                            .copyWith(color: BrandColors.grayDark),
-                      ),
-                    ],
-                    const SizedBox(height: 16),
-                    if (hasError || order == null)
-                      OutlinedButton(
-                        onPressed: _viewModel.isLoading
-                            ? null
-                            : _viewModel.load,
-                        child: const Text('Повторить'),
-                      ),
-                    const SizedBox(height: 8),
-                    OutlinedButton(
-                      onPressed: () => Navigator.of(context).maybePop(),
-                      child: const Text('Назад'),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-          return RefreshIndicator(
-            onRefresh: _viewModel.load,
-            // На планшете контент не растягивается во всю ширину.
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 600),
-                child: ListView.builder(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  itemCount: order.routeDetails.length,
-                  itemBuilder: (context, index) {
-                    final point = order.routeDetails[index];
-                    final isLast = index == order.routeDetails.length - 1;
-                    return _RouteTimelineTile(point: point, isLast: isLast);
-                  },
-                ),
-              ),
-            ),
-          );
-        },
       ),
     );
   }
 }
 
 class _RouteTimelineTile extends StatefulWidget {
-  const _RouteTimelineTile({required this.point, required this.isLast});
+  const _RouteTimelineTile({
+    required this.point,
+    required this.isLast,
+    required this.onMapOpened,
+    this.mapButtonKey,
+  });
 
   final OrderRouteDetail point;
   final bool isLast;
+  final VoidCallback onMapOpened;
+  final GlobalKey? mapButtonKey;
 
   @override
   State<_RouteTimelineTile> createState() => _RouteTimelineTileState();
@@ -160,6 +246,7 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
 
   Future<void> _openMap(BuildContext context) async {
     if (_isLaunchingMap) return;
+    widget.onMapOpened();
     HapticFeedback.lightImpact();
     final lat = widget.point.lat;
     final lon = widget.point.lon;
@@ -193,7 +280,10 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
     }
 
     if (context.mounted) {
-      showErrorSnackBar(context, 'Не удалось открыть карты. Установите навигатор.');
+      showErrorSnackBar(
+        context,
+        'Не удалось открыть карты. Установите навигатор.',
+      );
     }
   }
 
@@ -205,14 +295,18 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
     // Иконки и точка таймлайна — яркие (для нетекстовых 3:1 достаточно).
     final accentColor = isLoading ? BrandColors.primary : BrandColors.grayMid;
     // Текстовая метка типа — контрастная пара по WCAG AA (12px → 4.5:1).
-    final labelColor = isLoading ? BrandColors.primaryText : BrandColors.grayDark;
+    final labelColor = isLoading
+        ? BrandColors.primaryText
+        : BrandColors.grayDark;
     final canOpenMap = point.lat != null && point.lon != null;
 
-    final hasCargo = point.cargoType.isNotEmpty ||
+    final hasCargo =
+        point.cargoType.isNotEmpty ||
         point.loadingMethod.isNotEmpty ||
         point.mass.isNotEmpty ||
         point.volume.isNotEmpty;
-    final hasContacts = point.client.org.isNotEmpty ||
+    final hasContacts =
+        point.client.org.isNotEmpty ||
         point.client.manager.isNotEmpty ||
         point.client.phone.isNotEmpty;
 
@@ -232,10 +326,7 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
             left: 15,
             top: 24,
             bottom: 0,
-            child: Container(
-              width: 2,
-              color: BrandColors.grayLight,
-            ),
+            child: Container(width: 2, color: BrandColors.grayLight),
           ),
         Padding(
           padding: const EdgeInsets.only(bottom: 8),
@@ -254,7 +345,9 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        isLoading ? Icons.upload_rounded : Icons.download_rounded,
+                        isLoading
+                            ? Icons.upload_rounded
+                            : Icons.download_rounded,
                         color: BrandColors.white,
                         size: 14,
                       ),
@@ -264,172 +357,189 @@ class _RouteTimelineTileState extends State<_RouteTimelineTile> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: BrandCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                    // Тип операции: иконка + текст (погрузка/разгрузка).
-                    Row(
-                      children: [
-                        Icon(
-                          isLoading
-                              ? Icons.upload_rounded
-                              : Icons.download_rounded,
-                          size: 16,
-                          color: accentColor,
-                        ),
-                        const SizedBox(width: 6),
-                        Semantics(
-                          header: true,
-                          child: Text(
-                            isLoading ? 'Погрузка' : 'Разгрузка',
-                            style: AppTextStyles.labelMedium.copyWith(
-                              color: labelColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    // Дата и время — над городом.
-                    if (point.date.isNotEmpty)
-                      _FieldLine(
-                        icon: Icons.event_outlined,
-                        text: '${DateFormatUtil.date(point.date)}  '
-                            '${DateFormatUtil.time(point.timeFrom)}–'
-                            '${DateFormatUtil.time(point.timeTo)}',
-                        semanticLabel: 'Дата и время',
-                      ),
-                    if (point.city.isNotEmpty) ...[
-                      if (point.date.isNotEmpty) const SizedBox(height: 6),
-                      Text(
-                        point.city,
-                        style: AppTextStyles.titleMedium,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                    if (point.address.isNotEmpty) ...[
-                      if (point.city.isNotEmpty || point.date.isNotEmpty)
-                        const SizedBox(height: 6),
-                      _FieldLine(
-                        icon: Icons.place_outlined,
-                        text: point.address,
-                        semanticLabel: 'Адрес',
-                        minHeight: 32,
-                        trailing: canOpenMap
-                            ? TextButton.icon(
-                                onPressed: _isLaunchingMap
-                                    ? null
-                                    : () => _openMap(context),
-                                // canLaunchUrl по цепочке навигаторов
-                                // занимает заметное время — показываем спиннер.
-                                icon: _isLaunchingMap
-                                    ? const SizedBox(
-                                        width: 18,
-                                        height: 18,
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 2),
-                                      )
-                                    : const Icon(Icons.map_outlined,
-                                        size: 18),
-                                label: const Text('На карте'),
-                                style: TextButton.styleFrom(
-                                  minimumSize: const Size(48, 48),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.padded,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    BrandCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Тип операции: иконка + текст (погрузка/разгрузка).
+                          Row(
+                            children: [
+                              Icon(
+                                isLoading
+                                    ? Icons.upload_rounded
+                                    : Icons.download_rounded,
+                                size: 16,
+                                color: accentColor,
+                              ),
+                              const SizedBox(width: 6),
+                              Semantics(
+                                header: true,
+                                child: Text(
+                                  isLoading ? 'Погрузка' : 'Разгрузка',
+                                  style: AppTextStyles.labelMedium.copyWith(
+                                    color: labelColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              )
-                            : null,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          // Дата и время — над городом.
+                          if (point.date.isNotEmpty)
+                            _FieldLine(
+                              icon: Icons.event_outlined,
+                              text:
+                                  '${DateFormatUtil.date(point.date)}  '
+                                  '${DateFormatUtil.time(point.timeFrom)}–'
+                                  '${DateFormatUtil.time(point.timeTo)}',
+                              semanticLabel: 'Дата и время',
+                            ),
+                          if (point.city.isNotEmpty) ...[
+                            if (point.date.isNotEmpty)
+                              const SizedBox(height: 6),
+                            Text(
+                              point.city,
+                              style: AppTextStyles.titleMedium,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                          if (point.address.isNotEmpty) ...[
+                            if (point.city.isNotEmpty || point.date.isNotEmpty)
+                              const SizedBox(height: 6),
+                            _FieldLine(
+                              icon: Icons.place_outlined,
+                              text: point.address,
+                              semanticLabel: 'Адрес',
+                              minHeight: 32,
+                              trailing: canOpenMap
+                                  ? TextButton.icon(
+                                      key: widget.mapButtonKey,
+                                      onPressed: _isLaunchingMap
+                                          ? null
+                                          : () => _openMap(context),
+                                      // canLaunchUrl по цепочке навигаторов
+                                      // занимает заметное время — показываем спиннер.
+                                      icon: _isLaunchingMap
+                                          ? const SizedBox(
+                                              width: 18,
+                                              height: 18,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : const Icon(
+                                              Icons.map_outlined,
+                                              size: 18,
+                                            ),
+                                      label: const Text('На карте'),
+                                      style: TextButton.styleFrom(
+                                        minimumSize: const Size(48, 48),
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.padded,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          ],
+                          // Груз.
+                          if (hasCargo) ...[
+                            const SizedBox(height: 12),
+                            const _SectionHeader('Груз'),
+                            if (point.cargoType.isNotEmpty)
+                              _FieldLine(
+                                icon: Icons.inventory_2_outlined,
+                                text: point.cargoType,
+                                semanticLabel: 'Тип груза',
+                              ),
+                            if (point.loadingMethod.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              _FieldLine(
+                                icon: Icons.local_shipping_outlined,
+                                text: 'Способ: ${point.loadingMethod}',
+                                semanticLabel: 'Способ погрузки',
+                              ),
+                            ],
+                            if (point.mass.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              _FieldLine(
+                                icon: Icons.scale_outlined,
+                                text: 'Масса: ${point.mass} т',
+                                semanticLabel: 'Масса',
+                              ),
+                            ],
+                            if (point.volume.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              _FieldLine(
+                                icon: Icons.view_in_ar_outlined,
+                                text: 'Объём: ${point.volume} м³',
+                                semanticLabel: 'Объём',
+                              ),
+                            ],
+                          ],
+                          // Контакты.
+                          if (hasContacts) ...[
+                            const SizedBox(height: 12),
+                            const _SectionHeader('Контакты'),
+                            if (point.client.org.isNotEmpty)
+                              _FieldLine(
+                                icon: Icons.business_outlined,
+                                text: point.client.org,
+                                semanticLabel: 'Организация',
+                              ),
+                            if (point.client.manager.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              _FieldLine(
+                                icon: Icons.person_outline,
+                                text: point.client.manager,
+                                semanticLabel: 'Контактное лицо',
+                              ),
+                            ],
+                            if (point.client.phone.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              PhoneCallRow(
+                                phone: point.client.phone,
+                                iconSize: 16,
+                                textStyle: AppTextStyles.bodySmall.copyWith(
+                                  height: 1.25,
+                                ),
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                              ),
+                            ],
+                          ],
+                          // Примечание к точке — в конце плитки.
+                          if (point.comment.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: BrandColors.paperWarm,
+                                borderRadius: BorderRadius.circular(
+                                  BrandRadius.sm,
+                                ),
+                              ),
+                              // Комментарий показываем целиком: там коды КПП
+                              // и инструкции — обрезать нельзя.
+                              child: Text(
+                                point.comment,
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: BrandColors.grayDark,
+                                  height: 1.25,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                    ],
-                    // Груз.
-                    if (hasCargo) ...[
-                      const SizedBox(height: 12),
-                      const _SectionHeader('Груз'),
-                      if (point.cargoType.isNotEmpty)
-                        _FieldLine(
-                          icon: Icons.inventory_2_outlined,
-                          text: point.cargoType,
-                          semanticLabel: 'Тип груза',
-                        ),
-                      if (point.loadingMethod.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        _FieldLine(
-                          icon: Icons.local_shipping_outlined,
-                          text: 'Способ: ${point.loadingMethod}',
-                          semanticLabel: 'Способ погрузки',
-                        ),
-                      ],
-                      if (point.mass.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        _FieldLine(
-                          icon: Icons.scale_outlined,
-                          text: 'Масса: ${point.mass} т',
-                          semanticLabel: 'Масса',
-                        ),
-                      ],
-                      if (point.volume.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        _FieldLine(
-                          icon: Icons.view_in_ar_outlined,
-                          text: 'Объём: ${point.volume} м³',
-                          semanticLabel: 'Объём',
-                        ),
-                      ],
-                    ],
-                    // Контакты.
-                    if (hasContacts) ...[
-                      const SizedBox(height: 12),
-                      const _SectionHeader('Контакты'),
-                      if (point.client.org.isNotEmpty)
-                        _FieldLine(
-                          icon: Icons.business_outlined,
-                          text: point.client.org,
-                          semanticLabel: 'Организация',
-                        ),
-                      if (point.client.manager.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        _FieldLine(
-                          icon: Icons.person_outline,
-                          text: point.client.manager,
-                          semanticLabel: 'Контактное лицо',
-                        ),
-                      ],
-                      if (point.client.phone.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        PhoneCallRow(
-                          phone: point.client.phone,
-                          iconSize: 16,
-                          textStyle: AppTextStyles.bodySmall.copyWith(height: 1.25),
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                        ),
-                      ],
-                    ],
-                    // Примечание к точке — в конце плитки.
-                    if (point.comment.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: BrandColors.paperWarm,
-                          borderRadius: BorderRadius.circular(BrandRadius.sm),
-                        ),
-                        // Комментарий показываем целиком: там коды КПП
-                        // и инструкции — обрезать нельзя.
-                        child: Text(
-                          point.comment,
-                          style: AppTextStyles.bodySmall
-                              .copyWith(color: BrandColors.grayDark, height: 1.25),
-                        ),
-                      ),
-                    ],
+                    ),
                   ],
                 ),
               ),
-            ),
             ],
           ),
         ),

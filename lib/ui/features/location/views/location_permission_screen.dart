@@ -117,171 +117,186 @@ class _LocationPermissionScreenState extends State<LocationPermissionScreen>
       canPop: false,
       child: Scaffold(
         body: SafeArea(
-        child: ListenableBuilder(
-          listenable: _viewModel,
-          builder: (context, _) {
-            return Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 420),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 96,
-                        height: 96,
-                        decoration: BoxDecoration(
-                          color: BrandColors.primary.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          serviceDisabled
-                              ? Icons.location_disabled_rounded
-                              : Icons.location_on_rounded,
-                          size: 48,
-                          // Disabled-состояние — это статус, не действие:
-                          // не носит action-accent (One Accent Rule).
-                          color: serviceDisabled
-                              ? BrandColors.error
-                              : BrandColors.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        serviceDisabled
-                            ? 'Геолокация отключена'
-                            : 'Доступ к геолокации',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.headlineLarge,
-                      ),
-                      const SizedBox(height: 12),
-                      if (serviceDisabled) ...[
-                        Text(
-                          'Геолокация выключена в настройках телефона. '
-                          'Включите её, чтобы приложение могло отслеживать '
-                          'маршрут и координаты.',
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.bodyMedium
-                              .copyWith(color: BrandColors.grayDark),
-                        ),
-                      ] else ...[
-                        // Наглядное уведомление о фоновой геолокации
-                        // (prominent disclosure, Приложение А соглашения).
-                        // Текст единый с документом — из LegalTexts.
-                        const _DisclosureText(),
-                        const SizedBox(height: 8),
-                        Text(
-                          'В системном диалоге выберите «Разрешать всегда».',
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.bodyMedium
-                              .copyWith(color: BrandColors.grayDark),
-                        ),
-                      ],
-                      const SizedBox(height: 12),
-                      Text(
-                        // errorText (#B3261E, ≈6:1) вместо error (#D32F2F,
-                        // 4.23:1 — провал AA). Это читаемый текст на светлом
-                        // фоне — см. комментарий в brand_colors.dart:43-45.
-                        'Без геолокации работа в приложении невозможна.',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.bodySmall
-                            .copyWith(color: BrandColors.errorText),
-                      ),
-                      if (_viewModel.errorMessage != null &&
-                          _viewModel.status !=
-                              LocationPermissionStatus.unknown) ...[
-                        const SizedBox(height: 16),
+          child: ListenableBuilder(
+            listenable: _viewModel,
+            builder: (context, _) {
+              return Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          width: 96,
+                          height: 96,
                           decoration: BoxDecoration(
-                            color: BrandColors.error.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(BrandRadius.sm),
+                            color: BrandColors.primary.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
                           ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Icon(Icons.error_outline_rounded,
-                                  size: 20, color: BrandColors.error),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  // Сообщение об ошибке — читаемый текст:
-                                  // используем AA-контрастный errorText.
-                                  // maxLines убран: родитель SingleChildScrollView
-                                  // поглощает рост текста при крупном масштабе.
-                                  _viewModel.errorMessage!,
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                      color: BrandColors.errorText),
-                                ),
-                              ),
-                            ],
+                          child: Icon(
+                            serviceDisabled
+                                ? Icons.location_disabled_rounded
+                                : Icons.location_on_rounded,
+                            size: 48,
+                            // Disabled-состояние — это статус, не действие:
+                            // не носит action-accent (One Accent Rule).
+                            color: serviceDisabled
+                                ? BrandColors.error
+                                : BrandColors.primary,
                           ),
                         ),
-                      ],
-                      const SizedBox(height: 32),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: isBusy
-                              ? null
-                              : (serviceDisabled
-                                  ? _enableLocationService
-                                  : _request),
-                          child: _viewModel.isRequesting ||
-                                  _viewModel.isOpeningSettings
-                              ? const SizedBox(
-                                  height: 22,
-                                  width: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: BrandColors.white,
-                                  ),
-                                )
-                              : Text(serviceDisabled
-                                  ? 'Включить геолокацию'
-                                  : 'Разрешить доступ'),
+                        const SizedBox(height: 24),
+                        Text(
+                          serviceDisabled
+                              ? 'Геолокация отключена'
+                              : 'Доступ к геолокации',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.headlineLarge,
                         ),
-                      ),
-                      if (_viewModel.status ==
-                              LocationPermissionStatus.denied ||
-                          serviceDisabled) ...[
                         const SizedBox(height: 12),
+                        if (serviceDisabled) ...[
+                          Text(
+                            'Геолокация выключена в настройках телефона. '
+                            'Включите её, чтобы приложение могло отслеживать '
+                            'маршрут и координаты.',
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: BrandColors.grayDark,
+                            ),
+                          ),
+                        ] else ...[
+                          // Наглядное уведомление о фоновой геолокации
+                          // (prominent disclosure, Приложение А соглашения).
+                          // Текст единый с документом — из LegalTexts.
+                          const _DisclosureText(),
+                          const SizedBox(height: 8),
+                          Text(
+                            'В системном диалоге выберите «Разрешать всегда».',
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: BrandColors.grayDark,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        Text(
+                          // errorText (#B3261E, ≈6:1) вместо error (#D32F2F,
+                          // 4.23:1 — провал AA). Это читаемый текст на светлом
+                          // фоне — см. комментарий в brand_colors.dart:43-45.
+                          'Без геолокации работа в приложении невозможна.',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: BrandColors.errorText,
+                          ),
+                        ),
+                        if (_viewModel.errorMessage != null &&
+                            _viewModel.status !=
+                                LocationPermissionStatus.unknown) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: BrandColors.error.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(
+                                BrandRadius.sm,
+                              ),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  Icons.error_outline_rounded,
+                                  size: 20,
+                                  color: BrandColors.error,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    // Сообщение об ошибке — читаемый текст:
+                                    // используем AA-контрастный errorText.
+                                    // maxLines убран: родитель SingleChildScrollView
+                                    // поглощает рост текста при крупном масштабе.
+                                    _viewModel.errorMessage!,
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: BrandColors.errorText,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 32),
                         SizedBox(
                           width: double.infinity,
-                          child: OutlinedButton.icon(
+                          child: ElevatedButton(
                             onPressed: isBusy
                                 ? null
                                 : (serviceDisabled
-                                    ? _enableLocationService
-                                    : _openSettings),
-                            icon: const Icon(Icons.settings_outlined),
-                            label: Text(serviceDisabled
-                                ? 'Открыть настройки геолокации'
-                                : 'Открыть настройки'),
+                                      ? _enableLocationService
+                                      : _request),
+                            child:
+                                _viewModel.isRequesting ||
+                                    _viewModel.isOpeningSettings
+                                ? const SizedBox(
+                                    height: 22,
+                                    width: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: BrandColors.white,
+                                    ),
+                                  )
+                                : Text(
+                                    serviceDisabled
+                                        ? 'Включить геолокацию'
+                                        : 'Разрешить и перейти к заявкам',
+                                  ),
+                          ),
+                        ),
+                        if (_viewModel.status ==
+                                LocationPermissionStatus.denied ||
+                            serviceDisabled) ...[
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: isBusy
+                                  ? null
+                                  : (serviceDisabled
+                                        ? _enableLocationService
+                                        : _openSettings),
+                              icon: const Icon(Icons.settings_outlined),
+                              label: Text(
+                                serviceDisabled
+                                    ? 'Открыть настройки геолокации'
+                                    : 'Открыть настройки',
+                              ),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 24),
+                        Text(
+                          // На Android упоминаем системную кнопку/жест «Назад».
+                          // На iOS её нет — там предлагаем закрыть приложение
+                          // через переключатель задач (swipe up).
+                          Platform.isAndroid
+                              ? 'Чтобы закрыть приложение, нажмите системную кнопку или жест «Назад».'
+                              : 'Чтобы закрыть приложение, смахните его вверх из переключателя задач.',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.caption.copyWith(
+                            color: BrandColors.grayDark,
                           ),
                         ),
                       ],
-                      const SizedBox(height: 24),
-                      Text(
-                        // На Android упоминаем системную кнопку/жест «Назад».
-                        // На iOS её нет — там предлагаем закрыть приложение
-                        // через переключатель задач (swipe up).
-                        Platform.isAndroid
-                            ? 'Чтобы закрыть приложение, нажмите системную кнопку или жест «Назад».'
-                            : 'Чтобы закрыть приложение, смахните его вверх из переключателя задач.',
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.caption
-                            .copyWith(color: BrandColors.grayDark),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
-      ),
       ),
     );
   }
@@ -299,8 +314,9 @@ class _DisclosureText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final base = AppTextStyles.bodyMedium;
-    final parts = LegalTexts.locationDisclosure
-        .split(LegalTexts.locationDisclosureEmphasis);
+    final parts = LegalTexts.locationDisclosure.split(
+      LegalTexts.locationDisclosureEmphasis,
+    );
     return Text.rich(
       TextSpan(
         style: base,

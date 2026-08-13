@@ -28,16 +28,20 @@ class NotificationMessageParser {
     final data = message.data;
     if (data.isEmpty && message.notification == null) return null;
 
-    final title = message.notification?.title ??
+    final title =
+        message.notification?.title ??
         data['title'] as String? ??
         'Уведомление';
     final body = message.notification?.body ?? data['message'] as String? ?? '';
     final orderId = int.tryParse(
-        '${data['order_id'] ?? data['orderId'] ?? ''}');
+      '${data['order_id'] ?? data['orderId'] ?? ''}',
+    );
     final routePhotoId = int.tryParse(
-        '${data['route_photo_id'] ?? data['routePhotoId'] ?? ''}');
+      '${data['route_photo_id'] ?? data['routePhotoId'] ?? ''}',
+    );
     final routePhotoTypeId = int.tryParse(
-        '${data['route_photo_type_id'] ?? data['routePhotoTypeId'] ?? ''}');
+      '${data['route_photo_type_id'] ?? data['routePhotoTypeId'] ?? ''}',
+    );
 
     return ParsedNotification(
       title: title,
@@ -95,43 +99,48 @@ class PushService {
 
   StreamSubscription<RemoteMessage>? _onMessageSub;
   StreamSubscription<RemoteMessage>? _onMessageOpenedSub;
+  StreamSubscription<String>? _onTokenRefreshSub;
+  bool _permissionRequestStarted = false;
 
-  /// Инициализация. Возвращает FCM-токен (если получен) или null.
-  Future<String?> init() async {
+  /// Инициализация обработчиков без показа системного диалога разрешений.
+  Future<void> init() async {
     // Локальные уведомления.
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosInit = DarwinInitializationSettings();
+    const iosInit = DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    );
     await _local.initialize(
-      settings: const InitializationSettings(android: androidInit, iOS: iosInit),
+      settings: const InitializationSettings(
+        android: androidInit,
+        iOS: iosInit,
+      ),
       onDidReceiveNotificationResponse: _onLocalTap,
     );
 
     // Канал для Android (для foreground-уведомлений).
     await _local
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(const AndroidNotificationChannel(
-          _channelId,
-          _channelName,
-          importance: Importance.high,
-        ));
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.createNotificationChannel(
+          const AndroidNotificationChannel(
+            _channelId,
+            _channelName,
+            importance: Importance.high,
+          ),
+        );
 
-    // FCM: запрос разрешения, получение токена.
-    await FirebaseMessaging.instance.requestPermission();
     // iOS: разрешаем показ баннера/бейджа/звука пока приложение на переднем
     // плане. Дополняет нативный willPresent в AppDelegate.swift — стандартный
     // путь firebase_messaging для foreground-презентации на iOS 10+.
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-    final token = await FirebaseMessaging.instance.getToken();
-    if (token != null && token.isNotEmpty) {
-      _sendTokenWithRetry(token);
-    }
-    FirebaseMessaging.instance.onTokenRefresh.listen(_sendTokenWithRetry);
-
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
     // Top-level фоновый обработчик для data-only сообщений в terminated-режиме
     // (отдельный изолят). Регистрируется на каждый init — безопасно, подписка
     // идемпотентна внутри firebase_messaging.
@@ -149,15 +158,30 @@ class PushService {
 
     // App в фоне, пользователь тапает по системному уведомлению →
     // приложение открывается. Триггерим обновление списков и навигацию.
-    _onMessageOpenedSub =
-        FirebaseMessaging.onMessageOpenedApp.listen(_handleTap);
+    _onMessageOpenedSub = FirebaseMessaging.onMessageOpenedApp.listen(
+      _handleTap,
+    );
+  }
 
-    return token;
+  /// Запрашивает разрешение и регистрирует FCM-токен после онбординга.
+  Future<void> requestPermission() async {
+    if (_permissionRequestStarted) return;
+    _permissionRequestStarted = true;
+
+    await FirebaseMessaging.instance.requestPermission();
+    final token = await FirebaseMessaging.instance.getToken();
+    if (token != null && token.isNotEmpty) {
+      _sendTokenWithRetry(token);
+    }
+    _onTokenRefreshSub ??= FirebaseMessaging.instance.onTokenRefresh.listen(
+      _sendTokenWithRetry,
+    );
   }
 
   void dispose() {
     _onMessageSub?.cancel();
     _onMessageOpenedSub?.cancel();
+    _onTokenRefreshSub?.cancel();
   }
 
   /// Отправляет FCM-токен на бэкенд с ретраем.
@@ -168,23 +192,33 @@ class PushService {
   /// UnauthorizedException (401) не ретраим — сессия протухла, токен всё равно
   /// не привяжется; его отправит следующий успешный вход.
   Future<void> _sendTokenWithRetry(String token) async {
-    const delays = [Duration(seconds: 2), Duration(seconds: 8), Duration(seconds: 30)];
+    const delays = [
+      Duration(seconds: 2),
+      Duration(seconds: 8),
+      Duration(seconds: 30),
+    ];
     for (var attempt = 0; attempt <= delays.length; attempt++) {
       try {
         await _notificationsRepo.sendFcmToken(token);
         return;
       } on UnauthorizedException {
         // Сессия протухла — ретраить бессмысленно.
-        debugPrint('push: sendFcmToken пропущен — сессия не авторизована (401)');
+        debugPrint(
+          'push: sendFcmToken пропущен — сессия не авторизована (401)',
+        );
         return;
       } catch (e) {
         if (attempt >= delays.length) {
-          debugPrint('push: sendFcmToken окончательно не отправлен после '
-              '${attempt + 1} попыток: $e');
+          debugPrint(
+            'push: sendFcmToken окончательно не отправлен после '
+            '${attempt + 1} попыток: $e',
+          );
           return;
         }
-        debugPrint('push: sendFcmToken попытка ${attempt + 1} не удалась ($e), '
-            'реритай через ${delays[attempt].inSeconds}с');
+        debugPrint(
+          'push: sendFcmToken попытка ${attempt + 1} не удалась ($e), '
+          'реритай через ${delays[attempt].inSeconds}с',
+        );
         await Future<void>.delayed(delays[attempt]);
       }
     }

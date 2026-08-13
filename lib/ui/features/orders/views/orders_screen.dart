@@ -1,15 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/refresh_bus.dart';
 import '../../../../config/service_locator.dart';
+import '../../../../data/services/settings_service.dart';
 import '../../../../domain/models/order_status.dart';
 import '../../../../domain/repositories/orders_repository.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/brand_colors.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
+import '../../../core/widgets/onboarding_hint.dart';
 import '../../../core/widgets/skeleton_order_tile.dart';
 import '../../../core/widgets/swipeable_order_tile.dart';
 import '../view_models/orders_view_model.dart';
@@ -25,15 +29,25 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  late final TextEditingController _searchController;
   late final OrdersViewModel _viewModel;
   late final OrdersRefreshBus _refreshBus;
+  late final SettingsService _settings;
+  late bool _swipeHintVisible;
+  final GlobalKey _swipeTargetKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_onTabChanged);
+    _searchController = TextEditingController();
     _viewModel = getIt<OrdersViewModel>();
     _viewModel.addListener(_onChanged);
+    _settings = getIt<SettingsService>();
+    _swipeHintVisible = !_settings.hasSeenOnboardingHint(
+      OnboardingHint.newOrderSwipe,
+    );
     // Обновление списка при смене статуса заявки или новом уведомлении.
     _refreshBus = getIt<OrdersRefreshBus>();
     _refreshBus.addListener(_onExternalRefresh);
@@ -45,7 +59,9 @@ class _OrdersScreenState extends State<OrdersScreen>
     _viewModel.removeListener(_onChanged);
     _refreshBus.removeListener(_onExternalRefresh);
     _viewModel.dispose();
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -54,91 +70,126 @@ class _OrdersScreenState extends State<OrdersScreen>
   }
 
   void _onChanged() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  void _onTabChanged() {
     if (mounted) setState(() {});
+  }
+
+  void _dismissSwipeHint() {
+    if (!_swipeHintVisible || !mounted) return;
+    setState(() => _swipeHintVisible = false);
+    unawaited(_settings.markOnboardingHintSeen(OnboardingHint.newOrderSwipe));
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    _viewModel.setSearchQuery('');
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Заявки'),
-        actions: [
-          // Сортировка — стандартное место вторичного действия списка в
-          // Material/HIG: верхний app bar. Не сжимает поле поиска внизу.
-          // PopupMenuButton с двумя пунктами; активный отмечен галочкой.
-          _SortMenu(viewModel: _viewModel),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: BrandColors.primary,
-          unselectedLabelColor: BrandColors.grayDark,
-          indicatorColor: BrandColors.primary,
-          labelStyle: AppTextStyles.titleMedium,
-          tabs: const [
-            Tab(text: 'Новые'),
-            Tab(text: 'В работе'),
-            Tab(text: 'Архив'),
+    final showSwipeCoach =
+        _swipeHintVisible &&
+        _tabController.index == 0 &&
+        _viewModel.searchQuery.isEmpty &&
+        _viewModel.ordersOf(OrdersTab.newOrders).isNotEmpty;
+    return SpotlightCoach(
+      visible: showSwipeCoach,
+      targetKey: _swipeTargetKey,
+      message: 'Смахните карточку: влево — отклонить, вправо — принять',
+      onDismiss: _dismissSwipeHint,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Заявки'),
+          actions: [
+            // Сортировка — стандартное место вторичного действия списка в
+            // Material/HIG: верхний app bar. Не сжимает поле поиска внизу.
+            // PopupMenuButton с двумя пунктами; активный отмечен галочкой.
+            _SortMenu(viewModel: _viewModel),
+          ],
+          bottom: TabBar(
+            controller: _tabController,
+            labelColor: BrandColors.primary,
+            unselectedLabelColor: BrandColors.grayDark,
+            indicatorColor: BrandColors.primary,
+            labelStyle: AppTextStyles.titleMedium,
+            tabs: const [
+              Tab(text: 'Новые'),
+              Tab(text: 'В работе'),
+              Tab(text: 'Архив'),
+            ],
+          ),
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: ListenableBuilder(
+                listenable: _viewModel,
+                builder: (context, _) {
+                  return TextField(
+                    controller: _searchController,
+                    onChanged: _viewModel.setSearchQuery,
+                    decoration: InputDecoration(
+                      hintText: 'Поиск заявок',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _viewModel.searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              tooltip: 'Очистить',
+                              onPressed: _clearSearch,
+                            )
+                          : null,
+                    ),
+                  );
+                },
+              ),
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _OrdersTabBody(
+                    viewModel: _viewModel,
+                    tab: OrdersTab.newOrders,
+                    emptyText: 'Нет новых заявок',
+                    emptyHint:
+                        'Назначенная диспетчером заявка появится здесь автоматически.',
+                    showSwipeOnboarding:
+                        _swipeHintVisible &&
+                        _tabController.index == 0 &&
+                        _viewModel.searchQuery.isEmpty,
+                    onDismissSwipeOnboarding: _dismissSwipeHint,
+                    swipeTargetKey: _swipeTargetKey,
+                    onClearSearch: _clearSearch,
+                  ),
+                  _OrdersTabBody(
+                    viewModel: _viewModel,
+                    tab: OrdersTab.inProgress,
+                    emptyText: 'Нет заявок в работе',
+                    emptyHint:
+                        'Примите заявку из вкладки «Новые», чтобы начать работу.',
+                    onClearSearch: _clearSearch,
+                  ),
+                  _OrdersTabBody(
+                    viewModel: _viewModel,
+                    tab: OrdersTab.archive,
+                    emptyText: 'В архиве нет заявок',
+                    emptyHint:
+                        'Завершённые и отклонённые заявки будут отображаться здесь.',
+                    onClearSearch: _clearSearch,
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: ListenableBuilder(
-              listenable: _viewModel,
-              builder: (context, _) {
-                return TextField(
-                  onChanged: _viewModel.setSearchQuery,
-                  decoration: InputDecoration(
-                    hintText: 'Поиск заявок',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _viewModel.searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            tooltip: 'Очистить',
-                            onPressed: () {
-                              _viewModel.setSearchQuery('');
-                            },
-                          )
-                        : null,
-                  ),
-                );
-              },
-            ),
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _OrdersTabBody(
-                  viewModel: _viewModel,
-                  tab: OrdersTab.newOrders,
-                  emptyText: 'Нет новых заявок',
-                  emptyHint: 'Новые заявки появятся здесь автоматически.',
-                ),
-                _OrdersTabBody(
-                  viewModel: _viewModel,
-                  tab: OrdersTab.inProgress,
-                  emptyText: 'Нет заявок в работе',
-                  emptyHint:
-                      'Примите заявку из вкладки «Новые», чтобы начать работу.',
-                ),
-                _OrdersTabBody(
-                  viewModel: _viewModel,
-                  tab: OrdersTab.archive,
-                  emptyText: 'В архиве нет заявок',
-                  emptyHint:
-                      'Завершённые и отклонённые заявки будут отображаться здесь.',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
-
 }
 
 class _OrdersTabBody extends StatefulWidget {
@@ -146,13 +197,21 @@ class _OrdersTabBody extends StatefulWidget {
     required this.viewModel,
     required this.tab,
     required this.emptyText,
+    required this.onClearSearch,
     this.emptyHint,
+    this.showSwipeOnboarding = false,
+    this.onDismissSwipeOnboarding,
+    this.swipeTargetKey,
   });
 
   final OrdersViewModel viewModel;
   final OrdersTab tab;
   final String emptyText;
   final String? emptyHint;
+  final VoidCallback onClearSearch;
+  final bool showSwipeOnboarding;
+  final VoidCallback? onDismissSwipeOnboarding;
+  final GlobalKey? swipeTargetKey;
 
   @override
   State<_OrdersTabBody> createState() => _OrdersTabBodyState();
@@ -193,42 +252,45 @@ class _OrdersTabBodyState extends State<_OrdersTabBody> {
 
     // Фоновый вызов API. При ошибке — показываем snack-бар с возможностью
     // повторить и перезагружаем список (статус на бэкенде не поменялся).
-    repository.changeStatus(orderId, nextStatus.id).then((_) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(label),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }).catchError((_) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Не удалось изменить статус. Проверьте соединение.',
-          ),
-          behavior: SnackBarBehavior.floating,
-          action: SnackBarAction(
-            label: 'Повторить',
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              _onSwipeStatusChange(
-                context: context,
-                orderId: orderId,
-                nextStatus: nextStatus,
-              );
-            },
-          ),
-          duration: const Duration(seconds: 4),
-        ),
-      );
-      // Перезагружаем список — статус на сервере не изменился.
-      widget.viewModel.loadAll();
-    });
+    repository
+        .changeStatus(orderId, nextStatus.id)
+        .then((_) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(label),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        })
+        .catchError((_) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(
+                'Не удалось изменить статус. Проверьте соединение.',
+              ),
+              behavior: SnackBarBehavior.floating,
+              action: SnackBarAction(
+                label: 'Повторить',
+                onPressed: () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  _onSwipeStatusChange(
+                    context: context,
+                    orderId: orderId,
+                    nextStatus: nextStatus,
+                  );
+                },
+              ),
+              duration: const Duration(seconds: 4),
+            ),
+          );
+          // Перезагружаем список — статус на сервере не изменился.
+          widget.viewModel.loadAll();
+        });
   }
 
   @override
@@ -262,16 +324,27 @@ class _OrdersTabBodyState extends State<_OrdersTabBody> {
           if (error != null && orders.isEmpty) {
             phase = 'error';
             body = ErrorState(
-                message: error, onRetry: () => viewModel.loadTab(tab));
-          } else if (orders.isEmpty) {
-            phase = 'empty';
-            body = EmptyState(
-              icon: Icons.local_shipping_outlined,
-              text: widget.emptyText,
-              hint: widget.emptyHint,
-              actionLabel: 'Обновить',
-              onAction: () => viewModel.loadTab(tab),
+              message: error,
+              onRetry: () => viewModel.loadTab(tab),
             );
+          } else if (orders.isEmpty) {
+            final hasSearch = viewModel.searchQuery.isNotEmpty;
+            phase = hasSearch ? 'no-results' : 'empty';
+            body = hasSearch
+                ? EmptyState(
+                    icon: Icons.search_off_rounded,
+                    text: 'Ничего не найдено',
+                    hint: 'Измените запрос или очистите поиск.',
+                    actionLabel: 'Очистить поиск',
+                    onAction: widget.onClearSearch,
+                  )
+                : EmptyState(
+                    icon: Icons.local_shipping_outlined,
+                    text: widget.emptyText,
+                    hint: widget.emptyHint,
+                    actionLabel: 'Обновить',
+                    onAction: () => viewModel.loadTab(tab),
+                  );
           } else {
             phase = 'content';
             // Каскад — только при первом показе непустого списка.
@@ -298,38 +371,57 @@ class _OrdersTabBodyState extends State<_OrdersTabBody> {
                       padding: const EdgeInsets.all(16),
                       itemCount: orders.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final order = orders[index];
-                    return _CascadeTile(
-                      key: ValueKey('cascade-${order.id}'),
-                      index: index,
-                      animate: shouldCascade,
-                      child: SwipeableOrderTile(
-                        order: order,
-                        onTap: () =>
-                            context.push('/main/orders/${order.id}'),
-                        onAccept: order.status == OrderStatus.newRequest.id
-                            ? () => _onSwipeStatusChange(
-                                  context: context,
-                                  orderId: order.id,
-                                  nextStatus: OrderStatus.inProgress,
-                                )
-                            : null,
-                        onReject: order.status == OrderStatus.newRequest.id
-                            ? () => _onSwipeStatusChange(
-                                  context: context,
-                                  orderId: order.id,
-                                  nextStatus: OrderStatus.rejected,
-                                )
-                            : null,
-                      ),
-                    );
-                  },
+                      itemBuilder: (context, index) {
+                        final order = orders[index];
+                        final tile = _CascadeTile(
+                          key: ValueKey('cascade-${order.id}'),
+                          index: index,
+                          animate: shouldCascade,
+                          child: SwipeableOrderTile(
+                            order: order,
+                            onTap: () =>
+                                context.push('/main/orders/${order.id}'),
+                            previewSwipe:
+                                widget.showSwipeOnboarding &&
+                                tab == OrdersTab.newOrders &&
+                                index == 0,
+                            onFirstInteraction:
+                                widget.showSwipeOnboarding &&
+                                    tab == OrdersTab.newOrders &&
+                                    index == 0
+                                ? widget.onDismissSwipeOnboarding
+                                : null,
+                            onAccept: order.status == OrderStatus.newRequest.id
+                                ? () => _onSwipeStatusChange(
+                                    context: context,
+                                    orderId: order.id,
+                                    nextStatus: OrderStatus.inProgress,
+                                  )
+                                : null,
+                            onReject: order.status == OrderStatus.newRequest.id
+                                ? () => _onSwipeStatusChange(
+                                    context: context,
+                                    orderId: order.id,
+                                    nextStatus: OrderStatus.rejected,
+                                  )
+                                : null,
+                          ),
+                        );
+                        if (widget.showSwipeOnboarding &&
+                            tab == OrdersTab.newOrders &&
+                            index == 0) {
+                          return KeyedSubtree(
+                            key: widget.swipeTargetKey,
+                            child: tile,
+                          );
+                        }
+                        return tile;
+                      },
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ],
-        );
+              ],
+            );
           }
         }
         // Crossfade skeleton→content: 150мс fade-only, Reduce Motion → мгновенно.
@@ -342,10 +434,7 @@ class _OrdersTabBodyState extends State<_OrdersTabBody> {
           switchOutCurve: Curves.easeInCubic,
           transitionBuilder: (child, anim) =>
               FadeTransition(opacity: anim, child: child),
-          child: KeyedSubtree(
-            key: ValueKey(phase),
-            child: body,
-          ),
+          child: KeyedSubtree(key: ValueKey(phase), child: body),
         );
       },
     );
@@ -540,8 +629,9 @@ class _UpdateErrorBanner extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: AppTextStyles.bodyMedium
-                  .copyWith(color: BrandColors.errorText),
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: BrandColors.errorText,
+              ),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),

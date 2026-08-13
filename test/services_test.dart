@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smarttracker/data/services/local_photo_store.dart';
+import 'package:smarttracker/data/services/settings_service.dart';
 import 'package:smarttracker/data/services/sync_config_service.dart';
 import 'package:smarttracker/domain/models/sync_config.dart';
 
@@ -12,7 +13,9 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       final service = SyncConfigService();
       await service.init();
-      await service.save(const SyncConfig(coordinatesPeriodSec: 120, syncPeriodSec: 1800));
+      await service.save(
+        const SyncConfig(coordinatesPeriodSec: 120, syncPeriodSec: 1800),
+      );
       final loaded = service.load();
       expect(loaded.coordinatesPeriodSec, 120);
       expect(loaded.syncPeriodSec, 1800);
@@ -26,6 +29,43 @@ void main() {
       await store.init();
       await store.savePath(42, '/tmp/photo.jpg');
       expect(store.getPath(42), '/tmp/photo.jpg');
+    });
+  });
+
+  group('SettingsService onboarding', () {
+    test('подсказки сохраняются независимо и восстанавливаются', () async {
+      SharedPreferences.setMockInitialValues({});
+      final settings = SettingsService();
+      await settings.init();
+
+      for (final hint in OnboardingHint.values) {
+        expect(settings.hasSeenOnboardingHint(hint), isFalse);
+      }
+
+      await settings.markOnboardingHintSeen(OnboardingHint.newOrderSwipe);
+      await settings.markOnboardingHintSeen(OnboardingHint.routeMap);
+
+      expect(
+        settings.hasSeenOnboardingHint(OnboardingHint.newOrderSwipe),
+        isTrue,
+      );
+      expect(
+        settings.hasSeenOnboardingHint(OnboardingHint.orderRouteEntry),
+        isFalse,
+      );
+      expect(settings.hasSeenOnboardingHint(OnboardingHint.routeMap), isTrue);
+      expect(
+        settings.hasSeenOnboardingHint(OnboardingHint.orderPhotoEntry),
+        isFalse,
+      );
+
+      final restored = SettingsService();
+      await restored.init();
+      expect(
+        restored.hasSeenOnboardingHint(OnboardingHint.newOrderSwipe),
+        isTrue,
+      );
+      expect(restored.hasSeenOnboardingHint(OnboardingHint.routeMap), isTrue);
     });
   });
 }

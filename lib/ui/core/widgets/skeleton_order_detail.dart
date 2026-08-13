@@ -52,7 +52,10 @@ class _SkeletonSummary extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const SkeletonLine(height: 20, widthFraction: 0.4),
+              const Expanded(
+                child: SkeletonLine(height: 20, widthFraction: 0.4),
+              ),
+              const SizedBox(width: 12),
               Container(
                 width: 72,
                 height: 26,
@@ -169,7 +172,9 @@ class _SkeletonClientCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Expanded(child: SkeletonLine(height: 15, widthFraction: 0.5)),
+              const Expanded(
+                child: SkeletonLine(height: 15, widthFraction: 0.5),
+              ),
             ],
           ),
         ],
@@ -199,7 +204,10 @@ class _SkeletonRouteCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const SkeletonLine(height: 16, widthFraction: 0.2),
+              const Expanded(
+                child: SkeletonLine(height: 16, widthFraction: 0.2),
+              ),
+              const SizedBox(width: 12),
               Container(
                 width: 80,
                 height: 32,

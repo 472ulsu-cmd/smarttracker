@@ -38,7 +38,10 @@ class SkeletonOrderTile extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       // Номер заявки — titleMedium ≈ 16px, 50% ширины
-                      const SkeletonLine(widthFraction: 0.35, height: 16),
+                      const Expanded(
+                        child: SkeletonLine(widthFraction: 0.35, height: 16),
+                      ),
+                      const SizedBox(width: 12),
                       // Status chip — pill, ~60px × 24px
                       Container(
                         width: 64,
@@ -90,9 +93,7 @@ class SkeletonOrderTile extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Expanded(
-                        child: SkeletonLine(height: 13),
-                      ),
+                      const Expanded(child: SkeletonLine(height: 13)),
                     ],
                   ),
                 ],
@@ -114,9 +115,7 @@ class SkeletonOrderTile extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Expanded(
-                    child: SkeletonLine(height: 15),
-                  ),
+                  const Expanded(child: SkeletonLine(height: 15)),
                 ],
               ),
             ),

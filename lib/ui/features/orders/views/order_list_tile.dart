@@ -11,11 +11,7 @@ import '../../../core/widgets/status_chip.dart';
 
 /// Карточка одной заявки в списке.
 class OrderListTile extends StatelessWidget {
-  const OrderListTile({
-    super.key,
-    required this.order,
-    this.onTap,
-  });
+  const OrderListTile({super.key, required this.order, this.onTap});
 
   final OrderListItem order;
   final VoidCallback? onTap;
@@ -39,25 +35,15 @@ class OrderListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final routeText = order.route.isEmpty
         ? (order.routeFrom.isEmpty && order.routeTo.isEmpty
-            ? 'Маршрут не указан'
-            : '${order.routeFrom} → ${order.routeTo}')
+              ? 'Маршрут не указан'
+              : '${order.routeFrom} → ${order.routeTo}')
         : order.route;
     final statusLabel = OrderStatus.listLabelForId(order.status);
-
-    // Тонкая статус-полоса на левом крае карточки — тот же оттенок, что у
-    // чипа статуса. В смешанном списке водитель сканирует статусы взглядом
-    // без чтения чипов. 4px слева, остальные стороны — стандартная серая рамка.
-    final statusAccent = statusBackgroundColorFor(order.status);
 
     return Container(
       decoration: BoxDecoration(
         color: BrandColors.white,
-        border: Border(
-          left: BorderSide(width: 4, color: statusAccent),
-          top: const BorderSide(color: BrandColors.grayLighter),
-          right: const BorderSide(color: BrandColors.grayLighter),
-          bottom: const BorderSide(color: BrandColors.grayLighter),
-        ),
+        border: Border.all(color: BrandColors.grayLighter),
         borderRadius: BorderRadius.circular(BrandRadius.md),
       ),
       child: InkWell(
@@ -93,10 +79,12 @@ class OrderListTile extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.route_rounded,
-                          size: 22,
-                          color: BrandColors.primary,
-                          semanticLabel: 'Маршрут'),
+                      const Icon(
+                        Icons.route_rounded,
+                        size: 22,
+                        color: BrandColors.primary,
+                        semanticLabel: 'Маршрут',
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -112,16 +100,19 @@ class OrderListTile extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.event_outlined,
-                            size: 18,
-                            color: BrandColors.grayMid,
-                            semanticLabel: 'Даты'),
+                        const Icon(
+                          Icons.event_outlined,
+                          size: 18,
+                          color: BrandColors.grayMid,
+                          semanticLabel: 'Даты',
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             _dateRangeText,
-                            style: AppTextStyles.bodySmall
-                                .copyWith(color: BrandColors.grayDark),
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: BrandColors.grayDark,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -148,8 +139,9 @@ class OrderListTile extends StatelessWidget {
                     Expanded(
                       child: Text(
                         'Заказчик: ${order.client.org}',
-                        style: AppTextStyles.bodyMedium
-                            .copyWith(color: BrandColors.graphite),
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: BrandColors.graphite,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

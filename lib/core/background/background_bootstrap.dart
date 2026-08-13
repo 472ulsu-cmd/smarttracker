@@ -7,6 +7,7 @@ import '../../data/services/sync_config_service.dart';
 import '../../domain/models/sync_config.dart';
 import '../../domain/repositories/notifications_repository.dart';
 import 'location_service.dart';
+import 'notification_permission_gate.dart';
 import 'push_service.dart';
 import 'sync_service.dart';
 
@@ -18,6 +19,7 @@ class BackgroundBootstrap {
   static final BackgroundBootstrap instance = BackgroundBootstrap._();
 
   PushService? _pushService;
+  NotificationPermissionGate? _notificationPermissionGate;
   bool _firebaseReady = false;
 
   /// Одноразовая инициализация Firebase и workmanager.
@@ -78,21 +80,27 @@ class BackgroundBootstrap {
     // Push.
     if (_firebaseReady) {
       try {
-        _pushService = PushService(
-          getIt<NotificationsRepository>(),
-          getIt<SettingsService>(),
-        );
+        final settings = getIt<SettingsService>();
+        _pushService = PushService(getIt<NotificationsRepository>(), settings);
         await _pushService!.init();
+        _notificationPermissionGate = NotificationPermissionGate(
+          settings: settings,
+          requestPermission: _pushService!.requestPermission,
+        )..start();
       } catch (e, st) {
         debugPrint('background: PushService.init failed: $e\n$st');
       }
     } else {
-      debugPrint('background: Push-сервис пропущен — Firebase не инициализирован');
+      debugPrint(
+        'background: Push-сервис пропущен — Firebase не инициализирован',
+      );
     }
   }
 
   /// Остановить все фоновые сервисы (при выходе).
   Future<void> stop() async {
+    _notificationPermissionGate?.dispose();
+    _notificationPermissionGate = null;
     _pushService?.dispose();
     _pushService = null;
     try {
