@@ -131,7 +131,10 @@ void main() {
     expect(find.text('Разгрузка — Казань'), findsOneWidget);
     expect(find.textContaining('Владимир'), findsNothing);
     expect(find.textContaining('Нижний Новгород'), findsNothing);
-    expect(find.text('Промежуточные точки: 2'), findsOneWidget);
+    // Сводка точек маршрута: 2 погрузки и 2 разгрузки (Владимир и Н.Новгород
+    // свёрнуты — состав маршрута виден по счётчикам, а не по скрытым точкам).
+    expect(find.text('2 погрузки'), findsOneWidget);
+    expect(find.text('2 разгрузки'), findsOneWidget);
 
     // Целевой контрол остаётся активным внутри spotlight-выреза.
     await tester.tap(find.text('Подробнее'));

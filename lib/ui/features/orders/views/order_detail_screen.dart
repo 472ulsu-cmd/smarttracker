@@ -640,7 +640,8 @@ class _RouteCard extends StatelessWidget {
     final visiblePoints = points.length <= 2
         ? points
         : [points.first, points.last];
-    final hiddenPointCount = points.length - visiblePoints.length;
+    final loadingCount = points.where((p) => p.isLoading).length;
+    final unloadingCount = points.length - loadingCount;
     return BrandCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -660,7 +661,12 @@ class _RouteCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
+          _RoutePointsSummary(
+            loadingCount: loadingCount,
+            unloadingCount: unloadingCount,
+          ),
+          const SizedBox(height: 14),
           for (final point in visiblePoints) ...[
             _RoutePoint(point: point),
             if (point != visiblePoints.last)
@@ -669,18 +675,105 @@ class _RouteCard extends StatelessWidget {
                 child: Divider(height: 1),
               ),
           ],
-          if (hiddenPointCount > 0)
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: Text(
-                'Промежуточные точки: $hiddenPointCount',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: BrandColors.grayDark,
-                ),
-              ),
-            ),
         ],
       ),
+    );
+  }
+}
+
+/// Словоформа для числа точек маршрута с корректной русской плюрализацией:
+/// 1 погрузка / 2 погрузки / 5 погрузок (аналогично «разгрузк…»).
+String _pointWord(int count, {required bool loading}) {
+  final root = loading ? 'погрузк' : 'разгрузк';
+  final mod10 = count % 10;
+  final mod100 = count % 100;
+  // Суффикс вынесен в переменную, чтобы собрать форму как '$root$suffix':
+  // '${root}а' менее читаемо и конфликтует с unnecessary_brace_in_string_interps
+  // (кириллическая «а» — валидный символ идентификатора, упрощать нельзя).
+  final String suffix;
+  if (mod10 == 1 && mod100 != 11) {
+    suffix = 'а';
+  } else if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) {
+    suffix = 'и';
+  } else {
+    suffix = 'ок';
+  }
+  return '$root$suffix';
+}
+
+/// Сводка по составу маршрута: сколько точек погрузки и разгрузки.
+/// Цветные маркеры дублируют кодирование точек ниже (оранжевый — погрузка,
+/// серый — разгрузка) и служат легендой для рядов [_RoutePoint].
+class _RoutePointsSummary extends StatelessWidget {
+  const _RoutePointsSummary({
+    required this.loadingCount,
+    required this.unloadingCount,
+  });
+
+  final int loadingCount;
+  final int unloadingCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final parts = <String>[];
+    if (loadingCount > 0) {
+      parts.add('$loadingCount ${_pointWord(loadingCount, loading: true)}');
+    }
+    if (unloadingCount > 0) {
+      parts.add('$unloadingCount ${_pointWord(unloadingCount, loading: false)}');
+    }
+    return Semantics(
+      container: true,
+      excludeSemantics: true,
+      label: 'Точки маршрута: ${parts.join(", ")}',
+      child: Padding(
+        padding: const EdgeInsets.only(top: 2),
+        // Wrap, а не Row: на узких экранах и при крупном масштабе шрифта
+        // счётчики переносятся на новую строку вместо переполнения.
+        child: Wrap(
+          spacing: 14,
+          runSpacing: 4,
+          children: [
+            if (loadingCount > 0)
+              _CountItem(
+                color: BrandColors.primary,
+                text: '$loadingCount ${_pointWord(loadingCount, loading: true)}',
+              ),
+            if (unloadingCount > 0)
+              _CountItem(
+                color: BrandColors.grayMid,
+                text:
+                    '$unloadingCount ${_pointWord(unloadingCount, loading: false)}',
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CountItem extends StatelessWidget {
+  const _CountItem({required this.color, required this.text});
+
+  final Color color;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ExcludeSemantics(
+          child: Icon(Icons.circle, size: 8, color: color),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w500),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 }
