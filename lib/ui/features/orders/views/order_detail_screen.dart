@@ -369,20 +369,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             : const SizedBox.shrink(),
                       ),
                     ),
-                    _OrderDetailsCard(order: order),
-                    const SizedBox(height: 16),
-                    _RouteCard(
-                      order: order,
-                      targetKey: _routeTargetKey,
-                      onOpen: () => _openRoute(order),
-                    ),
-                    const SizedBox(height: 16),
+                    _CargoCard(order: order),
+                    // Маршрут — вторая плитка; виден только при наличии точек.
+                    if (order.routeDetails.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _RouteCard(
+                        order: order,
+                        targetKey: _routeTargetKey,
+                        onOpen: () => _openRoute(order),
+                      ),
+                    ],
+                    if (_hasClientContacts(order.client)) ...[
+                      const SizedBox(height: 16),
+                      _ClientCard(order: order),
+                    ],
                     // Фото доступно для заявок, принятых в работу.
                     // Скрыто для «Новой заявки» (ещё не принято) и «Отказа».
                     if (order.status != OrderStatus.newRequest.id &&
                         order.status != OrderStatus.rejected.id)
                       Column(
                         children: [
+                          const SizedBox(height: 16),
                           ListTile(
                             key: _photoTargetKey,
                             contentPadding: const EdgeInsets.symmetric(
@@ -424,21 +431,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 }
 
-class _OrderDetailsCard extends StatelessWidget {
-  const _OrderDetailsCard({required this.order});
+/// Есть ли хоть какое-то наполнение для плитки «Контакты логиста».
+bool _hasClientContacts(OrderClient client) =>
+    client.org.isNotEmpty ||
+    client.manager.isNotEmpty ||
+    client.phone.isNotEmpty;
+
+/// Плитка «Груз»: наименование и характеристики + чип статуса заявки.
+class _CargoCard extends StatelessWidget {
+  const _CargoCard({required this.order});
   final OrderDetail order;
 
   @override
   Widget build(BuildContext context) {
-    final client = order.client;
     final hasCargo =
         order.cargoType.isNotEmpty ||
         order.mass.isNotEmpty ||
         order.volume.isNotEmpty;
-    final hasClient =
-        client.org.isNotEmpty ||
-        client.manager.isNotEmpty ||
-        client.phone.isNotEmpty;
 
     return BrandCard(
       child: Column(
@@ -457,7 +466,10 @@ class _OrderDetailsCard extends StatelessWidget {
                       Expanded(
                         child: Semantics(
                           header: true,
-                          child: Text('Груз', style: AppTextStyles.labelMedium),
+                          child: Text(
+                            'Груз',
+                            style: AppTextStyles.titleMedium,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -499,6 +511,8 @@ class _OrderDetailsCard extends StatelessWidget {
               ),
             )
           else
+            // Без данных о грузе плитка всё равно рендерится — чип статуса
+            // остаётся на своём месте вверху экрана.
             Row(
               children: [
                 KeyedSubtree(
@@ -511,54 +525,59 @@ class _OrderDetailsCard extends StatelessWidget {
                 ),
               ],
             ),
-          if (hasClient) ...[
-            const Padding(
-              padding: EdgeInsets.only(top: 20, bottom: 16),
-              child: Divider(height: 1),
-            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Плитка «Контакты логиста»: организация, контактное лицо и телефон.
+class _ClientCard extends StatelessWidget {
+  const _ClientCard({required this.order});
+  final OrderDetail order;
+
+  @override
+  Widget build(BuildContext context) {
+    final client = order.client;
+    return BrandCard(
+      child: Semantics(
+        key: const ValueKey('order-detail-client'),
+        container: true,
+        explicitChildNodes: true,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Semantics(
-              key: const ValueKey('order-detail-client'),
-              container: true,
-              explicitChildNodes: true,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Semantics(
-                    header: true,
-                    child: Text(
-                      'Заказчик',
-                      style: AppTextStyles.labelLarge.copyWith(
-                        color: BrandColors.grayDark,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (client.org.isNotEmpty)
-                    _Row(
-                      icon: Icons.business_outlined,
-                      text: client.org,
-                      semanticLabel: 'Организация',
-                      textStyle: AppTextStyles.labelLarge,
-                    ),
-                  if (client.manager.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: _Row(
-                        icon: Icons.person_outline,
-                        text: client.manager,
-                        semanticLabel: 'Контактное лицо',
-                      ),
-                    ),
-                  if (client.phone.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: PhoneCallRow(phone: client.phone),
-                    ),
-                ],
+              header: true,
+              child: Text(
+                'Контакты логиста',
+                style: AppTextStyles.titleMedium,
               ),
             ),
+            const SizedBox(height: 8),
+            if (client.org.isNotEmpty)
+              _Row(
+                icon: Icons.business_outlined,
+                text: client.org,
+                semanticLabel: 'Организация',
+                textStyle: AppTextStyles.labelLarge,
+              ),
+            if (client.manager.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: _Row(
+                  icon: Icons.person_outline,
+                  text: client.manager,
+                  semanticLabel: 'Контактное лицо',
+                ),
+              ),
+            if (client.phone.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: PhoneCallRow(phone: client.phone),
+              ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -728,11 +747,17 @@ class _RoutePointsSummary extends StatelessWidget {
       label: 'Точки маршрута: ${parts.join(", ")}',
       child: Padding(
         padding: const EdgeInsets.only(top: 2),
+        // Wrap shrink-wrap-ится по содержимому: без принудительной ширины
+        // WrapAlignment.center — no-op (свободного места нет). SizedBox
+        // растягивает Wrap на всю плитку, выравнивание центрирует строку.
         // Wrap, а не Row: на узких экранах и при крупном масштабе шрифта
         // счётчики переносятся на новую строку вместо переполнения.
-        child: Wrap(
-          spacing: 14,
-          runSpacing: 4,
+        child: SizedBox(
+          width: double.infinity,
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 14,
+            runSpacing: 4,
           children: [
             if (loadingCount > 0)
               _CountItem(
@@ -746,6 +771,7 @@ class _RoutePointsSummary extends StatelessWidget {
                     '$unloadingCount ${_pointWord(unloadingCount, loading: false)}',
               ),
           ],
+          ),
         ),
       ),
     );

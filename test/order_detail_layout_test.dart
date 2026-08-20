@@ -34,6 +34,10 @@ const _completeDetail = OrderDetail(
   cargoType: 'Промышленное оборудование',
   mass: '12',
   volume: '24',
+  routeDetails: [
+    OrderRouteDetail(routeDetailId: 1, operationType: 1, city: 'Москва'),
+    OrderRouteDetail(routeDetailId: 2, operationType: 2, city: 'Казань'),
+  ],
   client: OrderClient(
     org: 'ООО «Транспортные системы»',
     manager: 'Иван Петров',
@@ -63,7 +67,7 @@ void main() {
     await getIt.reset();
   });
 
-  testWidgets('статус стоит справа от груза, заказчик расположен ниже', (
+  testWidgets('груз, маршрут и контакты логиста — отдельные плитки по порядку', (
     tester,
   ) async {
     await registerDependencies(_completeDetail);
@@ -83,14 +87,32 @@ void main() {
     final cargo = tester.getTopLeft(
       find.byKey(const ValueKey('order-detail-cargo')),
     );
-    final clientY = tester
+    final route = tester.getTopLeft(find.text('Маршрут'));
+    final client = tester
         .getTopLeft(find.byKey(const ValueKey('order-detail-client')))
         .dy;
 
     expect(status.dx, greaterThan(cargo.dx));
     expect((status.dy - cargo.dy).abs(), lessThan(12));
-    expect(cargo.dy, lessThan(clientY));
+    // Плитки идут по порядку: груз → маршрут → контакты логиста.
+    expect(cargo.dy, lessThan(route.dy));
+    expect(route.dy, lessThan(client));
+    // Бывший раздел «Заказчик» переименован.
+    expect(find.text('Контакты логиста'), findsOneWidget);
+    expect(find.text('Заказчик'), findsNothing);
     expect(find.text('Москва → Казань'), findsNothing);
+
+    // Сводка погрузок/разгрузок центрирована относительно ширины экрана.
+    // Границы рана: слева крайний элемент — иконка первого маркера
+    // (Icons.circle 8px, первые два в дереве — маркеры сводки, ниже
+    // идут 12px-маркеры точек), справа — текст второго счётчика.
+    final dots = find.byIcon(Icons.circle);
+    final summaryLeft = tester.getTopLeft(dots.at(0)).dx;
+    final summaryRight = tester
+        .getTopRight(find.text('1 разгрузка'))
+        .dx;
+    final summaryCenter = (summaryLeft + summaryRight) / 2;
+    expect((summaryCenter - 390 / 2).abs(), lessThan(1));
   });
 
   testWidgets('длинные сведения не вызывают переполнение на узком экране', (

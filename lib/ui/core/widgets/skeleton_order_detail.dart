@@ -18,9 +18,11 @@ class SkeletonOrderDetail extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: const [
-          _SkeletonOrderDetailsCard(),
+          _SkeletonCargoCard(),
           SizedBox(height: 16),
           _SkeletonRouteCard(),
+          SizedBox(height: 16),
+          _SkeletonClientCard(),
           SizedBox(height: 16),
           _SkeletonPhotoRow(),
         ],
@@ -29,9 +31,10 @@ class SkeletonOrderDetail extends StatelessWidget {
   }
 }
 
-/// Skeleton общей карточки: груз со статусом и заказчик.
-class _SkeletonOrderDetailsCard extends StatelessWidget {
-  const _SkeletonOrderDetailsCard();
+/// Плоская плитка-скелет — тот же контейнер, что у [BrandCard].
+class _SkeletonCard extends StatelessWidget {
+  const _SkeletonCard({required this.child});
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +46,18 @@ class _SkeletonOrderDetailsCard extends StatelessWidget {
         border: Border.all(color: BrandColors.grayLighter),
         borderRadius: BorderRadius.circular(BrandRadius.md),
       ),
+      child: child,
+    );
+  }
+}
+
+/// Skeleton плитки «Груз»: заголовок со статусом, наименование и характеристики.
+class _SkeletonCargoCard extends StatelessWidget {
+  const _SkeletonCargoCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return _SkeletonCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -50,7 +65,7 @@ class _SkeletonOrderDetailsCard extends StatelessWidget {
           Row(
             children: [
               const Expanded(
-                child: SkeletonLine(height: 11, widthFraction: 0.2),
+                child: SkeletonLine(height: 16, widthFraction: 0.2),
               ),
               const SizedBox(width: 12),
               SizedBox(
@@ -78,59 +93,46 @@ class _SkeletonOrderDetailsCard extends StatelessWidget {
               const Expanded(child: SkeletonLine(height: 13)),
             ],
           ),
-          const Padding(
-            padding: EdgeInsets.only(top: 20, bottom: 16),
-            child: Divider(height: 1, color: BrandColors.grayLighter),
-          ),
-          // Заказчик — последняя, более спокойная группа.
-          const SkeletonLine(height: 14, widthFraction: 0.25),
+        ],
+      ),
+    );
+  }
+}
+
+/// Skeleton плитки «Контакты логиста»: заголовок + три строки с иконками.
+class _SkeletonClientCard extends StatelessWidget {
+  const _SkeletonClientCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return _SkeletonCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SkeletonLine(height: 16, widthFraction: 0.35),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              Container(
-                width: 18,
-                height: 18,
-                decoration: const BoxDecoration(
-                  color: BrandColors.grayLighter,
-                  shape: BoxShape.circle,
+          for (var i = 0; i < 3; i++) ...[
+            if (i > 0) const SizedBox(height: 4),
+            Row(
+              children: [
+                Container(
+                  width: 18,
+                  height: 18,
+                  decoration: const BoxDecoration(
+                    color: BrandColors.grayLighter,
+                    shape: BoxShape.circle,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              const Expanded(child: SkeletonLine(height: 15)),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Container(
-                width: 18,
-                height: 18,
-                decoration: const BoxDecoration(
-                  color: BrandColors.grayLighter,
-                  shape: BoxShape.circle,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SkeletonLine(
+                    height: 15,
+                    widthFraction: i == 2 ? 0.5 : 1.0,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              const Expanded(child: SkeletonLine(height: 15)),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Container(
-                width: 18,
-                height: 18,
-                decoration: const BoxDecoration(
-                  color: BrandColors.grayLighter,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: SkeletonLine(height: 15, widthFraction: 0.5),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -143,14 +145,7 @@ class _SkeletonRouteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: BrandColors.white,
-        border: Border.all(color: BrandColors.grayLighter),
-        borderRadius: BorderRadius.circular(BrandRadius.md),
-      ),
+    return _SkeletonCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
